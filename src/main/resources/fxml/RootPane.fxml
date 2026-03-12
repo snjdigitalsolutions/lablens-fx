@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" type="BorderPane" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" style="-fx-background-color: ededdd;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.snjdigitalsolutions.lablensfx.application.StageReadyController">
    <top>
       <VBox BorderPane.alignment="CENTER_LEFT">
          <BorderPane.margin>
@@ -43,7 +43,7 @@
          </children>
       </VBox>
    </top>
-   <left>
-      <fx:include source="HostPane.fxml" fx:id="hostPane"/>
-   </left>
-</fx:root>
+<!--   <left>-->
+<!--      <fx:include fx:id="hostPane" source="HostPane.fxml" />-->
+<!--   </left>-->
+</BorderPane>

@@ -16,7 +16,7 @@ public class LablensFxBoot {
 
     public static void main(String[] args) {
         SplashConfiguration splashConfiguration = SplashConfiguration.getInstance();
-        splashConfiguration.setApplicationName("LabLens FX");
+        splashConfiguration.setApplicationName("LabLens");
         Toolkit.getDefaultToolkit();
         Application.launch(LabLensFX.class, args);
     }

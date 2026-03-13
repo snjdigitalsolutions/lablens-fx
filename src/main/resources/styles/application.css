@@ -1,0 +1,17 @@
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.host-panel .label {
+    -fx-text-fill: black;
+}
+
+.host-panel {
+    -fx-background-color: fcfcf6;
+}

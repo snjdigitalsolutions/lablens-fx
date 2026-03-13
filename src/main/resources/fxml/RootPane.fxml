@@ -28,7 +28,7 @@
                   <Button fx:id="logButton" mnemonicParsing="false" text="Logs" />
                   <Button fx:id="timelineButton" mnemonicParsing="false" text="Timeline" />
                   <Region HBox.hgrow="ALWAYS" />
-                  <Button mnemonicParsing="false" text="Add Host">
+                  <Button fx:id="addHostButton" mnemonicParsing="false" text="Add Host">
                      <graphic>
                         <FontAwesomeIconView glyphName="PLUS" />
                      </graphic>

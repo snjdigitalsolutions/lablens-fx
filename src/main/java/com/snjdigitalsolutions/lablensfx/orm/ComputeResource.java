@@ -1,9 +1,13 @@
 package com.snjdigitalsolutions.lablensfx.orm;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "compute_resource")
+@Getter
+@Setter
 public class ComputeResource {
 
     @Id

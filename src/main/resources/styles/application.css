@@ -15,3 +15,8 @@
 .host-panel {
     -fx-background-color: fcfcf6;
 }
+
+.host-panel-selected {
+    -fx-border-color: blue;
+    -fx-border-width: 2px;
+}

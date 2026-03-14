@@ -2,11 +2,13 @@ package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
+import com.snjdigitalsolutions.springbootutilityfx.event.StageReadyEvent;
 import com.snjdigitalsolutions.springbootutilityfx.node.CloseableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.StageNodeBuilder;
+import jakarta.annotation.PostConstruct;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -15,6 +17,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Modality;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
@@ -47,11 +52,11 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
     @Override
     public void performIntialization() {
         cancelButton.setOnAction(this::close);
-        submitButton.setOnAction(event -> {
+        submitButton.setOnAction(submitEvent -> {
             if (performFormValidation()) {
                 ComputeResource resource = new ComputeResource();
                 resource.setHostName(hostNameTextField.getText());
-                resource.setIpAddress(hostNameTextField.getText());
+                resource.setIpAddress(ipaddressTextField.getText());
                 resource.setOperatingSystem(operatingSystemTextField.getText());
                 if (!descriptionTextArea.getText().isEmpty()) {
                     resource.setDescription(descriptionTextArea.getText());
@@ -61,7 +66,7 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
                     onSubmit.run();
                 }
             }
-            this.close(event);
+            this.close(submitEvent);
         });
     }
 
@@ -84,4 +89,6 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
     public void setOnSubmit(Runnable onSubmit) {
         this.onSubmit = onSubmit;
     }
+
+
 }

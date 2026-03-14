@@ -2,18 +2,16 @@ package com.snjdigitalsolutions.lablensfx.application;
 
 import com.snjdigitalsolutions.lablensfx.nodes.HostFormPane;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPane;
+import com.snjdigitalsolutions.lablensfx.properties.StatusBarProperties;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
+import org.controlsfx.control.StatusBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.net.URL;
-import java.util.ResourceBundle;
 
 @Component
 public class StageReadyController implements SpringInitializableNode {
@@ -21,29 +19,36 @@ public class StageReadyController implements SpringInitializableNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(StageReadyController.class);
 
     @FXML
+    private StatusBar statusBar;
+    @FXML
     private BorderPane rootPane;
     @FXML
     private Button addHostButton;
+    @FXML
+    private MenuItem deleteSelectedHostsMenuItem;
 
     private final HostPane hostPane;
     private final HostFormPane hostFormPane;
+    private final StatusBarProperties statusBarProperties;
 
-    public StageReadyController(HostPane hostPane, HostFormPane hostFormPane) {
+    public StageReadyController(HostPane hostPane, HostFormPane hostFormPane, StatusBarProperties statusBarProperties) {
         this.hostPane = hostPane;
         this.hostFormPane = hostFormPane;
+        this.statusBarProperties = statusBarProperties;
     }
 
-    public void addHostPane(){
+    public void addHostPane() {
         rootPane.setLeft(hostPane);
     }
 
     @Override
     public void performIntialization() {
         LOGGER.debug("Initializing...");
-        hostPane.performIntialization();
-        hostFormPane.performIntialization();
-        addHostButton.setOnAction(event -> {
+        statusBar.textProperty().bind(statusBarProperties.statusProperty());
+        deleteSelectedHostsMenuItem.disableProperty().bind(statusBarProperties.disableDeleteHostMenuItemProperty());
+        addHostButton.setOnAction(buttonEvent -> {
             hostFormPane.showFormPane();
         });
     }
+
 }

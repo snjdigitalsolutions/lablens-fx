@@ -1,5 +1,6 @@
 package com.snjdigitalsolutions.lablensfx.application;
 
+import com.snjdigitalsolutions.lablensfx.nodes.DashboardPane;
 import com.snjdigitalsolutions.lablensfx.nodes.HostFormPane;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPane;
 import com.snjdigitalsolutions.lablensfx.properties.StatusBarProperties;
@@ -30,20 +31,19 @@ public class StageReadyController implements SpringInitializableNode {
     private final HostPane hostPane;
     private final HostFormPane hostFormPane;
     private final StatusBarProperties statusBarProperties;
+    private final DashboardPane dashboardPane;
 
-    public StageReadyController(HostPane hostPane, HostFormPane hostFormPane, StatusBarProperties statusBarProperties) {
+    public StageReadyController(HostPane hostPane, HostFormPane hostFormPane, StatusBarProperties statusBarProperties, DashboardPane dashboardPane) {
         this.hostPane = hostPane;
         this.hostFormPane = hostFormPane;
         this.statusBarProperties = statusBarProperties;
-    }
-
-    public void addHostPane() {
-        rootPane.setLeft(hostPane);
+        this.dashboardPane = dashboardPane;
     }
 
     @Override
     public void performIntialization() {
-        LOGGER.debug("Initializing...");
+        rootPane.setLeft(hostPane);
+        rootPane.setCenter(dashboardPane);
         statusBar.textProperty().bind(statusBarProperties.statusProperty());
         deleteSelectedHostsMenuItem.disableProperty().bind(statusBarProperties.disableDeleteHostMenuItemProperty());
         addHostButton.setOnAction(buttonEvent -> {

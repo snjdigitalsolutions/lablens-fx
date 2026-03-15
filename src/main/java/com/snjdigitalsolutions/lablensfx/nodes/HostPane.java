@@ -60,10 +60,7 @@ public class HostPane extends AnchorPane implements SpringInitializableNode {
             panel.getStyleClass().add("host-panel");
             panel.getHostNameLabel().setText(resource.getHostName());
             panel.getIpAddressLabel().setText(resource.getIpAddress());
-            panel.getOsLabel().setText(resource.getOperatingSystem());
-            panel.getDescriptionLabel().setText(resource.getDescription());
             panel.maxWidthProperty().bind(panelVBox.widthProperty());
-            panel.getDescriptionLabel().setWrapText(true);
             panelVBox.getChildren().add(panel);
         });
     }

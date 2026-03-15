@@ -13,10 +13,18 @@
 }
 
 .host-panel {
-    -fx-background-color: fcfcf6;
+    -fx-background-color: #fcfcf6;
 }
 
 .host-panel-selected {
     -fx-border-color: blue;
     -fx-border-width: 2px;
+}
+
+.section-header-color {
+    -fx-background-color: lightgrey;
+}
+
+.main-stage-background-color {
+    -fx-background-color: #ffffed;
 }

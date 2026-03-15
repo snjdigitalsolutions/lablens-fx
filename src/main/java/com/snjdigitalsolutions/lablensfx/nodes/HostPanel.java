@@ -11,6 +11,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,13 +30,11 @@ public class HostPanel extends GridPane implements SpringInitializableNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(HostPanel.class);
 
     @FXML
+    @Getter
     private Label hostNameLabel;
     @FXML
+    @Getter
     private Label ipAddressLabel;
-    @FXML
-    private Label osLabel;
-    @FXML
-    private Label descriptionLabel;
 
     private final StatusBarProperties statusBarProperties;
 
@@ -48,11 +47,6 @@ public class HostPanel extends GridPane implements SpringInitializableNode {
     @Override
     public void performIntialization() {
         addSelectedStyle(this);
-        this.getChildren().forEach(node -> {
-            if (node instanceof Label){
-                addSelectedStyle(node);
-            }
-        });
     }
 
     private void addSelectedStyle(Node node) {
@@ -73,22 +67,5 @@ public class HostPanel extends GridPane implements SpringInitializableNode {
         });
 
     }
-
-    public Label getHostNameLabel() {
-        return hostNameLabel;
-    }
-
-    public Label getIpAddressLabel() {
-        return ipAddressLabel;
-    }
-
-    public Label getOsLabel() {
-        return osLabel;
-    }
-
-    public Label getDescriptionLabel() {
-        return descriptionLabel;
-    }
-
 
 }

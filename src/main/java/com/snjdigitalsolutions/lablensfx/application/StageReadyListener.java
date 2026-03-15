@@ -26,10 +26,4 @@ public class StageReadyListener extends AbstractStageReadyListener {
         this.stageReadyController = stageReadyController;
         this.hostPane = hostPane;
     }
-
-    @Override
-    public void performIntialization() {
-        LOGGER.debug("Initializing...");
-        stageReadyController.addHostPane();
-    }
 }

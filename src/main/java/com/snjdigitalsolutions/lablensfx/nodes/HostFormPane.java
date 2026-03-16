@@ -14,6 +14,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Modality;
+import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
@@ -70,7 +71,6 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
                 if (onSubmit != null) {
                     onSubmit.run();
                 }
-                clearForm();
                 this.close(event);
             }
         });
@@ -79,7 +79,7 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
     private boolean performFormValidation() {
         boolean valid = false;
         if (!hostNameTextField.getText().isEmpty() && !ipaddressTextField.getText().isEmpty() && !operatingSystemTextField.getText().isEmpty()) {
-            if (ipAddressUtility.isValidIpAddress(ipaddressTextField.getText())){
+            if (ipAddressUtility.isValidIpAddress(ipaddressTextField.getText())) {
                 valid = true;
             } else {
                 alertUtility.warningAlert("Invalid Address", "The IP address entered is invalid.");
@@ -101,10 +101,25 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
     }
 
     public void showFormPane() {
+        clearForm();
+        makeFormVisible("Add Host");
+    }
+
+    public void showFormPane(HostPanel sourcePanel) {
+        ComputeResource resource = computeResourceRepository.findById(sourcePanel.getHostId()).get();
+        hostNameTextField.setText(resource.getHostName());
+        ipaddressTextField.setText(resource.getIpAddress());
+        operatingSystemTextField.setText(resource.getOperatingSystem());
+        descriptionTextArea.setText(resource.getDescription());
+        makeFormVisible("Edit Host");
+    }
+
+    private void makeFormVisible(String title) {
         StageNodeBuilder.builder()
-            .setNode(this)
-            .setModality(Modality.APPLICATION_MODAL)
-            .buildAndShow();
+                .setNode(this)
+                .setModality(Modality.APPLICATION_MODAL)
+                .setTitle(title)
+                .buildAndShow();
     }
 
     public void setOnSubmit(Runnable onSubmit) {

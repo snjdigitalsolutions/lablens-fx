@@ -28,3 +28,23 @@
 .main-stage-background-color {
     -fx-background-color: #ffffed;
 }
+
+.summary-panel-count-black {
+    -fx-font-size: 36px;
+    -fx-text-fill: black;
+}
+
+.summary-panel-count-red {
+    -fx-font-size: 36px;
+    -fx-text-fill: red;
+}
+
+.summary-panel-count-orange {
+    -fx-font-size: 36px;
+    -fx-text-fill: orange;
+}
+
+.summary-panel-count-green {
+    -fx-font-size: 36px;
+    -fx-text-fill: green;
+}

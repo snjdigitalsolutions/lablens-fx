@@ -5,9 +5,7 @@ import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
 import com.snjdigitalsolutions.springbootutilityfx.event.StageReadyEvent;
 import com.snjdigitalsolutions.springbootutilityfx.node.CloseableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
-import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
-import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeUtility;
-import com.snjdigitalsolutions.springbootutilityfx.node.utility.StageNodeBuilder;
+import com.snjdigitalsolutions.springbootutilityfx.node.utility.*;
 import jakarta.annotation.PostConstruct;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -40,19 +38,26 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
     private Button submitButton;
 
     private final NodeUtility nodeUtility;
+    private final AlertUtility alertUtility;
     private final ComputeResourceRepository computeResourceRepository;
+    private final IpAddressUtility ipAddressUtility;
     private Runnable onSubmit;
 
-    public HostFormPane(@Value("classpath:/fxml/HostFormPane.fxml") Resource fxml, NodeUtility nodeUtility, ComputeResourceRepository computeResourceRepository) {
+    public HostFormPane(@Value("classpath:/fxml/HostFormPane.fxml") Resource fxml,
+                        NodeUtility nodeUtility, AlertUtility alertUtility,
+                        ComputeResourceRepository computeResourceRepository,
+                        IpAddressUtility ipAddressUtility) {
         this.nodeUtility = nodeUtility;
+        this.alertUtility = alertUtility;
         this.computeResourceRepository = computeResourceRepository;
+        this.ipAddressUtility = ipAddressUtility;
         NodeLoader.load(fxml, this);
     }
 
     @Override
     public void performIntialization() {
         cancelButton.setOnAction(this::close);
-        submitButton.setOnAction(submitEvent -> {
+        submitButton.setOnAction(event -> {
             if (performFormValidation()) {
                 ComputeResource resource = new ComputeResource();
                 resource.setHostName(hostNameTextField.getText());
@@ -65,13 +70,29 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
                 if (onSubmit != null) {
                     onSubmit.run();
                 }
+                clearForm();
+                this.close(event);
             }
-            this.close(submitEvent);
         });
     }
 
     private boolean performFormValidation() {
-       return !hostNameTextField.getText().isEmpty() && !ipaddressTextField.getText().isEmpty() && !operatingSystemTextField.getText().isEmpty();
+        boolean valid = false;
+        if (!hostNameTextField.getText().isEmpty() && !ipaddressTextField.getText().isEmpty() && !operatingSystemTextField.getText().isEmpty()) {
+            if (ipAddressUtility.isValidIpAddress(ipaddressTextField.getText())){
+                valid = true;
+            } else {
+                alertUtility.warningAlert("Invalid Address", "The IP address entered is invalid.");
+            }
+        }
+        return valid;
+    }
+
+    private void clearForm() {
+        hostNameTextField.clear();
+        ipaddressTextField.clear();
+        operatingSystemTextField.clear();
+        descriptionTextArea.clear();
     }
 
     @Override

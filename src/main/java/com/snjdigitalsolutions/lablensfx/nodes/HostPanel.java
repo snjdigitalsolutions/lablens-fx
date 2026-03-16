@@ -92,7 +92,7 @@ public class HostPanel extends GridPane implements SpringInitializableNode {
             }
         });
         pencilIcon.setOnMouseClicked(event -> {
-            System.out.println("edit me");
+            hostManagementService.editSelectedHost(this);
             event.consume();
         });
         deleteIcon.setOnMouseClicked(event -> {

@@ -5,6 +5,7 @@ import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
 import javafx.fxml.FXML;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import org.springframework.beans.factory.ObjectProvider;
@@ -17,6 +18,8 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
 
     @FXML
     private HBox summaryPanelHBox;
+    @FXML
+    private FlowPane hostFlowPane;
 
     private final ObjectProvider<SummaryPanel> summaryPanelProvider;
     private final GlobalProperties globalProperties;

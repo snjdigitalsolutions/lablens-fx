@@ -3,7 +3,6 @@ package com.snjdigitalsolutions.lablensfx.application;
 import com.snjdigitalsolutions.lablensfx.nodes.DashboardPane;
 import com.snjdigitalsolutions.lablensfx.nodes.HostFormPane;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPane;
-import com.snjdigitalsolutions.lablensfx.properties.GlobalProperties;
 import com.snjdigitalsolutions.lablensfx.properties.StatusBarProperties;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
@@ -58,7 +57,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
             hostFormPane.showFormPane();
         });
         deleteSelectedHostsMenuItem.setOnAction(event -> {
-           hostManagementService.deleteSelectedHosts();
+            hostManagementService.deleteSelectedHosts();
         });
     }
 

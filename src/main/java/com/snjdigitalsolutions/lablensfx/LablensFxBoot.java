@@ -17,7 +17,7 @@ public class LablensFxBoot implements FxBoot {
 
     public static void main(String[] args) {
         SplashConfiguration.getInstance().setApplicationName("LabLens");
-        ApplicationPreConfiguration.getInstance().setStageWidth(1000);
+        ApplicationPreConfiguration.getInstance().setStageWidth(925);
         ApplicationPreConfiguration.getInstance().setStageHeight(800);
         ApplicationPreConfiguration.getInstance().setCssPath("/styles/application.css");
         Toolkit.getDefaultToolkit();

@@ -1,7 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.application;
 
-import com.snjdigitalsolutions.lablensfx.nodes.HostPane;
 import com.snjdigitalsolutions.springbootutilityfx.application.AbstractStageReadyListener;
+import com.snjdigitalsolutions.springbootutilityfx.splash.SplashController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,13 +12,16 @@ import org.springframework.stereotype.Component;
 public class LabLensFxBootReadyListener extends AbstractStageReadyListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LabLensFxBootReadyListener.class);
-    private final LabLensFxBootReadyController labLensFxBootReadyController;
-    private final HostPane hostPane;
+    private final LabLensFxPostShowAction labLensFxPostShowAction;
 
-    public LabLensFxBootReadyListener(@Value("classpath:/fxml/RootPane.fxml") Resource fxml,
-                                      LabLensFxBootReadyController labLensFxBootReadyController, HostPane hostPane){
+    public LabLensFxBootReadyListener(@Value("classpath:/fxml/RootPane.fxml") Resource fxml, LabLensFxPostShowAction labLensFxPostShowAction) {
         super(fxml);
-        this.labLensFxBootReadyController = labLensFxBootReadyController;
-        this.hostPane = hostPane;
+        this.labLensFxPostShowAction = labLensFxPostShowAction;
+    }
+
+    @Override
+    public void setPostShowRunnable() {
+        LOGGER.debug("Setting post show runnable");
+        SplashController.setPostShowRunnable(labLensFxPostShowAction);
     }
 }

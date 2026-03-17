@@ -2,6 +2,7 @@ package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.properties.GlobalProperties;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
+import com.snjdigitalsolutions.springbootutilityfx.node.utility.IpAddressUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
 import javafx.fxml.FXML;
 import javafx.scene.layout.AnchorPane;
@@ -13,6 +14,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
+import java.util.*;
+
 @Component
 public class DashboardPane extends AnchorPane implements SpringInitializableNode {
 
@@ -22,11 +25,19 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
     private FlowPane hostFlowPane;
 
     private final ObjectProvider<SummaryPanel> summaryPanelProvider;
+    private final ObjectProvider<HostPanelLarge> hostPanelLargeProvider;
     private final GlobalProperties globalProperties;
+    private final IpAddressUtility ipAddressUtility;
 
-    public DashboardPane(@Value("classpath:/fxml/DashboardPane.fxml") Resource fxml, ObjectProvider<SummaryPanel> summaryPanelProvider, GlobalProperties globalProperties){
+    public DashboardPane(@Value("classpath:/fxml/DashboardPane.fxml") Resource fxml,
+                         ObjectProvider<SummaryPanel> summaryPanelProvider,
+                         ObjectProvider<HostPanelLarge> hostPanelLargeProvider,
+                         GlobalProperties globalProperties,
+                         IpAddressUtility ipAddressUtility){
         this.summaryPanelProvider = summaryPanelProvider;
+        this.hostPanelLargeProvider = hostPanelLargeProvider;
         this.globalProperties = globalProperties;
+        this.ipAddressUtility = ipAddressUtility;
         NodeLoader.load(fxml, this);
     }
 
@@ -65,6 +76,29 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         numberOfLogErrorsPanel.setCountLabelStyleClass("summary-panel-count-red");
         HBox.setHgrow(numberOfLogErrorsPanel, Priority.ALWAYS);
         summaryPanelHBox.getChildren().add(numberOfLogErrorsPanel);
+
+        globalProperties.getComputeResourcesLoadedProperty().addListener((obj, oldVal, newVal) -> {
+            if (newVal){
+                refresh();
+            }
+        });
+    }
+
+    public void refresh() {
+        hostFlowPane.getChildren().clear();
+
+        Map<String,HostPanelLarge> ipAddressToPanelMap = new HashMap<>();
+        globalProperties.getComputeResourcesProperty().get().forEach(resource -> {
+            HostPanelLarge panel = hostPanelLargeProvider.getObject();
+            panel.getHostNameLabel().setText(resource.getHostName());
+            panel.getIpAddressLabel().setText(resource.getIpAddress());
+            panel.getStyleClass().add("host-panel");
+            ipAddressToPanelMap.put(resource.getIpAddress(), panel);
+        });
+
+        ipAddressUtility.sortIpAddresses(new ArrayList<>(ipAddressToPanelMap.keySet())).forEach(ipAddress -> {
+            hostFlowPane.getChildren().add(ipAddressToPanelMap.get(ipAddress));
+        });
 
     }
 }

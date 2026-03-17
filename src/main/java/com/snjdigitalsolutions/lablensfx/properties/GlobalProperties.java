@@ -2,6 +2,7 @@ package com.snjdigitalsolutions.lablensfx.properties;
 
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
 import com.snjdigitalsolutions.lablensfx.nodes.SummaryPanel;
+import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,5 +20,7 @@ public class GlobalProperties {
     private final ObjectProperty<SummaryPanel> numberOfConfigurationChangePanelProperty = new SimpleObjectProperty<>();
     private final ObjectProperty<SummaryPanel> numberOfLegErrorsPanelProperty = new SimpleObjectProperty<>();
     private final ListProperty<HostPanel> selectedHostPanelListProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
+    private final ListProperty<ComputeResource> computeResourcesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
+    private final BooleanProperty computeResourcesLoadedProperty = new SimpleBooleanProperty(false);
 
 }

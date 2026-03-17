@@ -34,6 +34,8 @@ public class HostPane extends AnchorPane implements SpringInitializableNode {
     @FXML
     private VBox panelVBox;
 
+    private boolean computeResourcesLoaded = false;
+
     private final ComputeResourceRepository computeResourceRepository;
     private final ObjectProvider<HostPanel> hostPanelProvider;
     private final HostFormPane hostFormPane;
@@ -56,14 +58,19 @@ public class HostPane extends AnchorPane implements SpringInitializableNode {
     public void performIntialization() {
         panelVBox.setAlignment(Pos.CENTER_LEFT);
         hostFormPane.setOnSubmit(this::refresh);
-        refresh();
+        globalProperties.getComputeResourcesLoadedProperty().addListener((obj, oldVal, newVal) -> {
+            if (newVal) {
+                refresh();
+            }
+        });
     }
 
     public void refresh() {
         LOGGER.debug("Refreshing host panels");
         panelVBox.getChildren().clear();
+
         Map<String,HostPanel> ipAddressToHostPanelMap = new HashMap<>();
-        computeResourceRepository.findAll().forEach(resource -> {
+        globalProperties.getComputeResourcesProperty().get().forEach(resource -> {
             LOGGER.debug("Adding panel for resource: {}", resource.getHostName());
             HostPanel panel = hostPanelProvider.getObject();
             panel.getStyleClass().add("host-panel");
@@ -74,11 +81,13 @@ public class HostPane extends AnchorPane implements SpringInitializableNode {
             ipAddressToHostPanelMap.put(panel.getIpAddressLabel().getText(), panel);
         });
 
+        //Sort by IP Address
         List<String> sortedIps = ipAddressUtility.sortIpAddresses(new ArrayList<>(ipAddressToHostPanelMap.keySet()));
         sortedIps.forEach(address -> {
             panelVBox.getChildren().add(ipAddressToHostPanelMap.get(address));
         });
 
+        //Update the counts
         globalProperties.getNumberOfHostsProperty().setValue(panelVBox.getChildren().size());
     }
 

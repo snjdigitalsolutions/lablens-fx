@@ -2,7 +2,6 @@ package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.properties.GlobalProperties;
-import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.springbootutilityfx.node.CloseableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
@@ -19,8 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 @Component
 public class HostFormPane extends AnchorPane implements SpringInitializableNode, CloseableNode {

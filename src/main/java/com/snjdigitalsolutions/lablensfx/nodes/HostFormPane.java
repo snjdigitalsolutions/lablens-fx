@@ -1,7 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
-import com.snjdigitalsolutions.lablensfx.properties.GlobalProperties;
+import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.springbootutilityfx.node.CloseableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
@@ -39,19 +39,19 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
     private final AlertUtility alertUtility;
     private final IpAddressUtility ipAddressUtility;
     private final HostManagementService hostManagementService;
-    private final GlobalProperties globalProperties;
+    private final ComputeResourceProperties computeResourceProperties;
 
     public HostFormPane(@Value("classpath:/fxml/HostFormPane.fxml") Resource fxml,
                         NodeUtility nodeUtility,
                         AlertUtility alertUtility,
                         IpAddressUtility ipAddressUtility,
                         HostManagementService hostManagementService,
-                        GlobalProperties globalProperties) {
+                        ComputeResourceProperties computeResourceProperties) {
         this.nodeUtility = nodeUtility;
         this.alertUtility = alertUtility;
         this.hostManagementService = hostManagementService;
         this.ipAddressUtility = ipAddressUtility;
-        this.globalProperties = globalProperties;
+        this.computeResourceProperties = computeResourceProperties;
         NodeLoader.load(fxml, this);
     }
 
@@ -60,21 +60,21 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
         cancelButton.setOnAction(this::close);
         submitButton.setOnAction(event -> {
             if (performFormValidation()) {
-                if (globalProperties.getComputerResourceBeingEdited() == null){
+                if (computeResourceProperties.getComputerResourceBeingEdited() == null){
                     ComputeResource resource = new ComputeResource();
                     setValuesOnResource(resource);
                     hostManagementService.addComputeResource(resource);
                     this.close(event);
                 }
                 else {
-                    ComputeResource resource = globalProperties.getComputerResourceBeingEdited();
+                    ComputeResource resource = computeResourceProperties.getComputerResourceBeingEdited();
                     setValuesOnResource(resource);
                     hostManagementService.updateComputeResource(resource);
                     this.close(event);
                 }
             }
         });
-        globalProperties.computerResourceBeingEditedProperty().addListener((obj, oldVal, newVal) -> {
+        computeResourceProperties.computerResourceBeingEditedProperty().addListener((obj, oldVal, newVal) -> {
             if (newVal != null) {
                 showPane(newVal);
             }

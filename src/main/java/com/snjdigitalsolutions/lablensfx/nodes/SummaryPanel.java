@@ -1,6 +1,5 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
-import com.snjdigitalsolutions.lablensfx.properties.GlobalProperties;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;

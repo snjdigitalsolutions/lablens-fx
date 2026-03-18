@@ -1,7 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
-import com.snjdigitalsolutions.lablensfx.properties.GlobalProperties;
+import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.IpAddressUtility;
@@ -27,13 +27,13 @@ public class HostPane extends AnchorPane implements SpringInitializableNode {
     @FXML
     private VBox panelVBox;
 
-    private final GlobalProperties globalProperties;
+    private final ComputeResourceProperties computeResourceProperties;
     private final HostManagementService hostManagementService;
 
     public HostPane(@Value("classpath:/fxml/HostPane.fxml") Resource fxml,
-                    GlobalProperties globalProperties,
+                    ComputeResourceProperties computeResourceProperties,
                     HostManagementService hostManagementService) {
-        this.globalProperties = globalProperties;
+        this.computeResourceProperties = computeResourceProperties;
         this.hostManagementService = hostManagementService;
         NodeLoader.load(fxml, this);
     }
@@ -41,7 +41,7 @@ public class HostPane extends AnchorPane implements SpringInitializableNode {
     @Override
     public void performIntialization() {
         panelVBox.setAlignment(Pos.CENTER_LEFT);
-        globalProperties.computeResourcesMapProperty().addListener((MapChangeListener<Long, ComputeResource>) change -> {
+        computeResourceProperties.computeResourcesMapProperty().addListener((MapChangeListener<Long, ComputeResource>) change -> {
             if (change.wasAdded()) {
                 HostPanel panel = hostManagementService.createHostPanelForComputeResource(change.getValueAdded());
                 change.getValueAdded().setHostPanel(panel);

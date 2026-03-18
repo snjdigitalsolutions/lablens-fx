@@ -13,22 +13,23 @@ import org.springframework.stereotype.Component;
 public class StatusBarProperties implements SpringInitializableNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StatusBarProperties.class);
-    private final StringProperty statusProperty = new SimpleStringProperty("");
+
+    private final StringProperty statusMessage = new SimpleStringProperty("");
     private final ListProperty<HostPanel> selectedHostPanelList = new SimpleListProperty<>(FXCollections.observableArrayList());
-    private final IntegerProperty numberOfSelectedHostsProperty = new SimpleIntegerProperty(0);
-    private final ObjectProperty<ApplicationView> selectedApplicationViewProperty = new SimpleObjectProperty<>(ApplicationView.DASHBOARD);
-    private final BooleanProperty disableDeleteHostMenuItemProperty = new SimpleBooleanProperty(true);
+    private final IntegerProperty numberOfSelectedHosts = new SimpleIntegerProperty(0);
+    private final ObjectProperty<ApplicationView> selectedApplicationView = new SimpleObjectProperty<>(ApplicationView.DASHBOARD);
+    private final BooleanProperty disableDeleteHostMenuItem = new SimpleBooleanProperty(true);
 
     public StringProperty statusProperty() {
-        return statusProperty;
+        return statusMessage;
     }
 
     public IntegerProperty numberOfSelectedHostsProperty() {
-        return numberOfSelectedHostsProperty;
+        return numberOfSelectedHosts;
     }
 
     public BooleanProperty disableDeleteHostMenuItemProperty() {
-        return disableDeleteHostMenuItemProperty;
+        return disableDeleteHostMenuItem;
     }
 
     public ObservableList<HostPanel> getSelectedHostPanelList() {
@@ -41,14 +42,14 @@ public class StatusBarProperties implements SpringInitializableNode {
 
     @Override
     public void performIntialization() {
-        numberOfSelectedHostsProperty.addListener((obj, oldVal, newVal) -> {
-            if (selectedApplicationViewProperty.get().equals(ApplicationView.DASHBOARD) && newVal.intValue() > 0) {
+        numberOfSelectedHosts.addListener((obj, oldVal, newVal) -> {
+            if (selectedApplicationView.get().equals(ApplicationView.DASHBOARD) && newVal.intValue() > 0) {
                 LOGGER.debug("{} Hosts Selected", newVal);
-                statusProperty.setValue(newVal + " Hosts Selected");
-                disableDeleteHostMenuItemProperty.setValue(false);
-            } else if (selectedApplicationViewProperty.get().equals(ApplicationView.DASHBOARD) && newVal.intValue() == 0) {
-                statusProperty.setValue("");
-                disableDeleteHostMenuItemProperty.setValue(true);
+                statusMessage.setValue(newVal + " Hosts Selected");
+                disableDeleteHostMenuItem.setValue(false);
+            } else if (selectedApplicationView.get().equals(ApplicationView.DASHBOARD) && newVal.intValue() == 0) {
+                statusMessage.setValue("");
+                disableDeleteHostMenuItem.setValue(true);
             }
         });
     }

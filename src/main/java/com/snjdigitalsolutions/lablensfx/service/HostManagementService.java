@@ -6,6 +6,7 @@ import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
 import com.snjdigitalsolutions.lablensfx.properties.StatusBarProperties;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
+import com.snjdigitalsolutions.springbootutilityfx.node.utility.IpAddressUtility;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import org.slf4j.Logger;
@@ -25,15 +26,18 @@ public class HostManagementService implements SpringInitializableNode {
     private final StatusBarProperties statusBarProperties;
     private final ComputeResourceRepository computeResourceRepository;
     private final ObjectProvider<HostPanel> hostPanelProvider;
+    private final IpAddressUtility ipAddressUtility;
 
     public HostManagementService(ComputeResourceProperties computeResourceProperties,
                                  StatusBarProperties statusBarProperties,
                                  ComputeResourceRepository computeResourceRepository,
-                                 ObjectProvider<HostPanel> hostPanelProvider) {
+                                 ObjectProvider<HostPanel> hostPanelProvider,
+                                 IpAddressUtility ipAddressUtility) {
         this.computeResourceProperties = computeResourceProperties;
         this.statusBarProperties = statusBarProperties;
         this.computeResourceRepository = computeResourceRepository;
         this.hostPanelProvider = hostPanelProvider;
+        this.ipAddressUtility = ipAddressUtility;
     }
 
     @Override
@@ -100,6 +104,10 @@ public class HostManagementService implements SpringInitializableNode {
             panel.setComputeResource(resource);
             panels.add(panel);
         });
+
+        //TODO create a comparator and interface for objects that have IP addresses
+//        panels = ipAddressUtility.sortIpAddresses(panels);
+
         return panels;
     }
 

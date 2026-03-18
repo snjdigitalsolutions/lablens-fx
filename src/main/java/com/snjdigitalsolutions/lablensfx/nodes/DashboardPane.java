@@ -1,7 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
-import com.snjdigitalsolutions.lablensfx.properties.GlobalProperties;
+import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.IpAddressUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
@@ -26,17 +26,17 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
 
     private final ObjectProvider<SummaryPanel> summaryPanelProvider;
     private final ObjectProvider<HostPanelLarge> hostPanelLargeProvider;
-    private final GlobalProperties globalProperties;
+    private final ComputeResourceProperties computeResourceProperties;
     private final IpAddressUtility ipAddressUtility;
 
     public DashboardPane(@Value("classpath:/fxml/DashboardPane.fxml") Resource fxml,
                          ObjectProvider<SummaryPanel> summaryPanelProvider,
                          ObjectProvider<HostPanelLarge> hostPanelLargeProvider,
-                         GlobalProperties globalProperties,
+                         ComputeResourceProperties computeResourceProperties,
                          IpAddressUtility ipAddressUtility){
         this.summaryPanelProvider = summaryPanelProvider;
         this.hostPanelLargeProvider = hostPanelLargeProvider;
-        this.globalProperties = globalProperties;
+        this.computeResourceProperties = computeResourceProperties;
         this.ipAddressUtility = ipAddressUtility;
         NodeLoader.load(fxml, this);
     }
@@ -48,8 +48,8 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         numberOfHostsPanel.setHeaderLabelText("Total Hosts");
         numberOfHostsPanel.setMoreInfoLabel("registered");
         HBox.setHgrow(numberOfHostsPanel, Priority.ALWAYS);
-        globalProperties.computeResourcesMapProperty().addListener((MapChangeListener<Long,ComputeResource>) change -> {
-            numberOfHostsPanel.setCountLabel(Integer.toString(globalProperties.getComputeResourcesMap().size()));
+        computeResourceProperties.computeResourcesMapProperty().addListener((MapChangeListener<Long,ComputeResource>) change -> {
+            numberOfHostsPanel.setCountLabel(Integer.toString(computeResourceProperties.getComputeResourcesMap().size()));
         });
         summaryPanelHBox.getChildren().add(numberOfHostsPanel);
 
@@ -77,7 +77,7 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         HBox.setHgrow(numberOfLogErrorsPanel, Priority.ALWAYS);
         summaryPanelHBox.getChildren().add(numberOfLogErrorsPanel);
 
-        globalProperties.getComputeResourcesMap().addListener((MapChangeListener<Long,ComputeResource>) change -> {
+        computeResourceProperties.getComputeResourcesMap().addListener((MapChangeListener<Long,ComputeResource>) change -> {
             if (change.wasAdded() || change.wasRemoved()) {
                 refresh();
             }
@@ -87,7 +87,7 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
     public void refresh() {
         hostFlowPane.getChildren().clear();
         Map<String,HostPanelLarge> ipAddressToPanelMap = new HashMap<>();
-        globalProperties.getComputeResourcesMap().values().forEach(resource -> {
+        computeResourceProperties.getComputeResourcesMap().values().forEach(resource -> {
             HostPanelLarge panel = hostPanelLargeProvider.getObject();
             panel.performInitialization();
             panel.hostnameProperty().setValue(resource.getHostName());

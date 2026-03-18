@@ -1,7 +1,10 @@
 package com.snjdigitalsolutions.lablensfx.properties;
 
+import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import javafx.beans.property.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -11,6 +14,7 @@ public class StatusBarProperties implements SpringInitializableNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StatusBarProperties.class);
     private final StringProperty statusProperty = new SimpleStringProperty("");
+    private final ListProperty<HostPanel> selectedHostPanelList = new SimpleListProperty<>(FXCollections.observableArrayList());
     private final IntegerProperty numberOfSelectedHostsProperty = new SimpleIntegerProperty(0);
     private final ObjectProperty<ApplicationView> selectedApplicationViewProperty = new SimpleObjectProperty<>(ApplicationView.DASHBOARD);
     private final BooleanProperty disableDeleteHostMenuItemProperty = new SimpleBooleanProperty(true);
@@ -25,6 +29,14 @@ public class StatusBarProperties implements SpringInitializableNode {
 
     public BooleanProperty disableDeleteHostMenuItemProperty() {
         return disableDeleteHostMenuItemProperty;
+    }
+
+    public ObservableList<HostPanel> getSelectedHostPanelList() {
+        return selectedHostPanelList.get();
+    }
+
+    public ListProperty<HostPanel> selectedHostPanelListProperty() {
+        return selectedHostPanelList;
     }
 
     @Override

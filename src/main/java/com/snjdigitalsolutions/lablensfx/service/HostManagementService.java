@@ -2,7 +2,8 @@ package com.snjdigitalsolutions.lablensfx.service;
 
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
-import com.snjdigitalsolutions.lablensfx.properties.GlobalProperties;
+import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
+import com.snjdigitalsolutions.lablensfx.properties.StatusBarProperties;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import javafx.collections.MapChangeListener;
@@ -20,21 +21,24 @@ import java.util.Optional;
 public class HostManagementService implements SpringInitializableNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HostManagementService.class);
-    private final GlobalProperties globalProperties;
+    private final ComputeResourceProperties computeResourceProperties;
+    private final StatusBarProperties statusBarProperties;
     private final ComputeResourceRepository computeResourceRepository;
     private final ObjectProvider<HostPanel> hostPanelProvider;
 
-    public HostManagementService(GlobalProperties globalProperties,
+    public HostManagementService(ComputeResourceProperties computeResourceProperties,
+                                 StatusBarProperties statusBarProperties,
                                  ComputeResourceRepository computeResourceRepository,
                                  ObjectProvider<HostPanel> hostPanelProvider) {
-        this.globalProperties = globalProperties;
+        this.computeResourceProperties = computeResourceProperties;
+        this.statusBarProperties = statusBarProperties;
         this.computeResourceRepository = computeResourceRepository;
         this.hostPanelProvider = hostPanelProvider;
     }
 
     @Override
     public void performIntialization() {
-        globalProperties.getComputeResourcesMap().addListener((MapChangeListener<Long, ComputeResource>) change -> {
+        computeResourceProperties.getComputeResourcesMap().addListener((MapChangeListener<Long, ComputeResource>) change -> {
             if (change.wasRemoved()) {
                 computeResourceRepository.deleteById(change.getKey());
             }
@@ -42,28 +46,28 @@ public class HostManagementService implements SpringInitializableNode {
     }
 
     public void deleteSelectedHosts() {
-        globalProperties.selectedHostPanelListProperty().get().forEach(hostPanel -> {
-            globalProperties.getComputeResourcesMap().remove(hostPanel.getComputeResource().getId());
+        statusBarProperties.selectedHostPanelListProperty().get().forEach(hostPanel -> {
+            computeResourceProperties.getComputeResourcesMap().remove(hostPanel.getComputeResource().getId());
         });
     }
 
     public void deleteSelectedHosts(HostPanel sourcePanel) {
-        ObservableList<HostPanel> selectedHosts = globalProperties.selectedHostPanelListProperty().get();
+        ObservableList<HostPanel> selectedHosts = statusBarProperties.selectedHostPanelListProperty().get();
         if (!selectedHosts.isEmpty()) {
             deleteSelectedHosts();
         } else {
-            globalProperties.getComputeResourcesMap().remove(sourcePanel.getComputeResource().getId());
+            computeResourceProperties.getComputeResourcesMap().remove(sourcePanel.getComputeResource().getId());
         }
     }
 
     public void editSelectedHost(HostPanel sourcePanel) {
-        ComputeResource resource = globalProperties.getComputeResourcesMap().get(sourcePanel.getComputeResource().getId());
-        globalProperties.computerResourceBeingEditedProperty().setValue(resource);
+        ComputeResource resource = computeResourceProperties.getComputeResourcesMap().get(sourcePanel.getComputeResource().getId());
+        computeResourceProperties.computerResourceBeingEditedProperty().setValue(resource);
     }
 
     public void addComputeResource(ComputeResource computeResource) {
         computeResource = computeResourceRepository.save(computeResource);
-        globalProperties.getComputeResourcesMap().put(computeResource.getId(), computeResource);
+        computeResourceProperties.getComputeResourcesMap().put(computeResource.getId(), computeResource);
     }
 
     public Optional<ComputeResource> getComputerResourceById(Long id) {
@@ -75,19 +79,19 @@ public class HostManagementService implements SpringInitializableNode {
      * load resources completely one time.
      */
     public void loadComputeResources() {
-        if (!globalProperties.computeResourcesLoadedProperty().getValue()) {
+        if (!computeResourceProperties.computeResourcesLoadedProperty().getValue()) {
             Iterable<ComputeResource> computeResources = computeResourceRepository.findAll();
             computeResources.forEach(resource -> {
-                globalProperties.getComputeResourcesMap().put(resource.getId(), resource);
+                computeResourceProperties.getComputeResourcesMap().put(resource.getId(), resource);
             });
-            globalProperties.computeResourcesLoadedProperty().setValue(true);
+            computeResourceProperties.computeResourcesLoadedProperty().setValue(true);
             LOGGER.debug("Compute resources loaded");
         }
     }
 
     public List<HostPanel> getHostPanels() {
         List<HostPanel> panels = new ArrayList<>();
-        globalProperties.getComputeResourcesMap().values().forEach(resource -> {
+        computeResourceProperties.getComputeResourcesMap().values().forEach(resource -> {
             LOGGER.debug("Adding panel for resource: {}", resource.getHostName());
             HostPanel panel = hostPanelProvider.getObject();
             panel.getStyleClass().add("host-panel");
@@ -111,6 +115,6 @@ public class HostManagementService implements SpringInitializableNode {
     public void updateComputeResource(ComputeResource resource) {
         resource.updateHostPanels();
         computeResourceRepository.save(resource);
-        globalProperties.computerResourceBeingEditedProperty().setValue(null);
+        computeResourceProperties.computerResourceBeingEditedProperty().setValue(null);
     }
 }

@@ -1,7 +1,6 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
-import com.snjdigitalsolutions.lablensfx.properties.GlobalProperties;
 import com.snjdigitalsolutions.lablensfx.properties.StatusBarProperties;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
@@ -48,17 +47,15 @@ public class HostPanel extends GridPane implements SpringInitializableNode {
     private ComputeResource computeResource;
 
     private final StatusBarProperties statusBarProperties;
-    private final GlobalProperties globalProperties;
     private final HostManagementService hostManagementService;
     private final AlertUtility alertUtility;
 
     public HostPanel(@Value("classpath:/fxml/HostPanel.fxml") Resource fxml,
                      StatusBarProperties statusBarProperties,
-                     GlobalProperties globalProperties,
                      HostPane hostPane,
-                     HostManagementService hostManagementService, AlertUtility alertUtility){
+                     HostManagementService hostManagementService,
+                     AlertUtility alertUtility){
         this.statusBarProperties = statusBarProperties;
-        this.globalProperties = globalProperties;
         this.hostManagementService = hostManagementService;
         this.alertUtility = alertUtility;
         NodeLoader.load(fxml, this);
@@ -80,14 +77,14 @@ public class HostPanel extends GridPane implements SpringInitializableNode {
                 currentValue--;
                 LOGGER.debug("Panel deselected - {}", currentValue);
                 statusBarProperties.numberOfSelectedHostsProperty().set(currentValue);
-                globalProperties.selectedHostPanelListProperty().remove(this);
+                statusBarProperties.selectedHostPanelListProperty().remove(this);
             } else {
                 node.getStyleClass().add("host-panel-selected");
                 int currentValue = statusBarProperties.numberOfSelectedHostsProperty().getValue();
                 currentValue++;
                 LOGGER.debug("Panel selected - {}", currentValue);
                 statusBarProperties.numberOfSelectedHostsProperty().set(currentValue);
-                globalProperties.selectedHostPanelListProperty().add(this);
+                statusBarProperties.selectedHostPanelListProperty().add(this);
             }
         });
         pencilIcon.setOnMouseClicked(event -> {

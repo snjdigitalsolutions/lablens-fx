@@ -1,12 +1,12 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
+import com.snjdigitalsolutions.lablensfx.properties.GlobalProperties;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
-import com.snjdigitalsolutions.springbootutilityfx.event.StageReadyEvent;
+import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.springbootutilityfx.node.CloseableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.*;
-import jakarta.annotation.PostConstruct;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -14,17 +14,17 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Modality;
-import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 public class HostFormPane extends AnchorPane implements SpringInitializableNode, CloseableNode {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(HostFormPane.class);
     @FXML
     private TextField hostNameTextField;
     @FXML
@@ -40,18 +40,21 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
 
     private final NodeUtility nodeUtility;
     private final AlertUtility alertUtility;
-    private final ComputeResourceRepository computeResourceRepository;
     private final IpAddressUtility ipAddressUtility;
-    private Runnable onSubmit;
+    private final HostManagementService hostManagementService;
+    private final GlobalProperties globalProperties;
 
     public HostFormPane(@Value("classpath:/fxml/HostFormPane.fxml") Resource fxml,
-                        NodeUtility nodeUtility, AlertUtility alertUtility,
-                        ComputeResourceRepository computeResourceRepository,
-                        IpAddressUtility ipAddressUtility) {
+                        NodeUtility nodeUtility,
+                        AlertUtility alertUtility,
+                        IpAddressUtility ipAddressUtility,
+                        HostManagementService hostManagementService,
+                        GlobalProperties globalProperties) {
         this.nodeUtility = nodeUtility;
         this.alertUtility = alertUtility;
-        this.computeResourceRepository = computeResourceRepository;
+        this.hostManagementService = hostManagementService;
         this.ipAddressUtility = ipAddressUtility;
+        this.globalProperties = globalProperties;
         NodeLoader.load(fxml, this);
     }
 
@@ -60,23 +63,38 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
         cancelButton.setOnAction(this::close);
         submitButton.setOnAction(event -> {
             if (performFormValidation()) {
-                ComputeResource resource = new ComputeResource();
-                resource.setHostName(hostNameTextField.getText());
-                resource.setIpAddress(ipaddressTextField.getText());
-                resource.setOperatingSystem(operatingSystemTextField.getText());
-                if (!descriptionTextArea.getText().isEmpty()) {
-                    resource.setDescription(descriptionTextArea.getText());
+                if (globalProperties.getComputerResourceBeingEdited() == null){
+                    ComputeResource resource = new ComputeResource();
+                    setValuesOnResource(resource);
+                    hostManagementService.addComputeResource(resource);
+                    this.close(event);
                 }
-                computeResourceRepository.save(resource);
-                if (onSubmit != null) {
-                    onSubmit.run();
+                else {
+                    ComputeResource resource = globalProperties.getComputerResourceBeingEdited();
+                    setValuesOnResource(resource);
+                    hostManagementService.updateComputeResource(resource);
+                    this.close(event);
                 }
-                this.close(event);
             }
         });
+        globalProperties.computerResourceBeingEditedProperty().addListener((obj, oldVal, newVal) -> {
+            if (newVal != null) {
+                showPane(newVal);
+            }
+        });
+
     }
 
-    private boolean performFormValidation() {
+    private void  setValuesOnResource(ComputeResource resource) {
+        resource.setHostName(hostNameTextField.getText());
+        resource.setIpAddress(ipaddressTextField.getText());
+        resource.setOperatingSystem(operatingSystemTextField.getText());
+        if (!descriptionTextArea.getText().isEmpty()) {
+            resource.setDescription(descriptionTextArea.getText());
+        }
+    }
+
+    public boolean performFormValidation() {
         boolean valid = false;
         if (!hostNameTextField.getText().isEmpty() && !ipaddressTextField.getText().isEmpty() && !operatingSystemTextField.getText().isEmpty()) {
             if (ipAddressUtility.isValidIpAddress(ipaddressTextField.getText())) {
@@ -100,13 +118,12 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
         nodeUtility.closeNode(event);
     }
 
-    public void showFormPane() {
+    public void showPane() {
         clearForm();
         makeFormVisible("Add Host");
     }
 
-    public void showFormPane(HostPanel sourcePanel) {
-        ComputeResource resource = computeResourceRepository.findById(sourcePanel.getHostId()).get();
+    public void showPane(ComputeResource resource) {
         hostNameTextField.setText(resource.getHostName());
         ipaddressTextField.setText(resource.getIpAddress());
         operatingSystemTextField.setText(resource.getOperatingSystem());
@@ -121,10 +138,4 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
                 .setTitle(title)
                 .buildAndShow();
     }
-
-    public void setOnSubmit(Runnable onSubmit) {
-        this.onSubmit = onSubmit;
-    }
-
-
 }

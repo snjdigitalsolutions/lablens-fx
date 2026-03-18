@@ -13,7 +13,7 @@
 }
 
 .host-panel {
-    -fx-background-color: #fcfcf6;
+    -fx-background-color: #dcdcdc;
 }
 
 .host-panel-selected {
@@ -22,7 +22,7 @@
 }
 
 .section-header-color {
-    -fx-background-color: lightgrey;
+    -fx-background-color: silver;
 }
 
 .main-stage-background-color {

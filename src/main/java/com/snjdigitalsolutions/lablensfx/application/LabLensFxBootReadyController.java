@@ -35,8 +35,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     private final DashboardPane dashboardPane;
     private final HostManagementService hostManagementService;
 
-    public LabLensFxBootReadyController(HostPane hostPane,
-                                        HostFormPane hostFormPane,
+    public LabLensFxBootReadyController(HostPane hostPane, HostFormPane hostFormPane,
                                         StatusBarProperties statusBarProperties,
                                         DashboardPane dashboardPane,
                                         HostManagementService hostManagementService) {
@@ -54,7 +53,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         statusBar.textProperty().bind(statusBarProperties.statusProperty());
         deleteSelectedHostsMenuItem.disableProperty().bind(statusBarProperties.disableDeleteHostMenuItemProperty());
         addHostButton.setOnAction(buttonEvent -> {
-            hostFormPane.showFormPane();
+            hostFormPane.showPane();
         });
         deleteSelectedHostsMenuItem.setOnAction(event -> {
             hostManagementService.deleteSelectedHosts();

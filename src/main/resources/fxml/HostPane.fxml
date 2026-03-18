@@ -12,7 +12,7 @@
     <children>
         <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <children>
-                <HBox alignment="CENTER" minHeight="30.0" prefHeight="30.0" style="-fx-background-color: lightgrey;">
+                <HBox alignment="CENTER" minHeight="30.0" prefHeight="30.0" styleClass="section-header-color">
                     <children>
                         <Label text="Hosts" HBox.hgrow="ALWAYS" />
                     </children>

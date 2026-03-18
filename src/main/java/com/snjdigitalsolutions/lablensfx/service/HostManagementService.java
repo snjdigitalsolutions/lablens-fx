@@ -1,60 +1,116 @@
 package com.snjdigitalsolutions.lablensfx.service;
 
-import com.snjdigitalsolutions.lablensfx.nodes.HostFormPane;
-import com.snjdigitalsolutions.lablensfx.nodes.HostPane;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.properties.GlobalProperties;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
+import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Service
-public class HostManagementService {
+public class HostManagementService implements SpringInitializableNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HostManagementService.class);
-    private final HostPane hostPane;
-    private final HostFormPane hostFormPane;
     private final GlobalProperties globalProperties;
     private final ComputeResourceRepository computeResourceRepository;
+    private final ObjectProvider<HostPanel> hostPanelProvider;
 
-    public HostManagementService(HostPane hostPane, HostFormPane hostFormPane, GlobalProperties globalProperties, ComputeResourceRepository computeResourceRepository) {
-        this.hostPane = hostPane;
-        this.hostFormPane = hostFormPane;
+    public HostManagementService(GlobalProperties globalProperties,
+                                 ComputeResourceRepository computeResourceRepository,
+                                 ObjectProvider<HostPanel> hostPanelProvider) {
         this.globalProperties = globalProperties;
         this.computeResourceRepository = computeResourceRepository;
+        this.hostPanelProvider = hostPanelProvider;
+    }
+
+    @Override
+    public void performIntialization() {
+        globalProperties.getComputeResourcesMap().addListener((MapChangeListener<Long, ComputeResource>) change -> {
+            if (change.wasRemoved()) {
+                computeResourceRepository.deleteById(change.getKey());
+            }
+        });
     }
 
     public void deleteSelectedHosts() {
-        globalProperties.getSelectedHostPanelListProperty().get().forEach(hostPane::removeHostPanel);
-        hostPane.refresh();
+        globalProperties.selectedHostPanelListProperty().get().forEach(hostPanel -> {
+            globalProperties.getComputeResourcesMap().remove(hostPanel.getComputeResource().getId());
+        });
     }
 
     public void deleteSelectedHosts(HostPanel sourcePanel) {
-        ObservableList<HostPanel> selectedHosts = globalProperties.getSelectedHostPanelListProperty().get();
+        ObservableList<HostPanel> selectedHosts = globalProperties.selectedHostPanelListProperty().get();
         if (!selectedHosts.isEmpty()) {
             deleteSelectedHosts();
         } else {
-            hostPane.removeHostPanel(sourcePanel);
-            hostPane.refresh();
+            globalProperties.getComputeResourcesMap().remove(sourcePanel.getComputeResource().getId());
         }
     }
 
     public void editSelectedHost(HostPanel sourcePanel) {
-        hostFormPane.showFormPane(sourcePanel);
+        ComputeResource resource = globalProperties.getComputeResourcesMap().get(sourcePanel.getComputeResource().getId());
+        globalProperties.computerResourceBeingEditedProperty().setValue(resource);
     }
 
-    public void loadComputeResources(){
-        Iterable<ComputeResource> computeResources = computeResourceRepository.findAll();
-        if (computeResources instanceof Collection<ComputeResource>){
-            globalProperties.getComputeResourcesProperty().get().addAll((Collection<ComputeResource>) computeResources);
-            globalProperties.getComputeResourcesLoadedProperty().setValue(true);
+    public void addComputeResource(ComputeResource computeResource) {
+        computeResource = computeResourceRepository.save(computeResource);
+        globalProperties.getComputeResourcesMap().put(computeResource.getId(), computeResource);
+    }
+
+    public Optional<ComputeResource> getComputerResourceById(Long id) {
+        return computeResourceRepository.findById(id);
+    }
+
+    /**
+     * This is called right after the application shows and will only
+     * load resources completely one time.
+     */
+    public void loadComputeResources() {
+        if (!globalProperties.computeResourcesLoadedProperty().getValue()) {
+            Iterable<ComputeResource> computeResources = computeResourceRepository.findAll();
+            computeResources.forEach(resource -> {
+                globalProperties.getComputeResourcesMap().put(resource.getId(), resource);
+            });
+            globalProperties.computeResourcesLoadedProperty().setValue(true);
             LOGGER.debug("Compute resources loaded");
         }
     }
 
+    public List<HostPanel> getHostPanels() {
+        List<HostPanel> panels = new ArrayList<>();
+        globalProperties.getComputeResourcesMap().values().forEach(resource -> {
+            LOGGER.debug("Adding panel for resource: {}", resource.getHostName());
+            HostPanel panel = hostPanelProvider.getObject();
+            panel.getStyleClass().add("host-panel");
+            panel.hostnameProperty().setValue(resource.getHostName());
+            panel.ipAddressProperty().setValue(resource.getIpAddress());
+            panel.setComputeResource(resource);
+            panels.add(panel);
+        });
+        return panels;
+    }
+
+    public HostPanel createHostPanelForComputeResource(ComputeResource resource) {
+        HostPanel panel = hostPanelProvider.getObject();
+        panel.getStyleClass().add("host-panel");
+        panel.hostnameProperty().setValue(resource.getHostName());
+        panel.ipAddressProperty().setValue(resource.getIpAddress());
+        panel.setComputeResource(resource);
+        return panel;
+    }
+
+    public void updateComputeResource(ComputeResource resource) {
+        resource.updateHostPanels();
+        computeResourceRepository.save(resource);
+        globalProperties.computerResourceBeingEditedProperty().setValue(null);
+    }
 }

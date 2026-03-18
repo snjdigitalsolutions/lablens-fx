@@ -1,29 +1,26 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
+import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.properties.GlobalProperties;
 import com.snjdigitalsolutions.lablensfx.properties.StatusBarProperties;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
-import com.snjdigitalsolutions.springbootutilityfx.event.StageReadyEvent;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import jakarta.annotation.PostConstruct;
-import javafx.application.Application;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Scope;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
@@ -37,18 +34,18 @@ public class HostPanel extends GridPane implements SpringInitializableNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(HostPanel.class);
 
     @FXML
-    @Getter
     private Label hostNameLabel;
+    private final StringProperty hostname = new SimpleStringProperty();
     @FXML
-    @Getter
     private Label ipAddressLabel;
+    private final StringProperty ipAddress = new SimpleStringProperty();
     @FXML
     private FontAwesomeIconView deleteIcon;
     @FXML
     private FontAwesomeIconView pencilIcon;
     @Getter
     @Setter
-    private Long hostId;
+    private ComputeResource computeResource;
 
     private final StatusBarProperties statusBarProperties;
     private final GlobalProperties globalProperties;
@@ -71,6 +68,8 @@ public class HostPanel extends GridPane implements SpringInitializableNode {
     @Override
     public void performIntialization() {
         addSelectedStyle(this);
+        ipAddressLabel.textProperty().bind(ipAddressProperty());
+        hostNameLabel.textProperty().bind(hostnameProperty());
     }
 
     private void addSelectedStyle(Node node) {
@@ -81,14 +80,14 @@ public class HostPanel extends GridPane implements SpringInitializableNode {
                 currentValue--;
                 LOGGER.debug("Panel deselected - {}", currentValue);
                 statusBarProperties.numberOfSelectedHostsProperty().set(currentValue);
-                globalProperties.getSelectedHostPanelListProperty().remove(this);
+                globalProperties.selectedHostPanelListProperty().remove(this);
             } else {
                 node.getStyleClass().add("host-panel-selected");
                 int currentValue = statusBarProperties.numberOfSelectedHostsProperty().getValue();
                 currentValue++;
                 LOGGER.debug("Panel selected - {}", currentValue);
                 statusBarProperties.numberOfSelectedHostsProperty().set(currentValue);
-                globalProperties.getSelectedHostPanelListProperty().add(this);
+                globalProperties.selectedHostPanelListProperty().add(this);
             }
         });
         pencilIcon.setOnMouseClicked(event -> {
@@ -105,4 +104,19 @@ public class HostPanel extends GridPane implements SpringInitializableNode {
 
     }
 
+    public String getIpAddress() {
+        return ipAddress.get();
+    }
+
+    public StringProperty ipAddressProperty() {
+        return ipAddress;
+    }
+
+    public String getHostname() {
+        return hostname.get();
+    }
+
+    public StringProperty hostnameProperty() {
+        return hostname;
+    }
 }

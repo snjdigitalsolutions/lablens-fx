@@ -9,8 +9,6 @@ import javafx.application.Application;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
 
-import java.awt.*;
-
 @SpringBootApplication
 @Import({LabLensFXConfiguration.class, SpringBootUtilityConfiguration.class})
 public class LablensFxBoot implements FxBoot {
@@ -20,7 +18,6 @@ public class LablensFxBoot implements FxBoot {
         ApplicationPreConfiguration.getInstance().setStageWidth(925);
         ApplicationPreConfiguration.getInstance().setStageHeight(800);
         ApplicationPreConfiguration.getInstance().setCssPath("/styles/application.css");
-        Toolkit.getDefaultToolkit();
         Application.launch(LabLensFX.class, args);
     }
 }

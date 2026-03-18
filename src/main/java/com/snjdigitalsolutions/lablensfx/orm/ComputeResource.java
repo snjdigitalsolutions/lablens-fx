@@ -1,5 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.orm;
 
+import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
+import com.snjdigitalsolutions.lablensfx.nodes.HostPanelLarge;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,5 +23,18 @@ public class ComputeResource {
     private String description;
     @Column(name = "hostname")
     private String hostName;
+
+    @Transient
+    private HostPanel hostPanel;
+    @Transient
+    private HostPanelLarge hostPanelLarge;
+    
+    public void updateHostPanels() {
+        hostPanel.hostnameProperty().setValue(hostName);
+        hostPanel.ipAddressProperty().setValue(ipAddress);
+        hostPanelLarge.hostnameProperty().setValue(hostName);
+        hostPanelLarge.ipAddressProperty().setValue(ipAddress);
+        hostPanelLarge.descriptionProperty().setValue(description);
+    }
 
 }

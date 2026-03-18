@@ -1,14 +1,14 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
+import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.properties.GlobalProperties;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.IpAddressUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
+import javafx.application.Platform;
+import javafx.collections.MapChangeListener;
 import javafx.fxml.FXML;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
+import javafx.scene.layout.*;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -22,7 +22,7 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
     @FXML
     private HBox summaryPanelHBox;
     @FXML
-    private FlowPane hostFlowPane;
+    private TilePane hostFlowPane;
 
     private final ObjectProvider<SummaryPanel> summaryPanelProvider;
     private final ObjectProvider<HostPanelLarge> hostPanelLargeProvider;
@@ -47,10 +47,10 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         numberOfHostsPanel.performIntialization();
         numberOfHostsPanel.setHeaderLabelText("Total Hosts");
         numberOfHostsPanel.setMoreInfoLabel("registered");
-        globalProperties.getNumberOfHostsProperty().addListener((obj, oldVal, newVal) -> {
-            numberOfHostsPanel.setCountLabel(newVal.intValue());
-        });
         HBox.setHgrow(numberOfHostsPanel, Priority.ALWAYS);
+        globalProperties.computeResourcesMapProperty().addListener((MapChangeListener<Long,ComputeResource>) change -> {
+            numberOfHostsPanel.setCountLabel(Integer.toString(globalProperties.getComputeResourcesMap().size()));
+        });
         summaryPanelHBox.getChildren().add(numberOfHostsPanel);
 
         SummaryPanel numberOfHostsOnlinePanel = summaryPanelProvider.getObject();
@@ -77,8 +77,8 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         HBox.setHgrow(numberOfLogErrorsPanel, Priority.ALWAYS);
         summaryPanelHBox.getChildren().add(numberOfLogErrorsPanel);
 
-        globalProperties.getComputeResourcesLoadedProperty().addListener((obj, oldVal, newVal) -> {
-            if (newVal){
+        globalProperties.getComputeResourcesMap().addListener((MapChangeListener<Long,ComputeResource>) change -> {
+            if (change.wasAdded() || change.wasRemoved()) {
                 refresh();
             }
         });
@@ -86,19 +86,30 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
 
     public void refresh() {
         hostFlowPane.getChildren().clear();
-
         Map<String,HostPanelLarge> ipAddressToPanelMap = new HashMap<>();
-        globalProperties.getComputeResourcesProperty().get().forEach(resource -> {
+        globalProperties.getComputeResourcesMap().values().forEach(resource -> {
             HostPanelLarge panel = hostPanelLargeProvider.getObject();
-            panel.getHostNameLabel().setText(resource.getHostName());
-            panel.getIpAddressLabel().setText(resource.getIpAddress());
+            panel.performInitialization();
+            panel.hostnameProperty().setValue(resource.getHostName());
+            panel.ipAddressProperty().setValue(resource.getIpAddress());
+            panel.descriptionProperty().setValue(resource.getDescription());
             panel.getStyleClass().add("host-panel");
+            resource.setHostPanelLarge(panel);
             ipAddressToPanelMap.put(resource.getIpAddress(), panel);
         });
 
         ipAddressUtility.sortIpAddresses(new ArrayList<>(ipAddressToPanelMap.keySet())).forEach(ipAddress -> {
             hostFlowPane.getChildren().add(ipAddressToPanelMap.get(ipAddress));
         });
+
+//        hostFlowPane.getChildren().forEach(node -> {
+//            Platform.runLater(() -> {
+//                double height = node.getBoundsInParent().getHeight();
+//                if (globalProperties.getLargeHostPanelHeight() < height) {
+//                    globalProperties.largeHostPanelHeightProperty().setValue(height);
+//                }
+//            });
+//        });
 
     }
 }

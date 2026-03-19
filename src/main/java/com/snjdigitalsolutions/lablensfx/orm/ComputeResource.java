@@ -23,6 +23,10 @@ public class ComputeResource {
     private String description;
     @Column(name = "hostname")
     private String hostName;
+    @Column(name = "sshport")
+    private Integer sshPort;
+    @Column(name = "sshcom")
+    private Long sshCommunicate;
 
     @Transient
     private HostPanel hostPanel;
@@ -35,6 +39,7 @@ public class ComputeResource {
         hostPanelLarge.hostnameProperty().setValue(hostName);
         hostPanelLarge.ipAddressProperty().setValue(ipAddress);
         hostPanelLarge.descriptionProperty().setValue(description);
+        hostPanelLarge.sshPortProperty().setValue(sshPort);
     }
 
 }

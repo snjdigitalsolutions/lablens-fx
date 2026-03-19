@@ -1,0 +1,1 @@
+ALTER TABLE compute_resource ADD COLUMN sshcom INT DEFAULT 1 NOT NULL;

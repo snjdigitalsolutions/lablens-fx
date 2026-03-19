@@ -31,6 +31,8 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
     @FXML
     private TextArea descriptionTextArea;
     @FXML
+    private TextField sshPortTextField;
+    @FXML
     private Button cancelButton;
     @FXML
     private Button submitButton;
@@ -86,6 +88,7 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
         resource.setHostName(hostNameTextField.getText());
         resource.setIpAddress(ipaddressTextField.getText());
         resource.setOperatingSystem(operatingSystemTextField.getText());
+        resource.setSshPort(Integer.parseInt(sshPortTextField.getText()));
         if (!descriptionTextArea.getText().isEmpty()) {
             resource.setDescription(descriptionTextArea.getText());
         }
@@ -108,6 +111,7 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
         ipaddressTextField.clear();
         operatingSystemTextField.clear();
         descriptionTextArea.clear();
+        sshPortTextField.clear();
     }
 
     @Override
@@ -125,6 +129,11 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
         ipaddressTextField.setText(resource.getIpAddress());
         operatingSystemTextField.setText(resource.getOperatingSystem());
         descriptionTextArea.setText(resource.getDescription());
+        if (resource.getSshPort() == null) {
+            sshPortTextField.setText("0");
+        } else {
+            sshPortTextField.setText(resource.getSshPort().toString());
+        }
         makeFormVisible("Edit Host");
     }
 

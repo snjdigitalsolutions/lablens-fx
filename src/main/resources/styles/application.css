@@ -48,3 +48,7 @@
     -fx-font-size: 36px;
     -fx-text-fill: green;
 }
+
+.ssh-progress-label {
+    -fx-font-size: 24px;
+}

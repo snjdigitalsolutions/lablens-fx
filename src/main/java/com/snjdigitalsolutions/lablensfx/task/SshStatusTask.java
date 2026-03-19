@@ -3,6 +3,8 @@ package com.snjdigitalsolutions.lablensfx.task;
 import com.snjdigitalsolutions.lablensfx.nodes.HostStatusDialog;
 import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
 import com.snjdigitalsolutions.lablensfx.service.SshService;
+import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,9 +35,26 @@ public class SshStatusTask extends Task<Void> {
                     if (resource.getSshCommunicate() > 0) {
                         LOGGER.debug("Verifying host status: {}", resource.getHostName());
                         try {
-                            System.out.println(sshService.executeCommand(resource.getIpAddress(), resource.getSshPort(), "jparham", "whoami"));
+                            String response = sshService.executeCommand(resource.getIpAddress(), resource.getSshPort(), "jparham", "whoami");
+                            LOGGER.debug("ssh command response: {}", response);
+                            if (!response.isEmpty()) {
+
+                                Platform.runLater(() -> {
+                                    resource.getHostPanelLarge()
+                                            .getStatusIndicator()
+                                            .hostSshStatusProperty()
+                                            .set(SshStatus.ONLINE);
+                                });
+                            } else {
+                                Platform.runLater(() -> {
+                                    resource.getHostPanelLarge()
+                                            .getStatusIndicator()
+                                            .hostSshStatusProperty()
+                                            .set(SshStatus.OFFLINE);
+                                });
+                            }
                         } catch (Exception e) {
-                            System.out.println(e.getMessage());
+                            System.out.println("Error executing command: \n" + e.getMessage());
                             throw new RuntimeException(e);
                         }
                         updateProgress(resourceCheckIndex.get(), numberOfResource);

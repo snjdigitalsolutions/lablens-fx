@@ -135,33 +135,28 @@ public class HostManagementService implements SpringInitializableNode {
     }
 
     public void verifyHostSshStatus() {
-        SshStatusTask statusTask = new SshStatusTask(computeResourceProperties, hostStatusDialog, sshService);
-        hostStatusDialog.setOnDialogClosed(() -> {
-            if (statusTask.isRunning()) {
-                statusTask.cancel();
-            }
+        passphraseDialog.setPostDialogAction(() -> {
+            sshService.init();
+            SshStatusTask statusTask = new SshStatusTask(computeResourceProperties, hostStatusDialog, sshService);
+            hostStatusDialog.setOnDialogClosed(() -> {
+                if (statusTask.isRunning()) {
+                    statusTask.cancel();
+                }
+            });
+            StageNodeBuilder.builder()
+                    .setModality(Modality.APPLICATION_MODAL)
+                    .setResizable(false)
+                    .setTitle("SSH Status")
+                    .setNode(hostStatusDialog)
+                    .buildAndShow();
+            TaskStarter.startTask(statusTask);
         });
         StageNodeBuilder.builder()
+                .setNode(passphraseDialog)
+                .setTitle("SSH Passphrase")
                 .setModality(Modality.APPLICATION_MODAL)
                 .setResizable(false)
-                .setTitle("SSH Status")
-                .setNode(hostStatusDialog)
                 .buildAndShow();
-        TaskStarter.startTask(statusTask);
-
-
-//        if (sshProperties.isPassPhraseSet()){
-//           sshStatusRunnable.run();
-//        } else {
-//            passphraseDialog.setSubmitButtonRunnable(sshStatusRunnable);
-//            StageNodeBuilder.builder()
-//                    .setNode(passphraseDialog)
-//                    .setModality(Modality.APPLICATION_MODAL)
-//                    .setResizable(false)
-//                    .setTitle("SSH Passphrase")
-//                    .buildAndShow();
-//        }
-
     }
 
     public List<HostPanel> getHostPanels() {

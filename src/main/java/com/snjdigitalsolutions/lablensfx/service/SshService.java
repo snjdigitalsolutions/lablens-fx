@@ -7,6 +7,7 @@ import org.apache.sshd.client.channel.ChannelExec;
 import org.apache.sshd.client.channel.ClientChannelEvent;
 import org.apache.sshd.client.keyverifier.AcceptAllServerKeyVerifier;
 import org.apache.sshd.client.session.ClientSession;
+import org.apache.sshd.common.config.keys.FilePasswordProvider;
 import org.apache.sshd.common.keyprovider.FileKeyPairProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,11 +25,26 @@ import java.util.concurrent.TimeUnit;
 public class SshService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SshService.class);
-
+    private
     private SshClient client;
+
+
 
     @PostConstruct
     public void init() {
+        FilePasswordProvider promptingProvider = (session, resource, retryIndex) -> {
+            if (retryIndex > 0) {
+                //TODO show a dialog or something here
+                // User entered the wrong passphrase — don't loop forever
+                return null;
+            }
+            // resource.toString() gives you the key file path, useful for the prompt label
+            String keyPath = resource.toString();
+
+            // Return the passphrase — in LabLens this would trigger a JavaFX dialog
+            return "testing"; //promptUserForPassphrase(keyPath);
+        };
+
         client = SshClient.setUpDefaultClient();
 
         // Accept the host key on first connect; swap for a
@@ -36,9 +52,9 @@ public class SshService {
         client.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
 
         Path sshDir = Paths.get(System.getProperty("user.home"), ".ssh");
-        client.setKeyIdentityProvider(
-                new FileKeyPairProvider(sshDir)
-        );
+        FileKeyPairProvider keyPairProvider = new FileKeyPairProvider(sshDir);
+        keyPairProvider.setPasswordFinder(promptingProvider);
+        client.setKeyIdentityProvider(keyPairProvider);
 
         client.start();
         LOGGER.info("SSH client started, loading keys from {}", sshDir);

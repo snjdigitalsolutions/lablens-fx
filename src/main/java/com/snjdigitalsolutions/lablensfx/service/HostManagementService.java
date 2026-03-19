@@ -19,6 +19,8 @@ import javafx.stage.Modality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class HostManagementService implements SpringInitializableNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HostManagementService.class);
+    private final Environment environment;
     private final ComputeResourceProperties computeResourceProperties;
     private final StatusBarProperties statusBarProperties;
     private final ComputeResourceRepository computeResourceRepository;
@@ -39,21 +42,15 @@ public class HostManagementService implements SpringInitializableNode {
     private final SshProperties sshProperties;
     private final PassphraseDialog passphraseDialog;
 
-    private Runnable sshStatusRunnable;
+    @Value("${application.ssh.promptforpassphrase}")
+    private boolean promptForPassPhrase;
 
-    public HostManagementService(ComputeResourceProperties computeResourceProperties,
-                                 StatusBarProperties statusBarProperties,
-                                 ComputeResourceRepository computeResourceRepository,
-                                 ObjectProvider<HostPanel> hostPanelProvider,
-                                 IpAddressUtility ipAddressUtility,
-                                 HostStatusDialog hostStatusDialog,
-                                 SshService sshService,
-                                 SshProperties sshProperties,
-                                 PassphraseDialog passphraseDialog) {
+    public HostManagementService(ComputeResourceProperties computeResourceProperties, StatusBarProperties statusBarProperties, ComputeResourceRepository computeResourceRepository, ObjectProvider<HostPanel> hostPanelProvider, IpAddressUtility ipAddressUtility, Environment environment, HostStatusDialog hostStatusDialog, SshService sshService, SshProperties sshProperties, PassphraseDialog passphraseDialog) {
         this.computeResourceProperties = computeResourceProperties;
         this.statusBarProperties = statusBarProperties;
         this.computeResourceRepository = computeResourceRepository;
         this.hostPanelProvider = hostPanelProvider;
+        this.environment = environment;
         this.hostStatusDialog = hostStatusDialog;
         this.sshService = sshService;
         this.sshProperties = sshProperties;
@@ -135,7 +132,7 @@ public class HostManagementService implements SpringInitializableNode {
     }
 
     public void verifyHostSshStatus() {
-        passphraseDialog.setPostDialogAction(() -> {
+        Runnable postDialogAction = () -> {
             sshService.init();
             SshStatusTask statusTask = new SshStatusTask(computeResourceProperties, hostStatusDialog, sshService);
             hostStatusDialog.setOnDialogClosed(() -> {
@@ -150,13 +147,21 @@ public class HostManagementService implements SpringInitializableNode {
                     .setNode(hostStatusDialog)
                     .buildAndShow();
             TaskStarter.startTask(statusTask);
-        });
-        StageNodeBuilder.builder()
-                .setNode(passphraseDialog)
-                .setTitle("SSH Passphrase")
-                .setModality(Modality.APPLICATION_MODAL)
-                .setResizable(false)
-                .buildAndShow();
+        };
+        passphraseDialog.setPostDialogAction(postDialogAction);
+        if (promptForPassPhrase) {
+            StageNodeBuilder.builder()
+                    .setNode(passphraseDialog)
+                    .setTitle("SSH Passphrase")
+                    .setModality(Modality.APPLICATION_MODAL)
+                    .setResizable(false)
+                    .buildAndShow();
+        } else {
+            //TODO when passphrase is set update is set property in property class
+            sshProperties.passPhraseProperty().setValue(environment.getProperty("application.ssh.passphrase"));
+            sshProperties.passPhraseSetProperty().setValue(true);
+            postDialogAction.run();
+        }
     }
 
     public List<HostPanel> getHostPanels() {

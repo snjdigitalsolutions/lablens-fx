@@ -36,8 +36,9 @@ public class HostPanelLarge extends GridPane {
     private final IntegerProperty sshPort = new SimpleIntegerProperty(22);
     @FXML
     private ToggleSwitch sshCommToggle;
-    private final BooleanProperty sshToggleValue = new SimpleBooleanProperty(true);
 
+    private final BooleanProperty sshToggleValue = new SimpleBooleanProperty(true);
+    @Getter
     private final StatusIndicator statusIndicator;
 
     @Getter

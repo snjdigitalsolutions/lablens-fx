@@ -1,6 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.service;
 
-import jakarta.annotation.PostConstruct;
+import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
+import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
 import jakarta.annotation.PreDestroy;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.channel.ChannelExec;
@@ -25,39 +26,32 @@ import java.util.concurrent.TimeUnit;
 public class SshService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SshService.class);
-    private
+    private final SshProperties sshProperties;
+    private final PassphraseDialog passphraseDialog;
     private SshClient client;
+    private boolean clientInitialized = false;
 
+    public SshService(SshProperties sshProperties, PassphraseDialog passphraseDialog) {
+        this.sshProperties = sshProperties;
+        this.passphraseDialog = passphraseDialog;
+    }
 
-
-    @PostConstruct
     public void init() {
-        FilePasswordProvider promptingProvider = (session, resource, retryIndex) -> {
-            if (retryIndex > 0) {
-                //TODO show a dialog or something here
-                // User entered the wrong passphrase — don't loop forever
-                return null;
+        if (!clientInitialized) {
+            client = SshClient.setUpDefaultClient();
+            client.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
+            Path sshDir = Paths.get(System.getProperty("user.home"), ".ssh/id_rsa");
+            FileKeyPairProvider keyPairProvider = new FileKeyPairProvider(sshDir);
+            if (sshProperties.isPassPhraseSet()) {
+                keyPairProvider.setPasswordFinder(FilePasswordProvider.of(sshProperties.getPassPhrase()));
+            } else {
+                LOGGER.error("Passphrase has not been set");
             }
-            // resource.toString() gives you the key file path, useful for the prompt label
-            String keyPath = resource.toString();
-
-            // Return the passphrase — in LabLens this would trigger a JavaFX dialog
-            return "testing"; //promptUserForPassphrase(keyPath);
-        };
-
-        client = SshClient.setUpDefaultClient();
-
-        // Accept the host key on first connect; swap for a
-        // KnownHostsServerKeyVerifier in production if you want strict checking
-        client.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
-
-        Path sshDir = Paths.get(System.getProperty("user.home"), ".ssh");
-        FileKeyPairProvider keyPairProvider = new FileKeyPairProvider(sshDir);
-        keyPairProvider.setPasswordFinder(promptingProvider);
-        client.setKeyIdentityProvider(keyPairProvider);
-
-        client.start();
-        LOGGER.info("SSH client started, loading keys from {}", sshDir);
+            client.setKeyIdentityProvider(keyPairProvider);
+            client.start();
+            LOGGER.info("SSH client started, loading keys from {}", sshDir);
+            clientInitialized = true;
+        }
     }
 
     @PreDestroy
@@ -69,28 +63,24 @@ public class SshService {
      * Opens a session to the given host and runs a command, returning its output.
      * Closes the session when done — call this per-command for simple use cases.
      */
-    public String executeCommand(String host, int port, String username, String command)
-            throws Exception {
+    public String executeCommand(String host, int port, String username, String command) throws Exception {
 
         try (ClientSession session = client.connect(username, host, port)
                 .verify(10, TimeUnit.SECONDS)
                 .getSession()) {
 
-            session.auth().verify(10, TimeUnit.SECONDS);
+            session.auth()
+                    .verify(10, TimeUnit.SECONDS);
 
-            try (ByteArrayOutputStream stdout = new ByteArrayOutputStream();
-                 ByteArrayOutputStream stderr = new ByteArrayOutputStream();
-                 ChannelExec channel = session.createExecChannel(command)) {
+            try (ByteArrayOutputStream stdout = new ByteArrayOutputStream(); ByteArrayOutputStream stderr = new ByteArrayOutputStream(); ChannelExec channel = session.createExecChannel(command)) {
 
                 channel.setOut(stdout);
                 channel.setErr(stderr);
-                channel.open().verify(10, TimeUnit.SECONDS);
+                channel.open()
+                        .verify(10, TimeUnit.SECONDS);
 
                 // Wait for the command to finish (or timeout after 30 s)
-                channel.waitFor(
-                        EnumSet.of(ClientChannelEvent.CLOSED),
-                        TimeUnit.SECONDS.toMillis(30)
-                );
+                channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED), TimeUnit.SECONDS.toMillis(30));
 
                 if (stderr.size() > 0) {
                     LOGGER.warn("stderr from [{}]: {}", command, stderr);

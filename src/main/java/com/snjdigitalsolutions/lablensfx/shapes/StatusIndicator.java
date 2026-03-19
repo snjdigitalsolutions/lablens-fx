@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope("prototype")
-public class StatusIndicator extends Circle implements SpringInitializableNode {
+public class StatusIndicator extends Circle {
 
     private final ObjectProperty<SshStatus> hostSshStatus = new SimpleObjectProperty<>(SshStatus.UNKNOWN);
 
@@ -18,16 +18,15 @@ public class StatusIndicator extends Circle implements SpringInitializableNode {
         this.setFill(SshStatus.UNKNOWN.getFillColor());
         this.setStroke(SshStatus.UNKNOWN.strokeColor());
         this.setStrokeWidth(1.5);
-    }
 
-    @Override
-    public void performIntialization() {
         hostSshStatus.addListener((obj, oldVal, newVal) -> {
             setColors(newVal);
         });
     }
 
     private void setColors(SshStatus status) {
+        System.out.println("Setting color: " + status);
+        hostSshStatusProperty().setValue(status);
         this.setFill(status.getFillColor());
         this.setStroke(status.strokeColor());
     }

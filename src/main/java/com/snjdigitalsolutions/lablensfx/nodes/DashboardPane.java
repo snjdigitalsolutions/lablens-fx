@@ -43,6 +43,7 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
 
     @Override
     public void performIntialization() {
+        //TODO fix these for code smell
         SummaryPanel numberOfHostsPanel = summaryPanelProvider.getObject();
         numberOfHostsPanel.performIntialization();
         numberOfHostsPanel.setHeaderLabelText("Total Hosts");
@@ -93,6 +94,10 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
             panel.hostnameProperty().setValue(resource.getHostName());
             panel.ipAddressProperty().setValue(resource.getIpAddress());
             panel.descriptionProperty().setValue(resource.getDescription());
+            panel.sshPortProperty().setValue(resource.getSshPort());
+            panel.sshToggleValueProperty().setValue(resource.getSshCommunicate() == 1);
+            panel.setComputeResourceId(resource.getId());
+            panel.addToggleListener();
             panel.getStyleClass().add("host-panel");
             resource.setHostPanelLarge(panel);
             ipAddressToPanelMap.put(resource.getIpAddress(), panel);
@@ -101,15 +106,5 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         ipAddressUtility.sortIpAddresses(new ArrayList<>(ipAddressToPanelMap.keySet())).forEach(ipAddress -> {
             hostFlowPane.getChildren().add(ipAddressToPanelMap.get(ipAddress));
         });
-
-//        hostFlowPane.getChildren().forEach(node -> {
-//            Platform.runLater(() -> {
-//                double height = node.getBoundsInParent().getHeight();
-//                if (globalProperties.getLargeHostPanelHeight() < height) {
-//                    globalProperties.largeHostPanelHeightProperty().setValue(height);
-//                }
-//            });
-//        });
-
     }
 }

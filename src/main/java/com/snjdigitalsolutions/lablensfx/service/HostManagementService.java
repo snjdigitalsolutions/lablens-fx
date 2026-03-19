@@ -1,14 +1,21 @@
 package com.snjdigitalsolutions.lablensfx.service;
 
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
+import com.snjdigitalsolutions.lablensfx.nodes.HostStatusDialog;
+import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
+import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
 import com.snjdigitalsolutions.lablensfx.properties.StatusBarProperties;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
+import com.snjdigitalsolutions.lablensfx.task.SshStatusTask;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.IpAddressUtility;
+import com.snjdigitalsolutions.springbootutilityfx.node.utility.StageNodeBuilder;
+import com.snjdigitalsolutions.springbootutilityfx.node.utility.TaskStarter;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
+import javafx.stage.Modality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -17,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 public class HostManagementService implements SpringInitializableNode {
@@ -26,52 +34,97 @@ public class HostManagementService implements SpringInitializableNode {
     private final StatusBarProperties statusBarProperties;
     private final ComputeResourceRepository computeResourceRepository;
     private final ObjectProvider<HostPanel> hostPanelProvider;
-    private final IpAddressUtility ipAddressUtility;
+    private final HostStatusDialog hostStatusDialog;
+    private final SshService sshService;
+    private final SshProperties sshProperties;
+    private final PassphraseDialog passphraseDialog;
+
+    private Runnable sshStatusRunnable;
 
     public HostManagementService(ComputeResourceProperties computeResourceProperties,
                                  StatusBarProperties statusBarProperties,
                                  ComputeResourceRepository computeResourceRepository,
                                  ObjectProvider<HostPanel> hostPanelProvider,
-                                 IpAddressUtility ipAddressUtility) {
+                                 IpAddressUtility ipAddressUtility,
+                                 HostStatusDialog hostStatusDialog,
+                                 SshService sshService,
+                                 SshProperties sshProperties,
+                                 PassphraseDialog passphraseDialog) {
         this.computeResourceProperties = computeResourceProperties;
         this.statusBarProperties = statusBarProperties;
         this.computeResourceRepository = computeResourceRepository;
         this.hostPanelProvider = hostPanelProvider;
-        this.ipAddressUtility = ipAddressUtility;
+        this.hostStatusDialog = hostStatusDialog;
+        this.sshService = sshService;
+        this.sshProperties = sshProperties;
+        this.passphraseDialog = passphraseDialog;
     }
 
     @Override
     public void performIntialization() {
-        computeResourceProperties.getComputeResourcesMap().addListener((MapChangeListener<Long, ComputeResource>) change -> {
-            if (change.wasRemoved()) {
-                computeResourceRepository.deleteById(change.getKey());
-            }
-        });
+        computeResourceProperties.getComputeResourcesMap()
+                .addListener((MapChangeListener<Long, ComputeResource>) change -> {
+                    if (change.wasRemoved()) {
+                        computeResourceRepository.deleteById(change.getKey());
+                    }
+                });
+        computeResourceProperties.computeResourcesLoadedProperty()
+                .addListener((obj, oldVal, newVal) -> {
+                    if (newVal) {
+                        verifyHostSshStatus();
+                    }
+                });
+        sshStatusRunnable = () -> {
+            SshStatusTask statusTask = new SshStatusTask(computeResourceProperties, hostStatusDialog, sshService);
+            hostStatusDialog.setOnDialogClosed(() -> {
+                if (statusTask.isRunning()) {
+                    statusTask.cancel();
+                }
+            });
+            StageNodeBuilder.builder()
+                    .setModality(Modality.APPLICATION_MODAL)
+                    .setResizable(false)
+                    .setTitle("SSH Status")
+                    .setNode(hostStatusDialog)
+                    .buildAndShow();
+            TaskStarter.startTask(statusTask);
+        };
     }
 
     public void deleteSelectedHosts() {
-        statusBarProperties.selectedHostPanelListProperty().get().forEach(hostPanel -> {
-            computeResourceProperties.getComputeResourcesMap().remove(hostPanel.getComputeResource().getId());
-        });
+        statusBarProperties.selectedHostPanelListProperty()
+                .get()
+                .forEach(hostPanel -> {
+                    computeResourceProperties.getComputeResourcesMap()
+                            .remove(hostPanel.getComputeResource()
+                                    .getId());
+                });
     }
 
     public void deleteSelectedHosts(HostPanel sourcePanel) {
-        ObservableList<HostPanel> selectedHosts = statusBarProperties.selectedHostPanelListProperty().get();
+        ObservableList<HostPanel> selectedHosts = statusBarProperties.selectedHostPanelListProperty()
+                .get();
         if (!selectedHosts.isEmpty()) {
             deleteSelectedHosts();
         } else {
-            computeResourceProperties.getComputeResourcesMap().remove(sourcePanel.getComputeResource().getId());
+            computeResourceProperties.getComputeResourcesMap()
+                    .remove(sourcePanel.getComputeResource()
+                            .getId());
         }
     }
 
     public void editSelectedHost(HostPanel sourcePanel) {
-        ComputeResource resource = computeResourceProperties.getComputeResourcesMap().get(sourcePanel.getComputeResource().getId());
-        computeResourceProperties.computerResourceBeingEditedProperty().setValue(resource);
+        ComputeResource resource = computeResourceProperties.getComputeResourcesMap()
+                .get(sourcePanel.getComputeResource()
+                        .getId());
+        computeResourceProperties.computerResourceBeingEditedProperty()
+                .setValue(resource);
     }
 
     public void addComputeResource(ComputeResource computeResource) {
         computeResource = computeResourceRepository.save(computeResource);
-        computeResourceProperties.getComputeResourcesMap().put(computeResource.getId(), computeResource);
+        computeResourceProperties.getComputeResourcesMap()
+                .put(computeResource.getId(), computeResource);
     }
 
     public Optional<ComputeResource> getComputerResourceById(Long id) {
@@ -80,30 +133,53 @@ public class HostManagementService implements SpringInitializableNode {
 
     /**
      * This is called right after the application shows and will only
-     * load resources completely one time.
+     * load resources one time.
      */
     public void loadComputeResources() {
-        if (!computeResourceProperties.computeResourcesLoadedProperty().getValue()) {
+        if (!computeResourceProperties.computeResourcesLoadedProperty()
+                .getValue()) {
             Iterable<ComputeResource> computeResources = computeResourceRepository.findAll();
             computeResources.forEach(resource -> {
-                computeResourceProperties.getComputeResourcesMap().put(resource.getId(), resource);
+                computeResourceProperties.getComputeResourcesMap()
+                        .put(resource.getId(), resource);
             });
-            computeResourceProperties.computeResourcesLoadedProperty().setValue(true);
+            computeResourceProperties.computeResourcesLoadedProperty()
+                    .setValue(true);
             LOGGER.debug("Compute resources loaded");
         }
     }
 
+    public void verifyHostSshStatus() {
+        if (sshProperties.isPassPhraseSet()){
+           sshStatusRunnable.run();
+        } else {
+            passphraseDialog.setSubmitButtonRunnable(sshStatusRunnable);
+            StageNodeBuilder.builder()
+                    .setNode(passphraseDialog)
+                    .setModality(Modality.APPLICATION_MODAL)
+                    .setResizable(false)
+                    .setTitle("SSH Passphrase")
+                    .buildAndShow();
+        }
+
+    }
+
     public List<HostPanel> getHostPanels() {
         List<HostPanel> panels = new ArrayList<>();
-        computeResourceProperties.getComputeResourcesMap().values().forEach(resource -> {
-            LOGGER.debug("Adding panel for resource: {}", resource.getHostName());
-            HostPanel panel = hostPanelProvider.getObject();
-            panel.getStyleClass().add("host-panel");
-            panel.hostnameProperty().setValue(resource.getHostName());
-            panel.ipAddressProperty().setValue(resource.getIpAddress());
-            panel.setComputeResource(resource);
-            panels.add(panel);
-        });
+        computeResourceProperties.getComputeResourcesMap()
+                .values()
+                .forEach(resource -> {
+                    LOGGER.debug("Adding panel for resource: {}", resource.getHostName());
+                    HostPanel panel = hostPanelProvider.getObject();
+                    panel.getStyleClass()
+                            .add("host-panel");
+                    panel.hostnameProperty()
+                            .setValue(resource.getHostName());
+                    panel.ipAddressProperty()
+                            .setValue(resource.getIpAddress());
+                    panel.setComputeResource(resource);
+                    panels.add(panel);
+                });
 
         //TODO create a comparator and interface for objects that have IP addresses
 //        panels = ipAddressUtility.sortIpAddresses(panels);
@@ -113,9 +189,12 @@ public class HostManagementService implements SpringInitializableNode {
 
     public HostPanel createHostPanelForComputeResource(ComputeResource resource) {
         HostPanel panel = hostPanelProvider.getObject();
-        panel.getStyleClass().add("host-panel");
-        panel.hostnameProperty().setValue(resource.getHostName());
-        panel.ipAddressProperty().setValue(resource.getIpAddress());
+        panel.getStyleClass()
+                .add("host-panel");
+        panel.hostnameProperty()
+                .setValue(resource.getHostName());
+        panel.ipAddressProperty()
+                .setValue(resource.getIpAddress());
         panel.setComputeResource(resource);
         return panel;
     }
@@ -123,6 +202,21 @@ public class HostManagementService implements SpringInitializableNode {
     public void updateComputeResource(ComputeResource resource) {
         resource.updateHostPanels();
         computeResourceRepository.save(resource);
-        computeResourceProperties.computerResourceBeingEditedProperty().setValue(null);
+        computeResourceProperties.computerResourceBeingEditedProperty()
+                .setValue(null);
+    }
+
+    public boolean setResourceSshCommValue(Long resourceID, Long value) {
+        AtomicBoolean success = new AtomicBoolean(false);
+        Optional<ComputeResource> resource = computeResourceRepository.findById(resourceID);
+        resource.ifPresent(computeResource -> {
+            computeResource.setSshCommunicate(value);
+            computeResource = computeResourceRepository.save(computeResource);
+            if (computeResource.getSshCommunicate()
+                    .equals(value)) {
+                success.set(true);
+            }
+        });
+        return success.get();
     }
 }

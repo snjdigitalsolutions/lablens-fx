@@ -1,0 +1,93 @@
+package com.snjdigitalsolutions.lablensfx.service;
+
+import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
+import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
+import jakarta.annotation.PreDestroy;
+import org.apache.sshd.client.SshClient;
+import org.apache.sshd.client.channel.ChannelExec;
+import org.apache.sshd.client.channel.ClientChannelEvent;
+import org.apache.sshd.client.keyverifier.AcceptAllServerKeyVerifier;
+import org.apache.sshd.client.session.ClientSession;
+import org.apache.sshd.common.config.keys.FilePasswordProvider;
+import org.apache.sshd.common.keyprovider.FileKeyPairProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.EnumSet;
+import java.util.concurrent.TimeUnit;
+
+@Service
+public class SshService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SshService.class);
+    private final SshProperties sshProperties;
+    private final PassphraseDialog passphraseDialog;
+    private SshClient client;
+    private boolean clientInitialized = false;
+
+    public SshService(SshProperties sshProperties, PassphraseDialog passphraseDialog) {
+        this.sshProperties = sshProperties;
+        this.passphraseDialog = passphraseDialog;
+    }
+
+    public void init() {
+        if (!clientInitialized) {
+            client = SshClient.setUpDefaultClient();
+            client.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
+            Path sshDir = Paths.get(System.getProperty("user.home"), ".ssh/id_rsa");
+            FileKeyPairProvider keyPairProvider = new FileKeyPairProvider(sshDir);
+            if (sshProperties.isPassPhraseSet()) {
+                keyPairProvider.setPasswordFinder(FilePasswordProvider.of(sshProperties.getPassPhrase()));
+            } else {
+                LOGGER.error("Passphrase has not been set");
+            }
+            client.setKeyIdentityProvider(keyPairProvider);
+            client.start();
+            LOGGER.info("SSH client started, loading keys from {}", sshDir);
+            clientInitialized = true;
+        }
+    }
+
+    @PreDestroy
+    public void shutdown() throws IOException {
+        client.stop();
+    }
+
+    /**
+     * Opens a session to the given host and runs a command, returning its output.
+     * Closes the session when done — call this per-command for simple use cases.
+     */
+    public String executeCommand(String host, int port, String username, String command) throws Exception {
+
+        try (ClientSession session = client.connect(username, host, port)
+                .verify(10, TimeUnit.SECONDS)
+                .getSession()) {
+
+            session.auth()
+                    .verify(10, TimeUnit.SECONDS);
+
+            try (ByteArrayOutputStream stdout = new ByteArrayOutputStream(); ByteArrayOutputStream stderr = new ByteArrayOutputStream(); ChannelExec channel = session.createExecChannel(command)) {
+
+                channel.setOut(stdout);
+                channel.setErr(stderr);
+                channel.open()
+                        .verify(10, TimeUnit.SECONDS);
+
+                // Wait for the command to finish (or timeout after 30 s)
+                channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED), TimeUnit.SECONDS.toMillis(30));
+
+                if (stderr.size() > 0) {
+                    LOGGER.warn("stderr from [{}]: {}", command, stderr);
+                }
+
+                return stdout.toString(StandardCharsets.UTF_8);
+            }
+        }
+    }
+}

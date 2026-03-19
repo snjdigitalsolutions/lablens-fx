@@ -8,6 +8,8 @@ import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import jakarta.annotation.PostConstruct;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
@@ -39,6 +41,9 @@ public class HostPanel extends GridPane implements SpringInitializableNode {
     private Label ipAddressLabel;
     private final StringProperty ipAddress = new SimpleStringProperty();
     @FXML
+    private Label sshPortLabel;
+    private final IntegerProperty sshPort = new SimpleIntegerProperty(22);
+    @FXML
     private FontAwesomeIconView deleteIcon;
     @FXML
     private FontAwesomeIconView pencilIcon;
@@ -65,8 +70,9 @@ public class HostPanel extends GridPane implements SpringInitializableNode {
     @Override
     public void performIntialization() {
         addSelectedStyle(this);
-        ipAddressLabel.textProperty().bind(ipAddressProperty());
-        hostNameLabel.textProperty().bind(hostnameProperty());
+        ipAddressLabel.textProperty().bind(ipAddress);
+        hostNameLabel.textProperty().bind(hostname);
+        sshPortLabel.textProperty().bind(sshPort.asString());
     }
 
     private void addSelectedStyle(Node node) {

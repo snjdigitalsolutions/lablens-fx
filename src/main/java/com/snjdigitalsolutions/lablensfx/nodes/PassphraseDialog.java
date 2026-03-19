@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
+import java.util.function.Consumer;
+
 @Component
 public class PassphraseDialog extends GridPane implements SpringInitializableNode {
 
@@ -26,7 +28,7 @@ public class PassphraseDialog extends GridPane implements SpringInitializableNod
     private final NodeUtility nodeUtility;
     private final SshProperties sshProperties;
     @Setter
-    private Runnable submitButtonRunnable;
+    private Consumer<String> passPhraseConsumer;
 
     public PassphraseDialog(@Value("classpath:/fxml/PassphraseDialog.fxml") Resource fxml, NodeUtility nodeUtility, SshProperties sshProperties) {
         this.nodeUtility = nodeUtility;
@@ -38,12 +40,12 @@ public class PassphraseDialog extends GridPane implements SpringInitializableNod
     public void performIntialization() {
         cancelButton.setOnAction(nodeUtility::closeNode);
         submitButton.setOnAction(event -> {
-            if (validateTextField() && submitButtonRunnable != null) {
+            if (validateTextField() && passPhraseConsumer != null) {
                 sshProperties.passPhraseProperty()
                         .setValue(passphrasePasswordField.getText());
                 sshProperties.passPhraseSetProperty()
                         .setValue(true);
-                submitButtonRunnable.run();
+                passPhraseConsumer.accept(passphrasePasswordField.getText());
                 nodeUtility.closeNode(event);
             }
         });

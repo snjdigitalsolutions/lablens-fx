@@ -74,21 +74,6 @@ public class HostManagementService implements SpringInitializableNode {
                         verifyHostSshStatus();
                     }
                 });
-        sshStatusRunnable = () -> {
-            SshStatusTask statusTask = new SshStatusTask(computeResourceProperties, hostStatusDialog, sshService);
-            hostStatusDialog.setOnDialogClosed(() -> {
-                if (statusTask.isRunning()) {
-                    statusTask.cancel();
-                }
-            });
-            StageNodeBuilder.builder()
-                    .setModality(Modality.APPLICATION_MODAL)
-                    .setResizable(false)
-                    .setTitle("SSH Status")
-                    .setNode(hostStatusDialog)
-                    .buildAndShow();
-            TaskStarter.startTask(statusTask);
-        };
     }
 
     public void deleteSelectedHosts() {
@@ -150,17 +135,32 @@ public class HostManagementService implements SpringInitializableNode {
     }
 
     public void verifyHostSshStatus() {
-        if (sshProperties.isPassPhraseSet()){
-           sshStatusRunnable.run();
-        } else {
-            passphraseDialog.setSubmitButtonRunnable(sshStatusRunnable);
-            StageNodeBuilder.builder()
-                    .setNode(passphraseDialog)
-                    .setModality(Modality.APPLICATION_MODAL)
-                    .setResizable(false)
-                    .setTitle("SSH Passphrase")
-                    .buildAndShow();
-        }
+        SshStatusTask statusTask = new SshStatusTask(computeResourceProperties, hostStatusDialog, sshService);
+        hostStatusDialog.setOnDialogClosed(() -> {
+            if (statusTask.isRunning()) {
+                statusTask.cancel();
+            }
+        });
+        StageNodeBuilder.builder()
+                .setModality(Modality.APPLICATION_MODAL)
+                .setResizable(false)
+                .setTitle("SSH Status")
+                .setNode(hostStatusDialog)
+                .buildAndShow();
+        TaskStarter.startTask(statusTask);
+
+
+//        if (sshProperties.isPassPhraseSet()){
+//           sshStatusRunnable.run();
+//        } else {
+//            passphraseDialog.setSubmitButtonRunnable(sshStatusRunnable);
+//            StageNodeBuilder.builder()
+//                    .setNode(passphraseDialog)
+//                    .setModality(Modality.APPLICATION_MODAL)
+//                    .setResizable(false)
+//                    .setTitle("SSH Passphrase")
+//                    .buildAndShow();
+//        }
 
     }
 

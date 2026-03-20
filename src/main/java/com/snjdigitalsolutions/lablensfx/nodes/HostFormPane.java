@@ -65,6 +65,7 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
                 if (computeResourceProperties.getComputerResourceBeingEdited() == null){
                     ComputeResource resource = new ComputeResource();
                     setValuesOnResource(resource);
+                    resource.setSshCommunicate(0L);
                     hostManagementService.addComputeResource(resource);
                     this.close(event);
                 }

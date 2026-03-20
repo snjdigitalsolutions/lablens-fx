@@ -89,6 +89,7 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         hostFlowPane.getChildren().clear();
         Map<String,HostPanelLarge> ipAddressToPanelMap = new HashMap<>();
         computeResourceProperties.getComputeResourcesMap().values().forEach(resource -> {
+            //TODO the state of the ssh connection needs to be outside the panel because of the refresh
             HostPanelLarge panel = hostPanelLargeProvider.getObject();
             panel.performInitialization();
             panel.hostnameProperty().setValue(resource.getHostName());

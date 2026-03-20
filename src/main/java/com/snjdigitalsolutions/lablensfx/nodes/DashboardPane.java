@@ -6,6 +6,8 @@ import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.IpAddressUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
 import javafx.application.Platform;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.MapChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.layout.*;
@@ -43,46 +45,44 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
 
     @Override
     public void performIntialization() {
-        //TODO fix these for code smell
-        SummaryPanel numberOfHostsPanel = summaryPanelProvider.getObject();
-        numberOfHostsPanel.performIntialization();
-        numberOfHostsPanel.setHeaderLabelText("Total Hosts");
-        numberOfHostsPanel.setMoreInfoLabel("registered");
-        HBox.setHgrow(numberOfHostsPanel, Priority.ALWAYS);
-        computeResourceProperties.computeResourcesMapProperty().addListener((MapChangeListener<Long,ComputeResource>) change -> {
-            numberOfHostsPanel.setCountLabel(Integer.toString(computeResourceProperties.getComputeResourcesMap().size()));
-        });
-        summaryPanelHBox.getChildren().add(numberOfHostsPanel);
-
-        SummaryPanel numberOfHostsOnlinePanel = summaryPanelProvider.getObject();
-        numberOfHostsOnlinePanel.performIntialization();
-        numberOfHostsOnlinePanel.setHeaderLabelText("Hosts Online");
-        numberOfHostsOnlinePanel.setMoreInfoLabel("reachable via SSH");
-        numberOfHostsOnlinePanel.setCountLabelStyleClass("summary-panel-count-green");
-        HBox.setHgrow(numberOfHostsOnlinePanel, Priority.ALWAYS);
-        summaryPanelHBox.getChildren().add(numberOfHostsOnlinePanel);
-
-        SummaryPanel numberOfConfigurationChangesPanel = summaryPanelProvider.getObject();
-        numberOfConfigurationChangesPanel.performIntialization();
-        numberOfConfigurationChangesPanel.setHeaderLabelText("Configuration Changes");
-        numberOfConfigurationChangesPanel.setMoreInfoLabel("all hosts");
-        numberOfConfigurationChangesPanel.setCountLabelStyleClass("summary-panel-count-orange");
-        HBox.setHgrow(numberOfConfigurationChangesPanel, Priority.ALWAYS);
-        summaryPanelHBox.getChildren().add(numberOfConfigurationChangesPanel);
-
-        SummaryPanel numberOfLogErrorsPanel = summaryPanelProvider.getObject();
-        numberOfLogErrorsPanel.performIntialization();
-        numberOfLogErrorsPanel.setHeaderLabelText("Log Errors");
-        numberOfLogErrorsPanel.setMoreInfoLabel("all hosts");
-        numberOfLogErrorsPanel.setCountLabelStyleClass("summary-panel-count-red");
-        HBox.setHgrow(numberOfLogErrorsPanel, Priority.ALWAYS);
-        summaryPanelHBox.getChildren().add(numberOfLogErrorsPanel);
-
+        summaryPanelHBox.getChildren().add(createSummaryPanel(SummaryPanelType.NUM_HOSTS));
+        summaryPanelHBox.getChildren().add(createSummaryPanel(SummaryPanelType.NUM_ONLINE));
+        summaryPanelHBox.getChildren().add(createSummaryPanel(SummaryPanelType.NUM_CONFIG_CHANGES));
+        summaryPanelHBox.getChildren().add(createSummaryPanel(SummaryPanelType.NUM_LOG_ERROR));
         computeResourceProperties.getComputeResourcesMap().addListener((MapChangeListener<Long,ComputeResource>) change -> {
             if (change.wasAdded() || change.wasRemoved()) {
                 refresh();
             }
         });
+    }
+
+    private SummaryPanel createSummaryPanel(SummaryPanelType type){
+        SummaryPanel panel = summaryPanelProvider.getObject();
+        panel.performIntialization();
+        panel.setHeaderLabelText(type.getHeader());
+        panel.setMoreInfoLabel(type.getMoreInfo());
+        if (!type.getCssClass().isEmpty()){
+            panel.setCountLabelStyleClass(type.getCssClass());
+        }
+        HBox.setHgrow(panel, Priority.ALWAYS);
+        addListenerForLabel(panel, type);
+        return panel;
+    }
+
+    private void addListenerForLabel(SummaryPanel panel, SummaryPanelType type) {
+        switch(type){
+            case NUM_HOSTS -> {
+                computeResourceProperties.computeResourcesMapProperty().addListener((MapChangeListener<Long,ComputeResource>) change -> {
+                    panel.setCountLabel(Integer.toString(computeResourceProperties.getComputeResourcesMap().size()));
+                });
+            }
+            case NUM_ONLINE -> {
+                computeResourceProperties.hostsOnlineProperty().addListener((obj, oldVal, newVal) -> {
+                    System.out.println("firing!");
+                    panel.setCountLabel(newVal.toString());
+                });
+            }
+        }
     }
 
     public void refresh() {

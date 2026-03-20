@@ -17,8 +17,8 @@
 }
 
 .host-panel-selected {
-    -fx-border-color: blue;
-    -fx-border-width: 2px;
+    -fx-border-color: silver;
+    -fx-border-width: 3px;
 }
 
 .section-header-color {
@@ -51,4 +51,8 @@
 
 .ssh-progress-label {
     -fx-font-size: 24px;
+}
+
+.toggle-switch:selected > .thumb-area {
+    -fx-background-color: silver;
 }

@@ -1,13 +1,13 @@
 package com.snjdigitalsolutions.lablensfx.service;
 
-import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
-import com.snjdigitalsolutions.lablensfx.nodes.HostStatusDialog;
-import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
+import com.snjdigitalsolutions.lablensfx.nodes.*;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
 import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
 import com.snjdigitalsolutions.lablensfx.properties.StatusBarProperties;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
+import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
+import com.snjdigitalsolutions.lablensfx.task.SshStatusForSingleHostTask;
 import com.snjdigitalsolutions.lablensfx.task.SshStatusTask;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.IpAddressUtility;
@@ -146,6 +146,7 @@ public class HostManagementService implements SpringInitializableNode {
                     .setTitle("SSH Status")
                     .setNode(hostStatusDialog)
                     .buildAndShow();
+            hostStatusDialog.getStatusCheckProgressBar().progressProperty().bind(statusTask.progressProperty());
             TaskStarter.startTask(statusTask);
         };
         passphraseDialog.setPostDialogAction(postDialogAction);
@@ -161,6 +162,20 @@ public class HostManagementService implements SpringInitializableNode {
             sshProperties.passPhraseProperty().setValue(environment.getProperty("application.ssh.passphrase"));
             sshProperties.passPhraseSetProperty().setValue(true);
             postDialogAction.run();
+        }
+    }
+
+    public void verifyHostSshStatus(Long resourceID) {
+        SshStatusForSingleHostTask task = new SshStatusForSingleHostTask(resourceID, computeResourceProperties, sshService);
+        TaskStarter.startTask(task);
+    }
+
+    public void changeHostSshStatusToUnknown(HostPanelLarge panel, boolean decrement){
+        panel.getStatusIndicator().hostSshStatusProperty().setValue(SshStatus.UNKNOWN);
+        if (decrement) {
+            int currentCount = computeResourceProperties.getHostsOnline();
+            computeResourceProperties.hostsOnlineProperty()
+                    .set(currentCount - 1);
         }
     }
 

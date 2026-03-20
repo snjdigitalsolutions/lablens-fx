@@ -12,6 +12,7 @@ public class ComputeResourceProperties {
     private final MapProperty<Long, ComputeResource> computeResourcesMap = new SimpleMapProperty<>(FXCollections.observableHashMap());
     private final BooleanProperty computeResourcesLoaded = new SimpleBooleanProperty(false);
     private final ObjectProperty<ComputeResource> computerResourceBeingEdited = new SimpleObjectProperty<>();
+    private final IntegerProperty hostsOnline = new SimpleIntegerProperty(0);
 
     public ObservableMap<Long, ComputeResource> getComputeResourcesMap() {
         return computeResourcesMap.get();
@@ -35,5 +36,13 @@ public class ComputeResourceProperties {
 
     public ObjectProperty<ComputeResource> computerResourceBeingEditedProperty() {
         return computerResourceBeingEdited;
+    }
+
+    public int getHostsOnline() {
+        return hostsOnline.get();
+    }
+
+    public IntegerProperty hostsOnlineProperty() {
+        return hostsOnline;
     }
 }

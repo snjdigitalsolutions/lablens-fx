@@ -1,6 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
+import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import com.snjdigitalsolutions.lablensfx.shapes.StatusIndicator;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
 import javafx.beans.property.*;
@@ -36,7 +37,6 @@ public class HostPanelLarge extends GridPane {
     private final IntegerProperty sshPort = new SimpleIntegerProperty(22);
     @FXML
     private ToggleSwitch sshCommToggle;
-
     private final BooleanProperty sshToggleValue = new SimpleBooleanProperty(true);
     @Getter
     private final StatusIndicator statusIndicator;
@@ -70,6 +70,15 @@ public class HostPanelLarge extends GridPane {
                 setValue = 1L;
             }
             hostManagementService.setResourceSshCommValue(computeResourceId, setValue);
+            if (setValue == 1){
+                hostManagementService.verifyHostSshStatus(computeResourceId);
+            } else {
+                if (this.statusIndicator.getHostSshStatus().equals(SshStatus.ONLINE)){
+                    hostManagementService.changeHostSshStatusToUnknown(this, true);
+                } else {
+                    hostManagementService.changeHostSshStatusToUnknown(this, false);
+                }
+            }
         });
     }
 

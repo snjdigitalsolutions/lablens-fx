@@ -7,6 +7,7 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -15,8 +16,8 @@ import org.springframework.stereotype.Component;
 public class HostStatusDialog extends AnchorPane implements SpringInitializableNode {
 
     @FXML
+    @Getter
     private ProgressBar statusCheckProgressBar;
-
     private Runnable onDialogClosed;
 
     public HostStatusDialog(@Value("classpath:/fxml/HostStatusDialog.fxml") Resource fxml) {

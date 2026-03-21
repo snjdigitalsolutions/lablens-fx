@@ -38,6 +38,7 @@ public class SshStatusForSingleHostTask extends Task<Void> {
                             .getStatusIndicator()
                             .hostSshStatusProperty()
                             .set(SshStatus.ONLINE);
+                    computeResourceProperties.getComputeResourceOnlineStatusMap().put(resourceID,SshStatus.ONLINE);
                     if (!currentStatus.equals(SshStatus.ONLINE)){
                         int value = computeResourceProperties.getHostsOnline();
                         computeResourceProperties.hostsOnlineProperty().setValue(value + 1);
@@ -47,6 +48,7 @@ public class SshStatusForSingleHostTask extends Task<Void> {
                 decreaseOnlineCount(resource);
             }
         } catch (Exception e) {
+            //TODO fix up logging for command errors
             System.out.println("Error executing command: \n" + e.getMessage());
             decreaseOnlineCount(resource);
         }
@@ -61,6 +63,7 @@ public class SshStatusForSingleHostTask extends Task<Void> {
                     .getStatusIndicator()
                     .hostSshStatusProperty()
                     .set(SshStatus.OFFLINE);
+            computeResourceProperties.getComputeResourceOnlineStatusMap().put(resourceID,SshStatus.OFFLINE);
             if (currentStatus.equals(SshStatus.ONLINE)){
                 int value = computeResourceProperties.getHostsOnline();
                 computeResourceProperties.hostsOnlineProperty().setValue(value - 1);

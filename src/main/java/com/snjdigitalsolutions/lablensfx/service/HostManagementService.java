@@ -172,6 +172,7 @@ public class HostManagementService implements SpringInitializableNode {
 
     public void changeHostSshStatusToUnknown(HostPanelLarge panel, boolean decrement){
         panel.getStatusIndicator().hostSshStatusProperty().setValue(SshStatus.UNKNOWN);
+        computeResourceProperties.getComputeResourceOnlineStatusMap().put(panel.getComputeResourceId(), SshStatus.UNKNOWN);
         if (decrement) {
             int currentCount = computeResourceProperties.getHostsOnline();
             computeResourceProperties.hostsOnlineProperty()

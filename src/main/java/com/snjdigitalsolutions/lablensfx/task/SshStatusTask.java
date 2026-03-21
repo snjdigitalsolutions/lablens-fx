@@ -47,6 +47,7 @@ public class SshStatusTask extends Task<Void> {
                                             .getStatusIndicator()
                                             .hostSshStatusProperty()
                                             .set(SshStatus.ONLINE);
+                                    computeResourceProperties.getComputeResourceOnlineStatusMap().put(resource.getId(), SshStatus.ONLINE);
                                     int value = computeResourceProperties.getHostsOnline();
                                     computeResourceProperties.hostsOnlineProperty().setValue(value + 1);
                                 });
@@ -56,6 +57,7 @@ public class SshStatusTask extends Task<Void> {
                                             .getStatusIndicator()
                                             .hostSshStatusProperty()
                                             .set(SshStatus.OFFLINE);
+                                    computeResourceProperties.getComputeResourceOnlineStatusMap().put(resource.getId(), SshStatus.OFFLINE);
                                     int value = computeResourceProperties.getHostsOnline();
                                     computeResourceProperties.hostsOnlineProperty().setValue(value - 1);
                                 });
@@ -67,6 +69,7 @@ public class SshStatusTask extends Task<Void> {
                                         .getStatusIndicator()
                                         .hostSshStatusProperty()
                                         .set(SshStatus.OFFLINE);
+                                computeResourceProperties.getComputeResourceOnlineStatusMap().put(resource.getId(), SshStatus.OFFLINE);
                                 int value = computeResourceProperties.getHostsOnline();
                                 computeResourceProperties.hostsOnlineProperty().setValue(value - 1);
                             });

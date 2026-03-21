@@ -18,7 +18,6 @@ public class StatusIndicator extends Circle {
         this.setFill(SshStatus.UNKNOWN.getFillColor());
         this.setStroke(SshStatus.UNKNOWN.strokeColor());
         this.setStrokeWidth(1.5);
-
         hostSshStatus.addListener((obj, oldVal, newVal) -> {
             setColors(newVal);
         });

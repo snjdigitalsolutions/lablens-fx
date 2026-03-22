@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.TilePane?>
@@ -29,11 +30,15 @@
                   <HBox fx:id="summaryPanelHBox" maxWidth="1.7976931348623157E308" />
                </children>
             </VBox>
-            <TilePane fx:id="hostFlowPane" hgap="5.0" tileAlignment="TOP_LEFT" vgap="5.0" VBox.vgrow="ALWAYS">
-               <padding>
-                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-               </padding>
-            </TilePane>
+            <ScrollPane hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+               <content>
+                  <TilePane fx:id="hostFlowPane" hgap="5.0" tileAlignment="TOP_LEFT" vgap="5.0">
+                     <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </padding>
+                  </TilePane>
+               </content>
+            </ScrollPane>
          </children>
          <padding>
             <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />

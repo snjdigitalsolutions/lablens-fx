@@ -1,6 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.task;
 
 import com.snjdigitalsolutions.lablensfx.nodes.HostStatusDialog;
+import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
 import com.snjdigitalsolutions.lablensfx.service.SshService;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
@@ -9,6 +10,7 @@ import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SshStatusTask extends Task<Void> {
@@ -26,59 +28,65 @@ public class SshStatusTask extends Task<Void> {
 
     @Override
     protected Void call() throws Exception {
-        AtomicInteger numberOfResources = new AtomicInteger(0);
-        computeResourceProperties.getComputeResourcesMap().values().forEach(resource -> {
-            if (resource.getSshCommunicate() > 0){
-                numberOfResources.incrementAndGet();
-            }
-        });
-        AtomicInteger resourceCheckIndex = new AtomicInteger(1);
-        computeResourceProperties.getComputeResourcesMap()
+        List<ComputeResource> resources = computeResourceProperties.getComputeResourcesMap()
                 .values()
-                .forEach(resource -> {
-                    if (resource.getSshCommunicate() > 0) {
-                        LOGGER.debug("Verifying host status: {}", resource.getHostName());
-                        try {
-                            String response = sshService.executeCommand(resource.getIpAddress(), resource.getSshPort(), "jparham", "whoami");
-                            LOGGER.debug("ssh command response: {}", response);
-                            if (!response.isEmpty()) {
-                                Platform.runLater(() -> {
-                                    resource.getHostPanelLarge()
-                                            .getStatusIndicator()
-                                            .hostSshStatusProperty()
-                                            .set(SshStatus.ONLINE);
-                                    computeResourceProperties.getComputeResourceOnlineStatusMap().put(resource.getId(), SshStatus.ONLINE);
-                                    int value = computeResourceProperties.getHostsOnline();
-                                    computeResourceProperties.hostsOnlineProperty().setValue(value + 1);
-                                });
-                            } else {
-                                Platform.runLater(() -> {
-                                    resource.getHostPanelLarge()
-                                            .getStatusIndicator()
-                                            .hostSshStatusProperty()
-                                            .set(SshStatus.OFFLINE);
-                                    computeResourceProperties.getComputeResourceOnlineStatusMap().put(resource.getId(), SshStatus.OFFLINE);
-                                    int value = computeResourceProperties.getHostsOnline();
-                                    computeResourceProperties.hostsOnlineProperty().setValue(value - 1);
-                                });
-                            }
-                        } catch (Exception e) {
-                            System.out.println("Error executing command: \n" + e.getMessage());
-                            Platform.runLater(() -> {
-                                resource.getHostPanelLarge()
-                                        .getStatusIndicator()
-                                        .hostSshStatusProperty()
-                                        .set(SshStatus.OFFLINE);
-                                computeResourceProperties.getComputeResourceOnlineStatusMap().put(resource.getId(), SshStatus.OFFLINE);
-                                int value = computeResourceProperties.getHostsOnline();
-                                computeResourceProperties.hostsOnlineProperty().setValue(value - 1);
-                            });
+                .stream()
+                .filter(resource -> resource.getSshCommunicate() > 0)
+                .toList();
+        int numberOfResources = resources.size();
+        AtomicInteger resourceCheckIndex = new AtomicInteger(1);
+        resources.forEach(resource -> {
+            LOGGER.debug("Verifying host status: {}", resource.getHostName());
+            try {
+                String response = sshService.executeCommand(resource.getIpAddress(), resource.getSshPort(), "whoami");
+                LOGGER.debug("ssh command response: {}", response);
+                if (!response.isEmpty()) {
+                    Platform.runLater(() -> {
+                        resource.getHostPanelLarge()
+                                .getStatusIndicator()
+                                .hostSshStatusProperty()
+                                .set(SshStatus.ONLINE);
+                        computeResourceProperties.getComputeResourceOnlineStatusMap()
+                                .put(resource.getId(), SshStatus.ONLINE);
+                        int value = computeResourceProperties.getHostsOnline();
+                        computeResourceProperties.hostsOnlineProperty()
+                                .setValue(value + 1);
+                    });
+                } else {
+                    Platform.runLater(() -> {
+                        resource.getHostPanelLarge()
+                                .getStatusIndicator()
+                                .hostSshStatusProperty()
+                                .set(SshStatus.OFFLINE);
+                        computeResourceProperties.getComputeResourceOnlineStatusMap()
+                                .put(resource.getId(), SshStatus.OFFLINE);
+                        int value = computeResourceProperties.getHostsOnline();
+                        if (value > 0) {
+                            computeResourceProperties.hostsOnlineProperty()
+                                    .setValue(value - 1);
                         }
-                        LOGGER.debug("Updating {} of {}", resourceCheckIndex.get(), numberOfResources.get());
-                        updateProgress(resourceCheckIndex.get(), numberOfResources.get());
-                        resourceCheckIndex.set(resourceCheckIndex.get() + 1);
+                    });
+                }
+            } catch (Exception e) {
+                LOGGER.error("Exception thrown when executing command", e);
+                Platform.runLater(() -> {
+                    resource.getHostPanelLarge()
+                            .getStatusIndicator()
+                            .hostSshStatusProperty()
+                            .set(SshStatus.OFFLINE);
+                    computeResourceProperties.getComputeResourceOnlineStatusMap()
+                            .put(resource.getId(), SshStatus.OFFLINE);
+                    int value = computeResourceProperties.getHostsOnline();
+                    if (value > 0) {
+                        computeResourceProperties.hostsOnlineProperty()
+                                .setValue(value - 1);
                     }
                 });
+            }
+            LOGGER.debug("Updating {} of {}", resourceCheckIndex.get(), numberOfResources);
+            updateProgress(resourceCheckIndex.get(), numberOfResources);
+            resourceCheckIndex.incrementAndGet();
+        });
         return null;
     }
 
@@ -91,6 +99,13 @@ public class SshStatusTask extends Task<Void> {
     @Override
     protected void cancelled() {
         super.cancelled();
+        hostStatusDialog.closeDialog();
+    }
+
+    @Override
+    protected void failed() {
+        super.failed();
+        LOGGER.error("SSH status Task failed...");
         hostStatusDialog.closeDialog();
     }
 }

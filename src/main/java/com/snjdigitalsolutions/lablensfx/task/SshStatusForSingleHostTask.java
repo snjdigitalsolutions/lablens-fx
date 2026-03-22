@@ -14,8 +14,8 @@ public class SshStatusForSingleHostTask extends Task<Void> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SshStatusForSingleHostTask.class);
     private final Long resourceID;
-    private final ComputeResourceProperties computeResourceProperties;
     private final SshService sshService;
+    private final ComputeResourceProperties computeResourceProperties;
 
     public SshStatusForSingleHostTask(Long resourceId, ComputeResourceProperties computeResourceProperties, SshService sshService) {
         this.resourceID = resourceId;
@@ -28,7 +28,7 @@ public class SshStatusForSingleHostTask extends Task<Void> {
         ComputeResource resource = computeResourceProperties.getComputeResourcesMap().get(resourceID);
         LOGGER.debug("Verifying host status: {}", resource.getHostName());
         try {
-            String response = sshService.executeCommand(resource.getIpAddress(), resource.getSshPort(), "jparham", "whoami");
+            String response = sshService.executeCommand(resource.getIpAddress(), resource.getSshPort(),  "whoami");
             LOGGER.debug("ssh command response: {}", response);
             if (!response.isEmpty()) {
                 Platform.runLater(() -> {
@@ -49,7 +49,7 @@ public class SshStatusForSingleHostTask extends Task<Void> {
             }
         } catch (Exception e) {
             //TODO fix up logging for command errors
-            System.out.println("Error executing command: \n" + e.getMessage());
+            LOGGER.error("Error executing command: {}", e.getMessage());
             decreaseOnlineCount(resource);
         }
         return null;

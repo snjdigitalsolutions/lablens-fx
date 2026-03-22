@@ -10,7 +10,9 @@ import org.springframework.stereotype.Component;
 public class SshProperties {
 
     private final BooleanProperty passPhraseSet = new SimpleBooleanProperty(false);
+    private final BooleanProperty passPhraseNotNeeded = new SimpleBooleanProperty(false);
     private final StringProperty passPhrase = new SimpleStringProperty();
+    private final StringProperty sshUsername = new SimpleStringProperty();
 
     public String getPassPhrase() {
         return passPhrase.get();
@@ -26,5 +28,21 @@ public class SshProperties {
 
     public BooleanProperty passPhraseSetProperty() {
         return passPhraseSet;
+    }
+
+    public String getSshUsername() {
+        return sshUsername.get();
+    }
+
+    public StringProperty sshUsernameProperty() {
+        return sshUsername;
+    }
+
+    public boolean isPassPhraseNotNeeded() {
+        return passPhraseNotNeeded.get();
+    }
+
+    public BooleanProperty passPhraseNotNeededProperty() {
+        return passPhraseNotNeeded;
     }
 }

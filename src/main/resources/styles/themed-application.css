@@ -1,0 +1,963 @@
+/* =============================================================================
+   LabLens Theme — lablens-theme.css
+   Two themes controlled by a style class on the root Scene node:
+     Light: scene.getRoot().getStyleClass().add("theme-light");   (Zinc + Violet)
+     Dark:  scene.getRoot().getStyleClass().add("theme-dark");    (Slate + Cyan)
+   Default (no class) falls back to the dark theme.
+   ============================================================================= */
+
+/* =============================================================================
+   DESIGN TOKENS — Dark Theme (Slate + Cyan)
+   Apply .theme-dark to the root node, or use as the default.
+   ============================================================================= */
+
+.theme-dark,
+.root {
+    /* --- Backgrounds --- */
+    -ll-bg-app:           #0F172A;   /* outermost app background            */
+    -ll-bg-sidebar:       #1E293B;   /* sidebar / nav panel                 */
+    -ll-bg-card:          #1E293B;   /* host cards, panels                  */
+    -ll-bg-card-hover:    #253347;   /* card hover state                    */
+    -ll-bg-surface:       #334155;   /* elevated surfaces, input fills      */
+    -ll-bg-surface-hover: #3D4F63;   /* surface hover                       */
+    -ll-bg-toolbar:       #0F172A;   /* top toolbar / menu bar              */
+    -ll-bg-statusbar:     #0C1525;   /* bottom status bar                   */
+    -ll-bg-selection:     #1D4ED8;   /* list/table row selection            */
+    -ll-bg-highlight:     #164E63;   /* subtle highlight (search match bg)  */
+
+    /* --- Text --- */
+    -ll-text-primary:     #F1F5F9;   /* main readable text                  */
+    -ll-text-secondary:   #94A3B8;   /* muted labels, metadata              */
+    -ll-text-tertiary:    #64748B;   /* placeholders, hints                 */
+    -ll-text-disabled:    #475569;   /* disabled controls                   */
+    -ll-text-accent:      #22D3EE;   /* accent / link text                  */
+    -ll-text-on-accent:   #0C4A6E;   /* text placed on accent-colored bg    */
+
+    /* --- Accent (Cyan) --- */
+    -ll-accent:           #06B6D4;   /* primary accent — buttons, tabs, focus */
+    -ll-accent-light:     #22D3EE;   /* lighter accent — hover              */
+    -ll-accent-dim:       #164E63;   /* dim accent bg — badge fills         */
+    -ll-accent-border:    #0891B2;   /* accent-colored border               */
+
+    /* --- Borders --- */
+    -ll-border:           #334155;   /* default border                      */
+    -ll-border-strong:    #475569;   /* emphasized border (focused, active) */
+    -ll-border-subtle:    #1E293B;   /* very subtle dividers                */
+
+    /* --- Semantic Colors --- */
+    -ll-online:           #22C55E;   /* host online / success               */
+    -ll-online-bg:        #14532D;   /* online badge background             */
+    -ll-offline:          #64748B;   /* host offline                        */
+    -ll-offline-bg:       #1E293B;   /* offline badge background            */
+    -ll-unknown:          #F59E0B;   /* unknown / pending                   */
+    -ll-unknown-bg:       #451A03;   /* unknown badge background            */
+
+    -ll-error:            #EF4444;   /* error / danger text                 */
+    -ll-error-bg:         #450A0A;   /* error badge / banner background     */
+    -ll-warning:          #F59E0B;   /* warning text                        */
+    -ll-warning-bg:       #451A03;   /* warning badge background            */
+    -ll-info:             #38BDF8;   /* info text                           */
+    -ll-info-bg:          #0C4A6E;   /* info badge background               */
+
+    /* --- Log Level Colors --- */
+    -ll-log-error:        #F87171;
+    -ll-log-warn:         #FCD34D;
+    -ll-log-info:         #94A3B8;
+    -ll-log-debug:        #64748B;
+    -ll-log-trace:        #475569;
+
+    /* --- Scrollbar --- */
+    -ll-scroll-thumb:     #334155;
+    -ll-scroll-thumb-hover: #475569;
+    -ll-scroll-track:     transparent;
+
+    /* --- Misc --- */
+    -ll-focus-ring:       #06B6D4;
+    -ll-radius-sm:        4px;
+    -ll-radius-md:        6px;
+    -ll-radius-lg:        8px;
+}
+
+/* =============================================================================
+   DESIGN TOKENS — Light Theme (Zinc + Violet)
+   Apply .theme-light to the root node.
+   ============================================================================= */
+
+.theme-light {
+    /* --- Backgrounds --- */
+    -ll-bg-app:           #FAFAFA;
+    -ll-bg-sidebar:       #F4F4F5;
+    -ll-bg-card:          #FFFFFF;
+    -ll-bg-card-hover:    #F4F4F5;
+    -ll-bg-surface:       #E4E4E7;
+    -ll-bg-surface-hover: #D4D4D8;
+    -ll-bg-toolbar:       #FFFFFF;
+    -ll-bg-statusbar:     #F4F4F5;
+    -ll-bg-selection:     #EDE9FE;
+    -ll-bg-highlight:     #EDE9FE;
+
+    /* --- Text --- */
+    -ll-text-primary:     #18181B;
+    -ll-text-secondary:   #52525B;
+    -ll-text-tertiary:    #A1A1AA;
+    -ll-text-disabled:    #D4D4D8;
+    -ll-text-accent:      #7C3AED;
+    -ll-text-on-accent:   #FFFFFF;
+
+    /* --- Accent (Violet) --- */
+    -ll-accent:           #7C3AED;
+    -ll-accent-light:     #8B5CF6;
+    -ll-accent-dim:       #EDE9FE;
+    -ll-accent-border:    #7C3AED;
+
+    /* --- Borders --- */
+    -ll-border:           #E4E4E7;
+    -ll-border-strong:    #A1A1AA;
+    -ll-border-subtle:    #F4F4F5;
+
+    /* --- Semantic Colors --- */
+    -ll-online:           #16A34A;
+    -ll-online-bg:        #DCFCE7;
+    -ll-offline:          #A1A1AA;
+    -ll-offline-bg:       #F4F4F5;
+    -ll-unknown:          #D97706;
+    -ll-unknown-bg:       #FEF3C7;
+
+    -ll-error:            #DC2626;
+    -ll-error-bg:         #FEE2E2;
+    -ll-warning:          #D97706;
+    -ll-warning-bg:       #FEF3C7;
+    -ll-info:             #2563EB;
+    -ll-info-bg:          #EFF6FF;
+
+    /* --- Log Level Colors --- */
+    -ll-log-error:        #DC2626;
+    -ll-log-warn:         #D97706;
+    -ll-log-info:         #52525B;
+    -ll-log-debug:        #A1A1AA;
+    -ll-log-trace:        #D4D4D8;
+
+    /* --- Scrollbar --- */
+    -ll-scroll-thumb:     #D4D4D8;
+    -ll-scroll-thumb-hover: #A1A1AA;
+    -ll-scroll-track:     transparent;
+
+    /* --- Misc --- */
+    -ll-focus-ring:       #7C3AED;
+    -ll-radius-sm:        4px;
+    -ll-radius-md:        6px;
+    -ll-radius-lg:        8px;
+}
+
+
+/* =============================================================================
+   BASE / SCENE
+   ============================================================================= */
+
+.root {
+    -fx-font-family: "System";
+    -fx-font-size: 13px;
+    -fx-background-color: -ll-bg-app;
+}
+
+
+/* =============================================================================
+   MAIN LAYOUT REGIONS
+   ============================================================================= */
+
+/* Top toolbar / menu bar row */
+#toolbar, .tool-bar {
+    -fx-background-color: -ll-bg-toolbar;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0 12 0 12;
+    -fx-spacing: 8;
+}
+
+/* Left sidebar / host list panel */
+#sidebar, .sidebar-panel {
+    -fx-background-color: -ll-bg-sidebar;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 0;
+}
+
+/* Main content area */
+#content, .content-area {
+    -fx-background-color: -ll-bg-app;
+    -fx-padding: 16;
+}
+
+/* Bottom status bar */
+#statusbar, .status-bar {
+    -fx-background-color: -ll-bg-statusbar;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 4 12 4 12;
+    -fx-spacing: 8;
+}
+
+
+/* =============================================================================
+   NAVIGATION TABS  (Dashboard / Configs / Logs / Timeline)
+   ============================================================================= */
+
+.nav-tab-bar {
+    -fx-background-color: -ll-bg-toolbar;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 0 0 1 0;
+    -fx-spacing: 2;
+    -fx-padding: 0 8 0 8;
+}
+
+.nav-tab {
+    -fx-background-color: transparent;
+    -fx-text-fill: -ll-text-secondary;
+    -fx-padding: 8 14 8 14;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+}
+
+.nav-tab:hover {
+    -fx-text-fill: -ll-text-primary;
+    -fx-background-color: -ll-bg-surface;
+    -fx-background-radius: -ll-radius-sm;
+}
+
+.nav-tab-active, .nav-tab:selected {
+    -fx-text-fill: -ll-text-accent;
+    -fx-border-color: -ll-accent;
+    -fx-background-color: transparent;
+}
+
+/* Standard JavaFX TabPane used as nav */
+.tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: transparent;
+    -fx-padding: 8 14 8 14;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab .tab-label {
+    -fx-text-fill: -ll-text-secondary;
+    -fx-font-size: 13px;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: transparent;
+    -fx-border-color: -ll-accent;
+    -fx-border-width: 0 0 2 0;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:selected .tab-label {
+    -fx-text-fill: -ll-text-accent;
+}
+
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: -ll-bg-toolbar;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 0 0 1 0;
+}
+
+.tab-pane > .tab-content-area {
+    -fx-background-color: -ll-bg-app;
+    -fx-padding: 0;
+}
+
+
+/* =============================================================================
+   HOST CARDS  (TilePane children)
+   ============================================================================= */
+
+.host-card {
+    -fx-background-color: -ll-bg-card;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 1;
+    -fx-border-radius: -ll-radius-lg;
+    -fx-background-radius: -ll-radius-lg;
+    -fx-padding: 12 14 12 14;
+    -fx-spacing: 6;
+    -fx-cursor: hand;
+}
+
+.host-card:hover {
+    -fx-background-color: -ll-bg-card-hover;
+    -fx-border-color: -ll-border-strong;
+}
+
+.host-card-selected {
+    -fx-border-color: -ll-accent;
+    -fx-border-width: 1.5;
+}
+
+.host-card-title {
+    -fx-text-fill: -ll-text-primary;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.host-card-meta {
+    -fx-text-fill: -ll-text-secondary;
+    -fx-font-size: 12px;
+}
+
+
+/* =============================================================================
+   SIDEBAR HOST LIST  (left panel ListView)
+   ============================================================================= */
+
+.host-list-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 4 0 4 0;
+}
+
+.host-list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -ll-text-secondary;
+    -fx-padding: 8 12 8 12;
+    -fx-font-size: 12px;
+}
+
+.host-list-view .list-cell:hover {
+    -fx-background-color: -ll-bg-surface;
+    -fx-background-radius: -ll-radius-sm;
+    -fx-text-fill: -ll-text-primary;
+}
+
+.host-list-view .list-cell:selected {
+    -fx-background-color: -ll-accent-dim;
+    -fx-background-radius: -ll-radius-sm;
+    -fx-text-fill: -ll-text-accent;
+}
+
+.sidebar-search-field {
+    -fx-background-color: -ll-bg-surface;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 1;
+    -fx-border-radius: -ll-radius-sm;
+    -fx-background-radius: -ll-radius-sm;
+    -fx-text-fill: -ll-text-primary;
+    -fx-prompt-text-fill: -ll-text-tertiary;
+    -fx-padding: 6 10 6 10;
+    -fx-font-size: 12px;
+}
+
+.sidebar-section-label {
+    -fx-text-fill: -ll-text-tertiary;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 12 4 12;
+}
+
+
+/* =============================================================================
+   SUMMARY METRIC CARDS  (Dashboard Overview row)
+   ============================================================================= */
+
+.metric-card {
+    -fx-background-color: -ll-bg-card;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 1;
+    -fx-border-radius: -ll-radius-md;
+    -fx-background-radius: -ll-radius-md;
+    -fx-padding: 14 20 14 20;
+    -fx-alignment: center;
+    -fx-spacing: 4;
+}
+
+.metric-card-label {
+    -fx-text-fill: -ll-text-secondary;
+    -fx-font-size: 12px;
+}
+
+.metric-card-value {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -ll-text-primary;
+}
+
+.metric-card-value-online  { -fx-text-fill: -ll-online; }
+.metric-card-value-error   { -fx-text-fill: -ll-error; }
+.metric-card-value-warning { -fx-text-fill: -ll-warning; }
+.metric-card-value-accent  { -fx-text-fill: -ll-text-accent; }
+
+.metric-card-sublabel {
+    -fx-text-fill: -ll-text-tertiary;
+    -fx-font-size: 11px;
+}
+
+
+/* =============================================================================
+   STATUS INDICATOR  (StatusIndicator component — Circle + Label)
+   ============================================================================= */
+
+.status-online  { -fx-fill: -ll-online; }
+.status-offline { -fx-fill: -ll-offline; }
+.status-unknown { -fx-fill: -ll-unknown; }
+
+.status-label-online  { -fx-text-fill: -ll-online; }
+.status-label-offline { -fx-text-fill: -ll-offline; }
+.status-label-unknown { -fx-text-fill: -ll-unknown; }
+
+
+/* =============================================================================
+   BUTTONS
+   ============================================================================= */
+
+/* Primary action button (e.g. "+ Add Host") */
+.button-primary {
+    -fx-background-color: -ll-accent;
+    -fx-text-fill: -ll-text-on-accent;
+    -fx-border-color: transparent;
+    -fx-border-radius: -ll-radius-md;
+    -fx-background-radius: -ll-radius-md;
+    -fx-padding: 6 14 6 14;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+.button-primary:hover {
+    -fx-background-color: -ll-accent-light;
+}
+
+.button-primary:pressed {
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+/* Secondary / ghost button (e.g. "Settings") */
+.button-secondary {
+    -fx-background-color: transparent;
+    -fx-text-fill: -ll-text-secondary;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 1;
+    -fx-border-radius: -ll-radius-md;
+    -fx-background-radius: -ll-radius-md;
+    -fx-padding: 6 14 6 14;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+.button-secondary:hover {
+    -fx-background-color: -ll-bg-surface;
+    -fx-text-fill: -ll-text-primary;
+    -fx-border-color: -ll-border-strong;
+}
+
+/* Danger button (e.g. delete host) */
+.button-danger {
+    -fx-background-color: transparent;
+    -fx-text-fill: -ll-error;
+    -fx-border-color: -ll-error;
+    -fx-border-width: 1;
+    -fx-border-radius: -ll-radius-md;
+    -fx-background-radius: -ll-radius-md;
+    -fx-padding: 6 14 6 14;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+.button-danger:hover {
+    -fx-background-color: -ll-error-bg;
+}
+
+/* Icon-only button (edit / delete pencil & trash icons in sidebar) */
+.button-icon {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -ll-text-tertiary;
+    -fx-padding: 4;
+    -fx-cursor: hand;
+}
+
+.button-icon:hover {
+    -fx-text-fill: -ll-text-primary;
+    -fx-background-color: -ll-bg-surface;
+    -fx-background-radius: -ll-radius-sm;
+}
+
+
+/* =============================================================================
+   TEXT FIELDS & TEXT AREAS
+   ============================================================================= */
+
+.text-field, .text-area, .password-field {
+    -fx-background-color: -ll-bg-surface;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 1;
+    -fx-border-radius: -ll-radius-md;
+    -fx-background-radius: -ll-radius-md;
+    -fx-text-fill: -ll-text-primary;
+    -fx-prompt-text-fill: -ll-text-tertiary;
+    -fx-padding: 7 10 7 10;
+    -fx-font-size: 13px;
+}
+
+.text-field:focused, .text-area:focused, .password-field:focused {
+    -fx-border-color: -ll-focus-ring;
+    -fx-border-width: 1.5;
+}
+
+.text-area .content {
+    -fx-background-color: -ll-bg-surface;
+}
+
+
+/* =============================================================================
+   COMBO BOX / CHOICE BOX
+   ============================================================================= */
+
+.combo-box, .choice-box {
+    -fx-background-color: -ll-bg-surface;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 1;
+    -fx-border-radius: -ll-radius-md;
+    -fx-background-radius: -ll-radius-md;
+    -fx-text-fill: -ll-text-primary;
+    -fx-padding: 4 8 4 8;
+}
+
+.combo-box:focused, .choice-box:focused {
+    -fx-border-color: -ll-focus-ring;
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: -ll-text-primary;
+    -fx-background-color: transparent;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: -ll-bg-card;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 1;
+    -fx-effect: null;
+}
+
+.combo-box-popup .list-cell {
+    -fx-text-fill: -ll-text-primary;
+    -fx-background-color: transparent;
+    -fx-padding: 6 10 6 10;
+}
+
+.combo-box-popup .list-cell:hover {
+    -fx-background-color: -ll-bg-surface;
+}
+
+.combo-box-popup .list-cell:selected {
+    -fx-background-color: -ll-accent-dim;
+    -fx-text-fill: -ll-text-accent;
+}
+
+
+/* =============================================================================
+   SCROLL PANE & SCROLL BARS
+   ============================================================================= */
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar {
+    -fx-background-color: -ll-scroll-track;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: -ll-scroll-thumb;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: -ll-scroll-thumb-hover;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-opacity: 0;
+    -fx-padding: 0;
+    -fx-min-width: 0;
+    -fx-min-height: 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+}
+
+.scroll-bar .track {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical {
+    -fx-pref-width: 8px;
+}
+
+.scroll-bar:horizontal {
+    -fx-pref-height: 8px;
+}
+
+
+/* =============================================================================
+   LOG VIEWER
+   ============================================================================= */
+
+.log-view {
+    -fx-background-color: -ll-bg-app;
+    -fx-font-family: "Monospaced";
+    -fx-font-size: 12px;
+}
+
+.log-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -ll-log-info;
+    -fx-padding: 1 8 1 8;
+    -fx-font-family: "Monospaced";
+    -fx-font-size: 12px;
+}
+
+.log-view .list-cell:hover {
+    -fx-background-color: -ll-bg-surface;
+}
+
+.log-cell-error { -fx-text-fill: -ll-log-error; }
+.log-cell-warn  { -fx-text-fill: -ll-log-warn;  }
+.log-cell-info  { -fx-text-fill: -ll-log-info;  }
+.log-cell-debug { -fx-text-fill: -ll-log-debug; }
+.log-cell-trace { -fx-text-fill: -ll-log-trace; }
+
+/* Stack trace collapse row */
+.log-cell-stacktrace-collapsed {
+    -fx-text-fill: -ll-text-tertiary;
+    -fx-background-color: -ll-bg-surface;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 0 0 0 3;
+    -fx-border-color: -ll-error;
+    -fx-padding: 1 8 1 12;
+    -fx-cursor: hand;
+}
+
+.log-toolbar {
+    -fx-background-color: -ll-bg-sidebar;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 6 10 6 10;
+    -fx-spacing: 8;
+}
+
+
+/* =============================================================================
+   SEPARATOR / DIVIDER
+   ============================================================================= */
+
+.separator .line {
+    -fx-border-color: -ll-border;
+    -fx-border-width: 1 0 0 0;
+}
+
+
+/* =============================================================================
+   LABELS  (utility classes)
+   ============================================================================= */
+
+.label-primary   { -fx-text-fill: -ll-text-primary;   }
+.label-secondary { -fx-text-fill: -ll-text-secondary;  }
+.label-muted     { -fx-text-fill: -ll-text-tertiary;   }
+.label-accent    { -fx-text-fill: -ll-text-accent;     }
+.label-error     { -fx-text-fill: -ll-error;           }
+.label-warning   { -fx-text-fill: -ll-warning;         }
+.label-success   { -fx-text-fill: -ll-online;          }
+
+.label-heading {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -ll-text-primary;
+}
+
+.label-subheading {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -ll-text-secondary;
+}
+
+.label-caption {
+    -fx-font-size: 11px;
+    -fx-text-fill: -ll-text-tertiary;
+}
+
+
+/* =============================================================================
+   MENU BAR
+   ============================================================================= */
+
+.menu-bar {
+    -fx-background-color: -ll-bg-toolbar;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0 4 0 4;
+}
+
+.menu-bar .menu {
+    -fx-background-color: transparent;
+    -fx-text-fill: -ll-text-secondary;
+    -fx-padding: 4 10 4 10;
+}
+
+.menu-bar .menu:hover,
+.menu-bar .menu:showing {
+    -fx-background-color: -ll-bg-surface;
+    -fx-background-radius: -ll-radius-sm;
+    -fx-text-fill: -ll-text-primary;
+}
+
+.context-menu, .menu {
+    -fx-background-color: -ll-bg-card;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 1;
+    -fx-border-radius: -ll-radius-md;
+    -fx-background-radius: -ll-radius-md;
+    -fx-effect: null;
+    -fx-padding: 4 0 4 0;
+}
+
+.menu-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: -ll-text-primary;
+    -fx-padding: 6 14 6 14;
+    -fx-font-size: 13px;
+}
+
+.menu-item:focused, .menu-item:hover {
+    -fx-background-color: -ll-bg-surface;
+    -fx-text-fill: -ll-text-primary;
+}
+
+
+/* =============================================================================
+   TABLE VIEW  (for future Configs / Timeline tables)
+   ============================================================================= */
+
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 1;
+    -fx-border-radius: -ll-radius-md;
+    -fx-table-cell-border-color: -ll-border-subtle;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: -ll-bg-sidebar;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: -ll-text-secondary;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-left;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: -ll-border-subtle;
+    -fx-border-width: 0 0 1 0;
+    -fx-text-fill: -ll-text-primary;
+    -fx-font-size: 13px;
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: -ll-bg-card;
+}
+
+.table-view .table-row-cell:hover {
+    -fx-background-color: -ll-bg-card-hover;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: -ll-bg-selection;
+}
+
+.table-view .table-cell {
+    -fx-padding: 8 10 8 10;
+    -fx-alignment: center-left;
+    -fx-text-fill: -ll-text-primary;
+}
+
+
+/* =============================================================================
+   TOOLTIP
+   ============================================================================= */
+
+.tooltip {
+    -fx-background-color: -ll-bg-card;
+    -fx-text-fill: -ll-text-primary;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 1;
+    -fx-border-radius: -ll-radius-sm;
+    -fx-background-radius: -ll-radius-sm;
+    -fx-font-size: 12px;
+    -fx-padding: 6 10 6 10;
+    -fx-effect: null;
+}
+
+
+/* =============================================================================
+   PROGRESS BAR / INDICATOR
+   ============================================================================= */
+
+.progress-bar .track {
+    -fx-background-color: -ll-bg-surface;
+    -fx-background-radius: 4;
+}
+
+.progress-bar .bar {
+    -fx-background-color: -ll-accent;
+    -fx-background-radius: 4;
+    -fx-background-insets: 0;
+}
+
+.progress-indicator {
+    -fx-progress-color: -ll-accent;
+}
+
+
+/* =============================================================================
+   CHECK BOX & RADIO BUTTON
+   ============================================================================= */
+
+.check-box .box {
+    -fx-background-color: -ll-bg-surface;
+    -fx-border-color: -ll-border-strong;
+    -fx-border-width: 1;
+    -fx-border-radius: -ll-radius-sm;
+    -fx-background-radius: -ll-radius-sm;
+}
+
+.check-box:selected .box {
+    -fx-background-color: -ll-accent;
+    -fx-border-color: -ll-accent;
+}
+
+.check-box:selected .mark {
+    -fx-background-color: -ll-text-on-accent;
+}
+
+.check-box .text {
+    -fx-text-fill: -ll-text-primary;
+    -fx-font-size: 13px;
+}
+
+.radio-button .radio {
+    -fx-background-color: -ll-bg-surface;
+    -fx-border-color: -ll-border-strong;
+    -fx-border-width: 1;
+}
+
+.radio-button:selected .radio {
+    -fx-border-color: -ll-accent;
+}
+
+.radio-button:selected .dot {
+    -fx-background-color: -ll-accent;
+}
+
+.radio-button .text {
+    -fx-text-fill: -ll-text-primary;
+    -fx-font-size: 13px;
+}
+
+
+/* =============================================================================
+   SPLIT PANE  (future master-detail layouts)
+   ============================================================================= */
+
+.split-pane {
+    -fx-background-color: -ll-bg-app;
+    -fx-padding: 0;
+}
+
+.split-pane-divider {
+    -fx-background-color: -ll-border;
+    -fx-padding: 0 1 0 1;
+}
+
+.split-pane-divider:hover {
+    -fx-background-color: -ll-accent;
+}
+
+
+/* =============================================================================
+   TITLED PANE / ACCORDION  (collapsible sidebar sections)
+   ============================================================================= */
+
+.titled-pane > .title {
+    -fx-background-color: -ll-bg-sidebar;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 0 0 1 0;
+    -fx-text-fill: -ll-text-secondary;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 12 8 12;
+}
+
+.titled-pane > .title:hover {
+    -fx-background-color: -ll-bg-surface;
+    -fx-text-fill: -ll-text-primary;
+}
+
+.titled-pane > .title > .arrow-button .arrow {
+    -fx-background-color: -ll-text-tertiary;
+}
+
+.titled-pane > .content {
+    -fx-background-color: -ll-bg-app;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 0 0 1 0;
+}
+
+.accordion {
+    -fx-padding: 0;
+}
+
+
+/* =============================================================================
+   HOST FORM  (Add / Edit host dialog content)
+   ============================================================================= */
+
+.form-pane {
+    -fx-background-color: -ll-bg-card;
+    -fx-border-color: -ll-border;
+    -fx-border-width: 1;
+    -fx-border-radius: -ll-radius-lg;
+    -fx-background-radius: -ll-radius-lg;
+    -fx-padding: 20 24 20 24;
+    -fx-spacing: 14;
+}
+
+.form-label {
+    -fx-text-fill: -ll-text-secondary;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.form-section-label {
+    -fx-text-fill: -ll-text-tertiary;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 0 2 0;
+}
+
+.form-error-label {
+    -fx-text-fill: -ll-error;
+    -fx-font-size: 12px;
+}
+
+.text-field-error {
+    -fx-border-color: -ll-error;
+    -fx-border-width: 1.5;
+}

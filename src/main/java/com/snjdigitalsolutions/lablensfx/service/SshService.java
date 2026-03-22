@@ -27,45 +27,47 @@ public class SshService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SshService.class);
     private final SshProperties sshProperties;
-    private final PassphraseDialog passphraseDialog;
     private SshClient client;
     private boolean clientInitialized = false;
 
-    public SshService(SshProperties sshProperties, PassphraseDialog passphraseDialog) {
+    public SshService(SshProperties sshProperties) {
         this.sshProperties = sshProperties;
-        this.passphraseDialog = passphraseDialog;
     }
 
-    public void init() {
+    synchronized public void init() {
         if (!clientInitialized) {
             client = SshClient.setUpDefaultClient();
             client.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
+            //TODO need to fix this. Documentation states the apache library should scan for
+            // a private key, but I was having issues. This is valid and should be fixed.
             Path sshDir = Paths.get(System.getProperty("user.home"), ".ssh/id_rsa");
             FileKeyPairProvider keyPairProvider = new FileKeyPairProvider(sshDir);
             if (sshProperties.isPassPhraseSet()) {
                 keyPairProvider.setPasswordFinder(FilePasswordProvider.of(sshProperties.getPassPhrase()));
+                client.setKeyIdentityProvider(keyPairProvider);
+                client.start();
+                LOGGER.info("SSH client started, loading keys from {}", sshDir);
+                clientInitialized = true;
             } else {
                 LOGGER.error("Passphrase has not been set");
             }
-            client.setKeyIdentityProvider(keyPairProvider);
-            client.start();
-            LOGGER.info("SSH client started, loading keys from {}", sshDir);
-            clientInitialized = true;
         }
     }
 
     @PreDestroy
     public void shutdown() throws IOException {
-        client.stop();
+        if (client != null) {
+            client.stop();
+        }
     }
 
     /**
      * Opens a session to the given host and runs a command, returning its output.
      * Closes the session when done — call this per-command for simple use cases.
      */
-    public String executeCommand(String host, int port, String username, String command) throws Exception {
+    public String executeCommand(String host, int port, String command) throws Exception {
 
-        try (ClientSession session = client.connect(username, host, port)
+        try (ClientSession session = client.connect(sshProperties.getSshUsername(), host, port)
                 .verify(10, TimeUnit.SECONDS)
                 .getSession()) {
 

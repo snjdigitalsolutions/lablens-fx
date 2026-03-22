@@ -10,7 +10,7 @@ import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import com.snjdigitalsolutions.lablensfx.task.SshStatusForSingleHostTask;
 import com.snjdigitalsolutions.lablensfx.task.SshStatusTask;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
-import com.snjdigitalsolutions.springbootutilityfx.node.utility.IpAddressUtility;
+import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.StageNodeBuilder;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.TaskStarter;
 import javafx.collections.MapChangeListener;
@@ -41,11 +41,12 @@ public class HostManagementService implements SpringInitializableNode {
     private final SshService sshService;
     private final SshProperties sshProperties;
     private final PassphraseDialog passphraseDialog;
+    private final AlertUtility alertUtility;
 
     @Value("${application.ssh.promptforpassphrase}")
     private boolean promptForPassPhrase;
 
-    public HostManagementService(ComputeResourceProperties computeResourceProperties, StatusBarProperties statusBarProperties, ComputeResourceRepository computeResourceRepository, ObjectProvider<HostPanel> hostPanelProvider, IpAddressUtility ipAddressUtility, Environment environment, HostStatusDialog hostStatusDialog, SshService sshService, SshProperties sshProperties, PassphraseDialog passphraseDialog) {
+    public HostManagementService(ComputeResourceProperties computeResourceProperties, StatusBarProperties statusBarProperties, ComputeResourceRepository computeResourceRepository, ObjectProvider<HostPanel> hostPanelProvider, Environment environment, HostStatusDialog hostStatusDialog, SshService sshService, SshProperties sshProperties, PassphraseDialog passphraseDialog, AlertUtility alertUtility) {
         this.computeResourceProperties = computeResourceProperties;
         this.statusBarProperties = statusBarProperties;
         this.computeResourceRepository = computeResourceRepository;
@@ -55,6 +56,7 @@ public class HostManagementService implements SpringInitializableNode {
         this.sshService = sshService;
         this.sshProperties = sshProperties;
         this.passphraseDialog = passphraseDialog;
+        this.alertUtility = alertUtility;
     }
 
     @Override
@@ -132,7 +134,7 @@ public class HostManagementService implements SpringInitializableNode {
     }
 
     public void verifyHostSshStatus() {
-        Runnable postDialogAction = () -> {
+        if (sshProperties.isPassPhraseSet() || sshProperties.isPassPhraseNotNeeded()){
             sshService.init();
             SshStatusTask statusTask = new SshStatusTask(computeResourceProperties, hostStatusDialog, sshService);
             hostStatusDialog.setOnDialogClosed(() -> {
@@ -140,28 +142,16 @@ public class HostManagementService implements SpringInitializableNode {
                     statusTask.cancel();
                 }
             });
+            hostStatusDialog.getStatusCheckProgressBar().progressProperty().bind(statusTask.progressProperty());
+            TaskStarter.startTask(statusTask);
             StageNodeBuilder.builder()
                     .setModality(Modality.APPLICATION_MODAL)
                     .setResizable(false)
                     .setTitle("SSH Status")
                     .setNode(hostStatusDialog)
                     .buildAndShow();
-            hostStatusDialog.getStatusCheckProgressBar().progressProperty().bind(statusTask.progressProperty());
-            TaskStarter.startTask(statusTask);
-        };
-        passphraseDialog.setPostDialogAction(postDialogAction);
-        if (promptForPassPhrase) {
-            StageNodeBuilder.builder()
-                    .setNode(passphraseDialog)
-                    .setTitle("SSH Passphrase")
-                    .setModality(Modality.APPLICATION_MODAL)
-                    .setResizable(false)
-                    .buildAndShow();
         } else {
-            //TODO when passphrase is set update is set property in property class
-            sshProperties.passPhraseProperty().setValue(environment.getProperty("application.ssh.passphrase"));
-            sshProperties.passPhraseSetProperty().setValue(true);
-            postDialogAction.run();
+            alertUtility.warningAlert("Key Passphrase", "The passphrase for key decryption has not been set.");
         }
     }
 
@@ -175,8 +165,10 @@ public class HostManagementService implements SpringInitializableNode {
         computeResourceProperties.getComputeResourceOnlineStatusMap().put(panel.getComputeResourceId(), SshStatus.UNKNOWN);
         if (decrement) {
             int currentCount = computeResourceProperties.getHostsOnline();
-            computeResourceProperties.hostsOnlineProperty()
-                    .set(currentCount - 1);
+            if (currentCount > 0) {
+                computeResourceProperties.hostsOnlineProperty()
+                        .set(currentCount - 1);
+            }
         }
     }
 

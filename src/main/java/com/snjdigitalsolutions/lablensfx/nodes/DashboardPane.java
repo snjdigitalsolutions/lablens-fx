@@ -59,6 +59,9 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                         refresh();
                     }
                 });
+        this.widthProperty().addListener((obj, oldVal, newVal) -> {
+            hostFlowPane.setMaxWidth(newVal.doubleValue());
+        });
     }
 
     private SummaryPanel createSummaryPanel(SummaryPanelType type) {
@@ -87,7 +90,6 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
             case NUM_ONLINE -> {
                 computeResourceProperties.hostsOnlineProperty()
                         .addListener((obj, oldVal, newVal) -> {
-                            System.out.println("firing!");
                             panel.setCountLabel(newVal.toString());
                         });
             }

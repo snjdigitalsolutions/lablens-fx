@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 @Scope("prototype")
-public class HostPanel extends GridPane implements SpringInitializableNode {
+public class HostPanel extends GridPane implements SpringInitializableNode, IpSortable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HostPanel.class);
 
@@ -107,6 +107,7 @@ public class HostPanel extends GridPane implements SpringInitializableNode {
 
     }
 
+    @Override
     public String getIpAddress() {
         return ipAddress.get();
     }

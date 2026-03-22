@@ -1,6 +1,8 @@
 package com.snjdigitalsolutions.lablensfx.service;
 
-import com.snjdigitalsolutions.lablensfx.nodes.*;
+import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
+import com.snjdigitalsolutions.lablensfx.nodes.HostPanelLarge;
+import com.snjdigitalsolutions.lablensfx.nodes.HostStatusDialog;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
 import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
@@ -10,7 +12,7 @@ import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import com.snjdigitalsolutions.lablensfx.task.SshStatusForSingleHostTask;
 import com.snjdigitalsolutions.lablensfx.task.SshStatusTask;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
-import com.snjdigitalsolutions.springbootutilityfx.node.utility.IpAddressUtility;
+import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.StageNodeBuilder;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.TaskStarter;
 import javafx.collections.MapChangeListener;
@@ -20,10 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,7 +34,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class HostManagementService implements SpringInitializableNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HostManagementService.class);
-    private final Environment environment;
     private final ComputeResourceProperties computeResourceProperties;
     private final StatusBarProperties statusBarProperties;
     private final ComputeResourceRepository computeResourceRepository;
@@ -40,21 +41,24 @@ public class HostManagementService implements SpringInitializableNode {
     private final HostStatusDialog hostStatusDialog;
     private final SshService sshService;
     private final SshProperties sshProperties;
-    private final PassphraseDialog passphraseDialog;
+    private final AlertUtility alertUtility;
 
-    @Value("${application.ssh.promptforpassphrase}")
-    private boolean promptForPassPhrase;
-
-    public HostManagementService(ComputeResourceProperties computeResourceProperties, StatusBarProperties statusBarProperties, ComputeResourceRepository computeResourceRepository, ObjectProvider<HostPanel> hostPanelProvider, IpAddressUtility ipAddressUtility, Environment environment, HostStatusDialog hostStatusDialog, SshService sshService, SshProperties sshProperties, PassphraseDialog passphraseDialog) {
+    public HostManagementService(ComputeResourceProperties computeResourceProperties,
+                                 StatusBarProperties statusBarProperties,
+                                 ComputeResourceRepository computeResourceRepository,
+                                 ObjectProvider<HostPanel> hostPanelProvider,
+                                 HostStatusDialog hostStatusDialog,
+                                 SshService sshService,
+                                 SshProperties sshProperties,
+                                 AlertUtility alertUtility) {
         this.computeResourceProperties = computeResourceProperties;
         this.statusBarProperties = statusBarProperties;
         this.computeResourceRepository = computeResourceRepository;
         this.hostPanelProvider = hostPanelProvider;
-        this.environment = environment;
         this.hostStatusDialog = hostStatusDialog;
         this.sshService = sshService;
         this.sshProperties = sshProperties;
-        this.passphraseDialog = passphraseDialog;
+        this.alertUtility = alertUtility;
     }
 
     @Override
@@ -132,36 +136,30 @@ public class HostManagementService implements SpringInitializableNode {
     }
 
     public void verifyHostSshStatus() {
-        Runnable postDialogAction = () -> {
-            sshService.init();
-            SshStatusTask statusTask = new SshStatusTask(computeResourceProperties, hostStatusDialog, sshService);
-            hostStatusDialog.setOnDialogClosed(() -> {
-                if (statusTask.isRunning()) {
-                    statusTask.cancel();
-                }
-            });
-            StageNodeBuilder.builder()
-                    .setModality(Modality.APPLICATION_MODAL)
-                    .setResizable(false)
-                    .setTitle("SSH Status")
-                    .setNode(hostStatusDialog)
-                    .buildAndShow();
-            hostStatusDialog.getStatusCheckProgressBar().progressProperty().bind(statusTask.progressProperty());
-            TaskStarter.startTask(statusTask);
-        };
-        passphraseDialog.setPostDialogAction(postDialogAction);
-        if (promptForPassPhrase) {
-            StageNodeBuilder.builder()
-                    .setNode(passphraseDialog)
-                    .setTitle("SSH Passphrase")
-                    .setModality(Modality.APPLICATION_MODAL)
-                    .setResizable(false)
-                    .buildAndShow();
-        } else {
-            //TODO when passphrase is set update is set property in property class
-            sshProperties.passPhraseProperty().setValue(environment.getProperty("application.ssh.passphrase"));
-            sshProperties.passPhraseSetProperty().setValue(true);
-            postDialogAction.run();
+        if (sshProperties.getPassPhraseMode().equals(PassPhraseMode.PROVIDED) ||
+                sshProperties.getPassPhraseMode().equals(PassPhraseMode.NOT_NEEDED)){
+            if (!sshService.isClientInitialized())
+            {
+                sshService.init();
+                SshStatusTask statusTask = new SshStatusTask(computeResourceProperties, hostStatusDialog, sshService);
+                hostStatusDialog.setOnDialogClosed(() -> {
+                    if (statusTask.isRunning()) {
+                        statusTask.cancel();
+                    }
+                });
+                hostStatusDialog.getStatusCheckProgressBar()
+                        .progressProperty()
+                        .bind(statusTask.progressProperty());
+                TaskStarter.startTask(statusTask);
+                StageNodeBuilder.builder()
+                        .setModality(Modality.APPLICATION_MODAL)
+                        .setResizable(false)
+                        .setTitle("SSH Status")
+                        .setNode(hostStatusDialog)
+                        .buildAndShow();
+            }
+        } else if (sshProperties.getPassPhraseMode().equals(PassPhraseMode.NOT_SET)){
+            alertUtility.warningAlert("Key Passphrase", "The passphrase for key decryption has not been set.");
         }
     }
 
@@ -175,8 +173,10 @@ public class HostManagementService implements SpringInitializableNode {
         computeResourceProperties.getComputeResourceOnlineStatusMap().put(panel.getComputeResourceId(), SshStatus.UNKNOWN);
         if (decrement) {
             int currentCount = computeResourceProperties.getHostsOnline();
-            computeResourceProperties.hostsOnlineProperty()
-                    .set(currentCount - 1);
+            if (currentCount > 0) {
+                computeResourceProperties.hostsOnlineProperty()
+                        .set(currentCount - 1);
+            }
         }
     }
 
@@ -196,10 +196,7 @@ public class HostManagementService implements SpringInitializableNode {
                     panel.setComputeResource(resource);
                     panels.add(panel);
                 });
-
-        //TODO create a comparator and interface for objects that have IP addresses
-//        panels = ipAddressUtility.sortIpAddresses(panels);
-
+        panels.sort(Comparator.comparing(HostPanel::getIpAddress));
         return panels;
     }
 
@@ -227,8 +224,8 @@ public class HostManagementService implements SpringInitializableNode {
         Optional<ComputeResource> resource = computeResourceRepository.findById(resourceID);
         resource.ifPresent(computeResource -> {
             computeResource.setSshCommunicate(value);
-            computeResource = computeResourceRepository.save(computeResource);
-            if (computeResource.getSshCommunicate()
+            ComputeResource saved = computeResourceRepository.save(computeResource);
+            if (saved.getSshCommunicate()
                     .equals(value)) {
                 success.set(true);
             }

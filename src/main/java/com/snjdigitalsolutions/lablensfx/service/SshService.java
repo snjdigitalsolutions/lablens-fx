@@ -1,15 +1,14 @@
 package com.snjdigitalsolutions.lablensfx.service;
 
-import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
 import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
+import com.snjdigitalsolutions.lablensfx.utility.SshKeyLoader;
 import jakarta.annotation.PreDestroy;
+import lombok.Getter;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.channel.ChannelExec;
 import org.apache.sshd.client.channel.ClientChannelEvent;
 import org.apache.sshd.client.keyverifier.AcceptAllServerKeyVerifier;
 import org.apache.sshd.client.session.ClientSession;
-import org.apache.sshd.common.config.keys.FilePasswordProvider;
-import org.apache.sshd.common.keyprovider.FileKeyPairProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -17,8 +16,6 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 
@@ -27,45 +24,44 @@ public class SshService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SshService.class);
     private final SshProperties sshProperties;
-    private final PassphraseDialog passphraseDialog;
+    private final SshKeyLoader sshKeyLoader;
     private SshClient client;
+    @Getter
     private boolean clientInitialized = false;
 
-    public SshService(SshProperties sshProperties, PassphraseDialog passphraseDialog) {
+    public SshService(SshProperties sshProperties,
+                      SshKeyLoader sshKeyLoader) {
         this.sshProperties = sshProperties;
-        this.passphraseDialog = passphraseDialog;
+        this.sshKeyLoader = sshKeyLoader;
     }
 
-    public void init() {
+    synchronized public void init() {
         if (!clientInitialized) {
             client = SshClient.setUpDefaultClient();
             client.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
-            Path sshDir = Paths.get(System.getProperty("user.home"), ".ssh/id_rsa");
-            FileKeyPairProvider keyPairProvider = new FileKeyPairProvider(sshDir);
-            if (sshProperties.isPassPhraseSet()) {
-                keyPairProvider.setPasswordFinder(FilePasswordProvider.of(sshProperties.getPassPhrase()));
-            } else {
-                LOGGER.error("Passphrase has not been set");
+            if (sshProperties.getPassPhraseMode().equals(PassPhraseMode.PROVIDED) || sshProperties.getPassPhraseMode().equals(PassPhraseMode.NOT_NEEDED)) {
+                client.setKeyIdentityProvider(sshKeyLoader.getKeyIdentityProvider());
+                client.start();
+                LOGGER.info("SSH client started");
+                clientInitialized = true;
             }
-            client.setKeyIdentityProvider(keyPairProvider);
-            client.start();
-            LOGGER.info("SSH client started, loading keys from {}", sshDir);
-            clientInitialized = true;
         }
     }
 
     @PreDestroy
     public void shutdown() throws IOException {
-        client.stop();
+        if (client != null) {
+            client.stop();
+        }
     }
 
     /**
      * Opens a session to the given host and runs a command, returning its output.
      * Closes the session when done — call this per-command for simple use cases.
      */
-    public String executeCommand(String host, int port, String username, String command) throws Exception {
+    public String executeCommand(String host, int port, String command) throws Exception {
 
-        try (ClientSession session = client.connect(username, host, port)
+        try (ClientSession session = client.connect(sshProperties.getSshUsername(), host, port)
                 .verify(10, TimeUnit.SECONDS)
                 .getSession()) {
 

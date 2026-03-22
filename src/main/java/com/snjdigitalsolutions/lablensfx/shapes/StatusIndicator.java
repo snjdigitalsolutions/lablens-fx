@@ -24,7 +24,6 @@ public class StatusIndicator extends Circle {
     }
 
     private void setColors(SshStatus status) {
-        System.out.println("Setting color: " + status);
         hostSshStatusProperty().setValue(status);
         this.setFill(status.getFillColor());
         this.setStroke(status.strokeColor());

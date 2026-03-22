@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope("prototype")
-public class HostPanelLarge extends GridPane {
+public class HostPanelLarge extends GridPane implements IpSortable {
 
     @FXML
     private HBox hostHBox;
@@ -90,6 +90,7 @@ public class HostPanelLarge extends GridPane {
         return hostname;
     }
 
+    @Override
     public String getIpAddress() {
         return ipAddress.get();
     }

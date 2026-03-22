@@ -14,8 +14,8 @@ public class SshStatusForSingleHostTask extends Task<Void> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SshStatusForSingleHostTask.class);
     private final Long resourceID;
-    private final ComputeResourceProperties computeResourceProperties;
     private final SshService sshService;
+    private final ComputeResourceProperties computeResourceProperties;
 
     public SshStatusForSingleHostTask(Long resourceId, ComputeResourceProperties computeResourceProperties, SshService sshService) {
         this.resourceID = resourceId;
@@ -26,31 +26,33 @@ public class SshStatusForSingleHostTask extends Task<Void> {
     @Override
     protected Void call() throws Exception {
         ComputeResource resource = computeResourceProperties.getComputeResourcesMap().get(resourceID);
-        LOGGER.debug("Verifying host status: {}", resource.getHostName());
-        try {
-            String response = sshService.executeCommand(resource.getIpAddress(), resource.getSshPort(), "jparham", "whoami");
-            LOGGER.debug("ssh command response: {}", response);
-            if (!response.isEmpty()) {
-                Platform.runLater(() -> {
-                    SshStatus currentStatus = resource.getHostPanelLarge().getStatusIndicator()
-                            .getHostSshStatus();
-                    resource.getHostPanelLarge()
-                            .getStatusIndicator()
-                            .hostSshStatusProperty()
-                            .set(SshStatus.ONLINE);
-                    computeResourceProperties.getComputeResourceOnlineStatusMap().put(resourceID,SshStatus.ONLINE);
-                    if (!currentStatus.equals(SshStatus.ONLINE)){
-                        int value = computeResourceProperties.getHostsOnline();
-                        computeResourceProperties.hostsOnlineProperty().setValue(value + 1);
-                    }
-                });
-            } else {
+        if (resource != null) {
+            LOGGER.debug("Verifying host status: {}", resource.getHostName());
+            try {
+                String response = sshService.executeCommand(resource.getIpAddress(), resource.getSshPort(),  "whoami");
+                LOGGER.debug("ssh command response: {}", response);
+                if (!response.isEmpty()) {
+                    Platform.runLater(() -> {
+                        SshStatus currentStatus = resource.getHostPanelLarge().getStatusIndicator()
+                                .getHostSshStatus();
+                        resource.getHostPanelLarge()
+                                .getStatusIndicator()
+                                .hostSshStatusProperty()
+                                .set(SshStatus.ONLINE);
+                        computeResourceProperties.getComputeResourceOnlineStatusMap().put(resourceID,SshStatus.ONLINE);
+                        if (!currentStatus.equals(SshStatus.ONLINE)){
+                            int value = computeResourceProperties.getHostsOnline();
+                            computeResourceProperties.hostsOnlineProperty().setValue(value + 1);
+                        }
+                    });
+                } else {
+                    decreaseOnlineCount(resource);
+                }
+            } catch (Exception e) {
+                //TODO fix up logging for command errors
+                LOGGER.error("Error executing command", e);
                 decreaseOnlineCount(resource);
             }
-        } catch (Exception e) {
-            //TODO fix up logging for command errors
-            System.out.println("Error executing command: \n" + e.getMessage());
-            decreaseOnlineCount(resource);
         }
         return null;
     }

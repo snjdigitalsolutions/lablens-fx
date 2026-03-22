@@ -2,6 +2,7 @@ package com.snjdigitalsolutions.lablensfx.orm;
 
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanelLarge;
+import com.snjdigitalsolutions.lablensfx.nodes.IpSortable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

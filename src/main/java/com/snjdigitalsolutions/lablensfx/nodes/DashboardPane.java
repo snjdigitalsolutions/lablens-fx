@@ -5,6 +5,8 @@ import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.IpAddressUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.MapChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.layout.AnchorPane;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -30,21 +33,30 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
     @FXML
     private TilePane hostFlowPane;
 
+    private BooleanProperty performRefresh = new SimpleBooleanProperty(false);
+
     private final ObjectProvider<SummaryPanel> summaryPanelProvider;
     private final ObjectProvider<HostPanelLarge> hostPanelLargeProvider;
     private final ComputeResourceProperties computeResourceProperties;
-    private final IpAddressUtility ipAddressUtility;
 
-    public DashboardPane(@Value("classpath:/fxml/DashboardPane.fxml") Resource fxml, ObjectProvider<SummaryPanel> summaryPanelProvider, ObjectProvider<HostPanelLarge> hostPanelLargeProvider, ComputeResourceProperties computeResourceProperties, IpAddressUtility ipAddressUtility) {
+    public DashboardPane(@Value("classpath:/fxml/DashboardPane.fxml") Resource fxml,
+                         ObjectProvider<SummaryPanel> summaryPanelProvider,
+                         ObjectProvider<HostPanelLarge> hostPanelLargeProvider,
+                         ComputeResourceProperties computeResourceProperties) {
         this.summaryPanelProvider = summaryPanelProvider;
         this.hostPanelLargeProvider = hostPanelLargeProvider;
         this.computeResourceProperties = computeResourceProperties;
-        this.ipAddressUtility = ipAddressUtility;
         NodeLoader.load(fxml, this);
     }
 
     @Override
     public void performIntialization() {
+        performRefresh.bind(computeResourceProperties.computeResourcesLoadedProperty());
+        computeResourceProperties.computeResourcesLoadedProperty().addListener((obj, oldVal, newVal) -> {
+            if (newVal) {
+                refresh();
+            }
+        });
         summaryPanelHBox.getChildren()
                 .add(createSummaryPanel(SummaryPanelType.NUM_HOSTS));
         summaryPanelHBox.getChildren()
@@ -56,9 +68,14 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         computeResourceProperties.getComputeResourcesMap()
                 .addListener((MapChangeListener<Long, ComputeResource>) change -> {
                     if (change.wasAdded() || change.wasRemoved()) {
-                        refresh();
+                        if (performRefresh.getValue()) {
+                            refresh();
+                        }
                     }
                 });
+        this.widthProperty().addListener((obj, oldVal, newVal) -> {
+            hostFlowPane.setMaxWidth(newVal.doubleValue());
+        });
     }
 
     private SummaryPanel createSummaryPanel(SummaryPanelType type) {
@@ -87,7 +104,6 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
             case NUM_ONLINE -> {
                 computeResourceProperties.hostsOnlineProperty()
                         .addListener((obj, oldVal, newVal) -> {
-                            System.out.println("firing!");
                             panel.setCountLabel(newVal.toString());
                         });
             }
@@ -102,7 +118,6 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         computeResourceProperties.getComputeResourcesMap()
                 .values()
                 .forEach(resource -> {
-                    //TODO the state of the ssh connection needs to be outside the panel because of the refresh
                     HostPanelLarge panel = hostPanelLargeProvider.getObject();
                     panel.performInitialization();
                     panel.hostnameProperty()
@@ -130,10 +145,10 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                     ipAddressToPanelMap.put(resource.getIpAddress(), panel);
                 });
 
-        ipAddressUtility.sortIpAddresses(new ArrayList<>(ipAddressToPanelMap.keySet()))
-                .forEach(ipAddress -> {
-                    hostFlowPane.getChildren()
-                            .add(ipAddressToPanelMap.get(ipAddress));
-                });
+        List<String> ipAddresses = new ArrayList<>(ipAddressToPanelMap.keySet());
+        ipAddresses.sort(String::compareTo);
+        ipAddresses.forEach(ip -> {
+            hostFlowPane.getChildren().add(ipAddressToPanelMap.get(ip));
+        });
     }
 }

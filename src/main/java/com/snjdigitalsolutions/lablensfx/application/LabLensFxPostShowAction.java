@@ -3,7 +3,6 @@ package com.snjdigitalsolutions.lablensfx.application;
 import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
 import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
-import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.StageNodeBuilder;
 import com.snjdigitalsolutions.springbootutilityfx.splash.PostShowRunnable;
 import javafx.stage.Modality;
@@ -44,7 +43,7 @@ public class LabLensFxPostShowAction implements PostShowRunnable {
         } else {
             sshProperties.passPhraseProperty().setValue(environment.getProperty("application.ssh.passphrase"));
             sshProperties.sshUsernameProperty().setValue(environment.getProperty("application.ssh.username"));
-            sshProperties.passPhraseModeProperty().setValue(PassPhraseMode.PROVIDED);
+            sshProperties.passPhraseSetProperty().setValue(true);
             hostManagementService.loadComputeResources();
         }
 

@@ -53,33 +53,41 @@ public class SshStatusTask extends Task<Void> {
                                 .setValue(value + 1);
                     });
                 } else {
-                    decreaseOnlineCount(resource);
+                    Platform.runLater(() -> {
+                        resource.getHostPanelLarge()
+                                .getStatusIndicator()
+                                .hostSshStatusProperty()
+                                .set(SshStatus.OFFLINE);
+                        computeResourceProperties.getComputeResourceOnlineStatusMap()
+                                .put(resource.getId(), SshStatus.OFFLINE);
+                        int value = computeResourceProperties.getHostsOnline();
+                        if (value > 0) {
+                            computeResourceProperties.hostsOnlineProperty()
+                                    .setValue(value - 1);
+                        }
+                    });
                 }
             } catch (Exception e) {
                 LOGGER.error("Exception thrown when executing command", e);
-                decreaseOnlineCount(resource);
+                Platform.runLater(() -> {
+                    resource.getHostPanelLarge()
+                            .getStatusIndicator()
+                            .hostSshStatusProperty()
+                            .set(SshStatus.OFFLINE);
+                    computeResourceProperties.getComputeResourceOnlineStatusMap()
+                            .put(resource.getId(), SshStatus.OFFLINE);
+                    int value = computeResourceProperties.getHostsOnline();
+                    if (value > 0) {
+                        computeResourceProperties.hostsOnlineProperty()
+                                .setValue(value - 1);
+                    }
+                });
             }
             LOGGER.debug("Updating {} of {}", resourceCheckIndex.get(), numberOfResources);
             updateProgress(resourceCheckIndex.get(), numberOfResources);
             resourceCheckIndex.incrementAndGet();
         });
         return null;
-    }
-
-    private void decreaseOnlineCount(ComputeResource resource) {
-        Platform.runLater(() -> {
-            resource.getHostPanelLarge()
-                    .getStatusIndicator()
-                    .hostSshStatusProperty()
-                    .set(SshStatus.OFFLINE);
-            computeResourceProperties.getComputeResourceOnlineStatusMap()
-                    .put(resource.getId(), SshStatus.OFFLINE);
-            int value = computeResourceProperties.getHostsOnline();
-            if (value > 0) {
-                computeResourceProperties.hostsOnlineProperty()
-                        .setValue(value - 1);
-            }
-        });
     }
 
     @Override

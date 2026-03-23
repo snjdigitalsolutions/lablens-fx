@@ -13,12 +13,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class SshKeyLoaderTest {
 
 
-    private SshProperties sshProperties = new SshProperties();
+    private final SshProperties sshProperties = new SshProperties();
 
     @Test
     public void getAvailableKeysTest() {
         //Arrange
-        SshKeyLoader sshKeyLoader = new SshKeyLoader(sshProperties);
+        SshKeyLoader sshKeyLoader = new SshKeyLoader();
         sshKeyLoader.performIntialization();
         sshProperties.passPhraseProperty().setValue("");
         sshProperties.passPhraseModeProperty().setValue(PassPhraseMode.PROVIDED);

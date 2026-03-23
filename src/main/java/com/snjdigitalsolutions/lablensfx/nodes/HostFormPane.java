@@ -136,18 +136,23 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
             if (!hostNameTextField.getText()
                     .isEmpty() && !ipaddressTextField.getText()
                     .isEmpty() && !operatingSystemTextField.getText()
+                    .isEmpty() && !sshPortTextField.getText()
                     .isEmpty()) {
                 if (ipAddressUtility.isValidIpAddress(ipaddressTextField.getText())) {
                     valid = true;
                 } else {
                     alertUtility.warningAlert("Invalid Address", "The IP address entered is invalid.");
                 }
+            } else {
+                alertUtility.warningAlert("Populate Fields", "Only the description is optional.");
             }
         } else {
             if (!ipaddressTextField.getText()
                     .isEmpty() && !sshPortTextField.getText()
                     .isEmpty()) {
                 valid = true;
+            } else {
+                alertUtility.warningAlert("Populate Fields", "IP address and port fields are required.");
             }
         }
         return valid;

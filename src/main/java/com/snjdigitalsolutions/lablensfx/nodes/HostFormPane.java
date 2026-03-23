@@ -81,6 +81,7 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
                 }
             } else if (autoCheckBox.isSelected() && performFormValidation(autoCheckBox.isSelected())) {
                 try {
+                    //TODO get rid of username hard code
                     String osReleaseText = sshService.executeCommand(ipaddressTextField.getText(), Integer.parseInt(sshPortTextField.getText()), "cat /etc/os-release");
                     String hostName = sshService.executeCommand(ipaddressTextField.getText(), Integer.parseInt(sshPortTextField.getText()),  "hostname");
                     String[] hostParts = new String[1];

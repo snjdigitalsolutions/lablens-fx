@@ -1,14 +1,15 @@
 package com.snjdigitalsolutions.lablensfx.service;
 
+import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
 import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
-import com.snjdigitalsolutions.lablensfx.utility.SshKeyLoader;
 import jakarta.annotation.PreDestroy;
-import lombok.Getter;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.channel.ChannelExec;
 import org.apache.sshd.client.channel.ClientChannelEvent;
 import org.apache.sshd.client.keyverifier.AcceptAllServerKeyVerifier;
 import org.apache.sshd.client.session.ClientSession;
+import org.apache.sshd.common.config.keys.FilePasswordProvider;
+import org.apache.sshd.common.keyprovider.FileKeyPairProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 
@@ -24,26 +27,29 @@ public class SshService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SshService.class);
     private final SshProperties sshProperties;
-    private final SshKeyLoader sshKeyLoader;
     private SshClient client;
-    @Getter
     private boolean clientInitialized = false;
 
-    public SshService(SshProperties sshProperties,
-                      SshKeyLoader sshKeyLoader) {
+    public SshService(SshProperties sshProperties) {
         this.sshProperties = sshProperties;
-        this.sshKeyLoader = sshKeyLoader;
     }
 
     synchronized public void init() {
         if (!clientInitialized) {
             client = SshClient.setUpDefaultClient();
             client.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
-            if (sshProperties.getPassPhraseMode().equals(PassPhraseMode.PROVIDED) || sshProperties.getPassPhraseMode().equals(PassPhraseMode.NOT_NEEDED)) {
-                client.setKeyIdentityProvider(sshKeyLoader.getKeyIdentityProvider());
+            //TODO need to fix this. Documentation states the apache library should scan for
+            // a private key, but I was having issues. This is valid and should be fixed.
+            Path sshDir = Paths.get(System.getProperty("user.home"), ".ssh/id_rsa");
+            FileKeyPairProvider keyPairProvider = new FileKeyPairProvider(sshDir);
+            if (sshProperties.isPassPhraseSet()) {
+                keyPairProvider.setPasswordFinder(FilePasswordProvider.of(sshProperties.getPassPhrase()));
+                client.setKeyIdentityProvider(keyPairProvider);
                 client.start();
-                LOGGER.info("SSH client started");
+                LOGGER.info("SSH client started, loading keys from {}", sshDir);
                 clientInitialized = true;
+            } else {
+                LOGGER.error("Passphrase has not been set");
             }
         }
     }

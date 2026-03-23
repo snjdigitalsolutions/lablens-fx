@@ -1,6 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
+import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
@@ -10,7 +11,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -48,24 +51,38 @@ public class PassphraseDialog extends GridPane implements SpringInitializableNod
 
     @Override
     public void performIntialization() {
-        cancelButton.setOnAction(nodeUtility::closeNode);
-        submitButton.setOnAction(event -> {
+        Runnable submitAction = () -> {
             if (validateTextField() && postDialogAction != null) {
                 sshProperties.passPhraseProperty()
                         .setValue(passphrasePasswordField.getText());
                 sshProperties.sshUsernameProperty()
                         .setValue(userNamerTextField.getText());
-                sshProperties.passPhraseSetProperty()
-                        .setValue(true);
+                sshProperties.passPhraseModeProperty().setValue(PassPhraseMode.PROVIDED);
                 postDialogAction.run();
-                nodeUtility.closeNode(event);
-            } else {
-                alertUtility.warningAlert("Fields not Populated", "Username and passphrase cannot be blank when no passphrase is not selected.");
+                if (this.getScene() != null && this.getScene().getWindow() != null){
+                    ((Stage)this.getScene().getWindow()).close();
+                }
+            } else if (!noPassphraseCheckbox.isSelected()) {
+                alertUtility.warningAlert("Fields not Populated", "Username and passphrase can not be blank.");
+            } else if (noPassphraseCheckbox.isSelected()){
+                alertUtility.warningAlert("Fields not populated", "Username field can not be blank.");
             }
+        };
+        cancelButton.setOnAction(nodeUtility::closeNode);
+        submitButton.setOnAction(event -> {
+            submitAction.run();
         });
         noPassphraseCheckbox.selectedProperty().addListener((obj, oldVal, newVal) -> {
             passphrasePasswordField.disableProperty().setValue(newVal);
+            if (newVal){
+                sshProperties.passPhraseModeProperty().setValue(PassPhraseMode.NOT_NEEDED);
+            }
             userNamerTextField.requestFocus();
+        });
+        passphrasePasswordField.setOnKeyPressed(value ->{
+            if (value.getCode().equals(KeyCode.ENTER)){
+                submitAction.run();
+            }
         });
     }
 

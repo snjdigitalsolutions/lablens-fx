@@ -42,7 +42,7 @@ public class SshService {
             // a private key, but I was having issues. This is valid and should be fixed.
             Path sshDir = Paths.get(System.getProperty("user.home"), ".ssh/id_rsa");
             FileKeyPairProvider keyPairProvider = new FileKeyPairProvider(sshDir);
-            if (sshProperties.isPassPhraseSet()) {
+            if (sshProperties.getPassPhraseMode().equals(PassPhraseMode.PROVIDED)) {
                 keyPairProvider.setPasswordFinder(FilePasswordProvider.of(sshProperties.getPassPhrase()));
                 client.setKeyIdentityProvider(keyPairProvider);
                 client.start();

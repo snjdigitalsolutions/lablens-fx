@@ -134,7 +134,8 @@ public class HostManagementService implements SpringInitializableNode {
     }
 
     public void verifyHostSshStatus() {
-        if (sshProperties.isPassPhraseSet() || sshProperties.isPassPhraseNotNeeded()){
+        if (sshProperties.getPassPhraseMode().equals(PassPhraseMode.PROVIDED) ||
+                sshProperties.getPassPhraseMode().equals(PassPhraseMode.NOT_NEEDED)){
             sshService.init();
             SshStatusTask statusTask = new SshStatusTask(computeResourceProperties, hostStatusDialog, sshService);
             hostStatusDialog.setOnDialogClosed(() -> {

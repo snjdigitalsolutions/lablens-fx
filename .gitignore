@@ -124,5 +124,4 @@ fabric.properties
 gitleaks-report.json
 /target/
 *.iml
-
-
+claude.md

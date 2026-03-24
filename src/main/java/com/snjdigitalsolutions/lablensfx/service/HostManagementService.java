@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class HostManagementService implements SpringInitializableNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HostManagementService.class);
+    private final Environment environment;
     private final ComputeResourceProperties computeResourceProperties;
     private final StatusBarProperties statusBarProperties;
     private final ComputeResourceRepository computeResourceRepository;
@@ -39,26 +40,22 @@ public class HostManagementService implements SpringInitializableNode {
     private final HostStatusDialog hostStatusDialog;
     private final SshService sshService;
     private final SshProperties sshProperties;
+    private final PassphraseDialog passphraseDialog;
     private final AlertUtility alertUtility;
 
     @Value("${application.ssh.promptforpassphrase}")
     private boolean promptForPassPhrase;
 
-    public HostManagementService(ComputeResourceProperties computeResourceProperties,
-                                 StatusBarProperties statusBarProperties,
-                                 ComputeResourceRepository computeResourceRepository,
-                                 ObjectProvider<HostPanel> hostPanelProvider,
-                                 HostStatusDialog hostStatusDialog,
-                                 SshService sshService,
-                                 SshProperties sshProperties,
-                                 AlertUtility alertUtility) {
+    public HostManagementService(ComputeResourceProperties computeResourceProperties, StatusBarProperties statusBarProperties, ComputeResourceRepository computeResourceRepository, ObjectProvider<HostPanel> hostPanelProvider, Environment environment, HostStatusDialog hostStatusDialog, SshService sshService, SshProperties sshProperties, PassphraseDialog passphraseDialog, AlertUtility alertUtility) {
         this.computeResourceProperties = computeResourceProperties;
         this.statusBarProperties = statusBarProperties;
         this.computeResourceRepository = computeResourceRepository;
         this.hostPanelProvider = hostPanelProvider;
+        this.environment = environment;
         this.hostStatusDialog = hostStatusDialog;
         this.sshService = sshService;
         this.sshProperties = sshProperties;
+        this.passphraseDialog = passphraseDialog;
         this.alertUtility = alertUtility;
     }
 

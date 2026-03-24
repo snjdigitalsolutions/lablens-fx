@@ -125,3 +125,4 @@ gitleaks-report.json
 /target/
 *.iml
 claude.md
+CLAUDE.md

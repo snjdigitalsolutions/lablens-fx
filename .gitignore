@@ -126,3 +126,4 @@ gitleaks-report.json
 *.iml
 claude.md
 CLAUDE.md
+.claude

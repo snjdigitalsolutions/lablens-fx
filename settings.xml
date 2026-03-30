@@ -5,34 +5,22 @@
 
     <servers>
         <server>
-            <id>snjds-nexus-maven-public</id>
+            <id>snjds-public-releases</id>
             <username>${env.MAVEN_USER}</username>
             <password>${env.MAVEN_PASSKEY}</password>
         </server>
         <server>
-            <id>snjds-nexus-private-releases</id>
+            <id>snjds-public-snapshots</id>
             <username>${env.MAVEN_USER}</username>
             <password>${env.MAVEN_PASSKEY}</password>
         </server>
         <server>
-            <id>snjds-nexus-private-snapshots</id>
-            <username>${env.MAVEN_USER}</username>
-            <password>${env.MAVEN_PASSKEY}</password>
-        </server>
-        <server>
-            <id>snjds-nexus-public-releases</id>
-            <username>${env.MAVEN_USER}</username>
-            <password>${env.MAVEN_PASSKEY}</password>
-        </server>
-        <server>
-            <id>snjds-nexus-public-snapshots</id>
-            <username>${env.MAVEN_USER}</username>
-            <password>${env.MAVEN_PASSKEY}</password>
+            <id>github</id>
+            <username>${env.GITHUB_USER}</username>
+            <password>${env.GITHUB_PASSKEY}</password>
         </server>
     </servers>
-
     <profiles>
-
         <profile>
             <id>nexus-profile</id>
             <repositories>
@@ -47,10 +35,10 @@
                         <enabled>false</enabled>
                     </snapshots>
                 </repository>
-                <!-- Private Nexus repo group — only used for artifacts not found in Central -->
+                <!-- Public repository group — only used for artifacts not found in Central -->
                 <repository>
-                    <id>snjds-nexus-maven-public</id>
-                    <url>http://nexus.snjdigitalsolutions.com/repository/maven-public/</url>
+                    <id>snjds-public</id>
+                    <url>https://nexus.snjdigitalsolutions.com/repository/snjds-public/</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>
@@ -70,58 +58,33 @@
                         <enabled>false</enabled>
                     </snapshots>
                 </pluginRepository>
-                <pluginRepository>
-                    <id>snjds-nexus-maven-public</id>
-                    <url>http://nexus.snjdigitalsolutions.com/repository/maven-public/</url>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </pluginRepository>
             </pluginRepositories>
         </profile>
-
-        <profile>
-            <id>private</id>
-            <properties>
-                <altReleaseDeploymentRepository>
-                    snjds-nexus-private-releases::default::https://nexus.snjdigitalsolutions.com/repository/maven-snjds-releases/
-                </altReleaseDeploymentRepository>
-                <altSnapshotDeploymentRepository>
-                    snjds-nexus-private-snapshots::default::https://nexus.snjdigitalsolutions.com/repository/maven-snjds-snapshots/
-                </altSnapshotDeploymentRepository>
-            </properties>
-        </profile>
-
+        <!--
+        This profile is for deploying develop branch
+        into the snapshots repository
+        -->
         <profile>
             <id>anonymous</id>
             <properties>
                 <altReleaseDeploymentRepository>
-                    snjds-nexus-public-releases::default::https://nexus.snjdigitalsolutions.com/repository/snjds-releases/
+                    snjds-public-releases::https://nexus.snjdigitalsolutions.com/repository/snjds-releases/
                 </altReleaseDeploymentRepository>
                 <altSnapshotDeploymentRepository>
-                    snjds-nexus-public-snapshots::default::https://nexus.snjdigitalsolutions.com/repository/snjds-snapshots/
+                    snjds-public-snapshots::https://nexus.snjdigitalsolutions.com/repository/snjds-snapshots/
                 </altSnapshotDeploymentRepository>
             </properties>
         </profile>
+        <profile>
+            <id>github</id>
+            <properties>
+                <altReleaseDeploymentRepository>
+                    github::https://maven.pkg.github.com/snjdigitalsolutions/springboot-utility-fx
+                </altReleaseDeploymentRepository>
+            </properties>
+        </profile>
     </profiles>
-
-
     <activeProfiles>
         <activeProfile>nexus-profile</activeProfile>
     </activeProfiles>
-
-
 </settings>
-
-        <!--
-
-        # Resolve deps from nexus-profile, deploy to public repo
-        mvn clean deploy -P public
-
-        # Resolve deps from nexus-profile, deploy to private repo
-        mvn clean deploy -P private
-
-        -->

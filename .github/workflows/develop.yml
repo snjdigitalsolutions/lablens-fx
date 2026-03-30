@@ -21,6 +21,8 @@ jobs:
     name: Build and Package Library
     needs: execute_git_leaks
     runs-on: ubuntu-latest
+    env:
+      LIBRARY_VERSION: "0.0.1"
     steps:
       - name: Checkout source
         uses: actions/checkout@v6
@@ -35,9 +37,21 @@ jobs:
           java --version
           mvn --version
 
+      - name: Set version from branch
+        run: |
+          BRANCH=${GITHUB_REF##*/}
+          if [ "$BRANCH" = "main" ]; then
+            VERSION=$LIBRARY_VERSION
+          else
+            # Sanitize branch name (slashes, etc.)
+            SAFE_BRANCH=$(echo "$BRANCH" | sed 's/[^a-zA-Z0-9]/-/g')
+            VERSION="${LIBRARY_VERSION}-${SAFE_BRANCH}-SNAPSHOT"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Build Fat Jar
         run: |
-          mvn -B --update-snapshots -DskipTests clean deploy -s ./settings.xml -P anonymous
+          mvn -B --update-snapshots -DskipTests -Drevision=${{ env.VERSION }} clean deploy -s ./settings.xml -P anonymous
         env:
           MAVEN_USER: ${{ secrets.MAVEN_USER }}
           MAVEN_PASSKEY: ${{ secrets.MAVEN_PASSKEY }}

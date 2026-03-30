@@ -11,7 +11,7 @@
     <groupId>com.snjdigitalsolutions</groupId>
     <artifactId>lablens-fx</artifactId>
     <name>lablens-fx</name>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>${revision}</version>
     <description>lablens-fx</description>
     <url/>
     <licenses>
@@ -28,6 +28,7 @@
     </scm>
     <properties>
         <java.version>25</java.version>
+        <revision>0.0.1-SNAPSHOT</revision>
     </properties>
     <dependencies>
         <!-- Springboot -->

@@ -5,6 +5,11 @@
 
     <servers>
         <server>
+            <id>snjds-public</id>
+            <username>${env.MAVEN_USER}</username>
+            <password>${env.MAVEN_PASSKEY}</password>
+        </server>
+        <server>
             <id>snjds-public-releases</id>
             <username>${env.MAVEN_USER}</username>
             <password>${env.MAVEN_PASSKEY}</password>

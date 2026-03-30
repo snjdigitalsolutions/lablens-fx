@@ -18,9 +18,16 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
 
   build_and_package:
-    name: Build and Package Executable for Linux
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            package-os: linux
+          - os: macos-26
+            package-os: mac
+    name: Build and Package Executable
     needs: execute_git_leaks
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     env:
       LIBRARY_VERSION: "0.0.1"
     steps:
@@ -45,7 +52,7 @@ jobs:
           else
             # Sanitize branch name (slashes, etc.)
             SAFE_BRANCH=$(echo "$BRANCH" | sed 's/[^a-zA-Z0-9]/-/g')
-            VERSION="${LIBRARY_VERSION}-${SAFE_BRANCH}-linux-SNAPSHOT"
+            VERSION="${LIBRARY_VERSION}-${SAFE_BRANCH}-${{ matrix.package-os }}-SNAPSHOT"
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 

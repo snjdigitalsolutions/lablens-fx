@@ -2,8 +2,8 @@ package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
+import com.snjdigitalsolutions.lablensfx.properties.IpAddressProperties;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
-import com.snjdigitalsolutions.springbootutilityfx.node.utility.IpAddressUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -27,6 +27,7 @@ import java.util.Map;
 
 @Component
 public class DashboardPane extends AnchorPane implements SpringInitializableNode {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DashboardPane.class);
     @FXML
     private HBox summaryPanelHBox;
@@ -38,25 +39,25 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
     private final ObjectProvider<SummaryPanel> summaryPanelProvider;
     private final ObjectProvider<HostPanelLarge> hostPanelLargeProvider;
     private final ComputeResourceProperties computeResourceProperties;
+    private final IpAddressProperties ipAddressProperties;
 
-    public DashboardPane(@Value("classpath:/fxml/DashboardPane.fxml") Resource fxml,
-                         ObjectProvider<SummaryPanel> summaryPanelProvider,
-                         ObjectProvider<HostPanelLarge> hostPanelLargeProvider,
-                         ComputeResourceProperties computeResourceProperties) {
+    public DashboardPane(@Value("classpath:/fxml/DashboardPane.fxml") Resource fxml, ObjectProvider<SummaryPanel> summaryPanelProvider, ObjectProvider<HostPanelLarge> hostPanelLargeProvider, ComputeResourceProperties computeResourceProperties, IpAddressProperties ipAddressProperties) {
         this.summaryPanelProvider = summaryPanelProvider;
         this.hostPanelLargeProvider = hostPanelLargeProvider;
         this.computeResourceProperties = computeResourceProperties;
+        this.ipAddressProperties = ipAddressProperties;
         NodeLoader.load(fxml, this);
     }
 
     @Override
     public void performIntialization() {
         performRefresh.bind(computeResourceProperties.computeResourcesLoadedProperty());
-        computeResourceProperties.computeResourcesLoadedProperty().addListener((obj, oldVal, newVal) -> {
-            if (newVal) {
-                refresh();
-            }
-        });
+        computeResourceProperties.computeResourcesLoadedProperty()
+                .addListener((obj, oldVal, newVal) -> {
+                    if (newVal) {
+                        refresh();
+                    }
+                });
         summaryPanelHBox.getChildren()
                 .add(createSummaryPanel(SummaryPanelType.NUM_HOSTS));
         summaryPanelHBox.getChildren()
@@ -73,9 +74,14 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                         }
                     }
                 });
-        this.widthProperty().addListener((obj, oldVal, newVal) -> {
-            hostFlowPane.setMaxWidth(newVal.doubleValue());
-        });
+        this.widthProperty()
+                .addListener((obj, oldVal, newVal) -> {
+                    hostFlowPane.setMaxWidth(newVal.doubleValue());
+                });
+        ipAddressProperties.showIpPropertyProperty()
+                .addListener((obj, oldVal, newVal) -> {
+                    refresh();
+                });
     }
 
     private SummaryPanel createSummaryPanel(SummaryPanelType type) {
@@ -122,8 +128,13 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                     panel.performInitialization();
                     panel.hostnameProperty()
                             .setValue(resource.getHostName());
-                    panel.ipAddressProperty()
-                            .setValue(resource.getIpAddress());
+                    if (ipAddressProperties.isShowIpProperty()) {
+                        panel.ipAddressProperty()
+                                .setValue(resource.getIpAddress());
+                    } else {
+                        panel.ipAddressProperty()
+                                .setValue("xxx.xxx.xxx.xxx");
+                    }
                     panel.descriptionProperty()
                             .setValue(resource.getDescription());
                     panel.sshPortProperty()
@@ -148,7 +159,8 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         List<String> ipAddresses = new ArrayList<>(ipAddressToPanelMap.keySet());
         ipAddresses.sort(String::compareTo);
         ipAddresses.forEach(ip -> {
-            hostFlowPane.getChildren().add(ipAddressToPanelMap.get(ip));
+            hostFlowPane.getChildren()
+                    .add(ipAddressToPanelMap.get(ip));
         });
     }
 }

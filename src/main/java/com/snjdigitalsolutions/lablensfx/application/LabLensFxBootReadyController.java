@@ -3,9 +3,15 @@ package com.snjdigitalsolutions.lablensfx.application;
 import com.snjdigitalsolutions.lablensfx.nodes.DashboardPane;
 import com.snjdigitalsolutions.lablensfx.nodes.HostFormPane;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPane;
+import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
+import com.snjdigitalsolutions.lablensfx.properties.IpAddressProperties;
 import com.snjdigitalsolutions.lablensfx.properties.StatusBarProperties;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
+import com.snjdigitalsolutions.springbootutilityfx.node.utility.ButtonUtility;
+import com.snjdigitalsolutions.springbootutilityfx.node.utility.TooltipGenerator;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
@@ -19,6 +25,18 @@ import org.springframework.stereotype.Component;
 public class LabLensFxBootReadyController implements SpringInitializableNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LabLensFxBootReadyController.class);
+    private final TooltipGenerator tooltipGenerator;
+
+    private enum IpState {
+        SHOW("Hide IP Addresses"),
+        HIDE("Show IP Addresses");
+
+        private final String menuItemMessage;
+
+        IpState(String menuItemMessage){
+            this.menuItemMessage = menuItemMessage;
+        }
+    };
 
     @FXML
     private StatusBar statusBar;
@@ -27,23 +45,43 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     @FXML
     private Button addHostButton;
     @FXML
+    private Button sshButton;
+    @FXML
     private MenuItem deleteSelectedHostsMenuItem;
+    @FXML
+    private MenuItem showHideIpMenuItem;
+    @FXML
+    private FontAwesomeIconView showHideIpIconView;
+
+    private IpState currentState = IpState.SHOW;
 
     private final HostPane hostPane;
     private final HostFormPane hostFormPane;
     private final StatusBarProperties statusBarProperties;
     private final DashboardPane dashboardPane;
     private final HostManagementService hostManagementService;
+    private final PassphraseDialog passphraseDialog;
+    private final IpAddressProperties ipAddressProperties;
+    private final ButtonUtility buttonUtility;
 
-    public LabLensFxBootReadyController(HostPane hostPane, HostFormPane hostFormPane,
+    public LabLensFxBootReadyController(HostPane hostPane,
+                                        HostFormPane hostFormPane,
                                         StatusBarProperties statusBarProperties,
                                         DashboardPane dashboardPane,
-                                        HostManagementService hostManagementService) {
+                                        HostManagementService hostManagementService,
+                                        ButtonUtility buttonUtility,
+                                        TooltipGenerator tooltipGenerator,
+                                        PassphraseDialog passphraseDialog,
+                                        IpAddressProperties ipAddressProperties) {
         this.hostPane = hostPane;
         this.hostFormPane = hostFormPane;
         this.statusBarProperties = statusBarProperties;
         this.dashboardPane = dashboardPane;
         this.hostManagementService = hostManagementService;
+        this.buttonUtility = buttonUtility;
+        this.tooltipGenerator = tooltipGenerator;
+        this.passphraseDialog = passphraseDialog;
+        this.ipAddressProperties = ipAddressProperties;
     }
 
     @Override
@@ -51,12 +89,48 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         rootPane.setLeft(hostPane);
         rootPane.setCenter(dashboardPane);
         statusBar.textProperty().bind(statusBarProperties.statusProperty());
-        deleteSelectedHostsMenuItem.disableProperty().bind(statusBarProperties.disableDeleteHostMenuItemProperty());
+        initializeDeleteSelectedHostMenuItem();
+        initializeAddHostButton();
+        initializeSshButton();
+        initializeShowHideIpMenuItem();
+    }
+
+    private void initializeSshButton() {
+        sshButton.setTooltip(tooltipGenerator.generateTooltip("Set SSH credentials and verify host connectivity."));
+        sshButton.setOnAction(event -> {
+            passphraseDialog.showDialog();
+            passphraseDialog.setPostDialogAction(hostManagementService::loadComputeResources);
+        });
+    }
+
+    private void initializeAddHostButton() {
         addHostButton.setOnAction(buttonEvent -> {
             hostFormPane.showPane();
         });
+    }
+
+    private void initializeDeleteSelectedHostMenuItem() {
+        deleteSelectedHostsMenuItem.disableProperty().bind(statusBarProperties.disableDeleteHostMenuItemProperty());
         deleteSelectedHostsMenuItem.setOnAction(event -> {
             hostManagementService.deleteSelectedHosts();
+        });
+    }
+
+    private void initializeShowHideIpMenuItem() {
+        showHideIpMenuItem.setText(IpState.SHOW.menuItemMessage);
+        showHideIpIconView.setIcon(FontAwesomeIcon.EYE_SLASH);
+        showHideIpMenuItem.setOnAction(event -> {
+            if (currentState.equals(IpState.SHOW)){
+                showHideIpIconView.setIcon(FontAwesomeIcon.EYE);
+                currentState = IpState.HIDE;
+                showHideIpMenuItem.setText(IpState.HIDE.menuItemMessage);
+                ipAddressProperties.showIpPropertyProperty().setValue(false);
+            } else {
+                showHideIpIconView.setIcon(FontAwesomeIcon.EYE_SLASH);
+                currentState = IpState.SHOW;
+                showHideIpMenuItem.setText(IpState.SHOW.menuItemMessage);
+                ipAddressProperties.showIpPropertyProperty().setValue(true);
+            }
         });
     }
 

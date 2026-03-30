@@ -1,6 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
+import com.snjdigitalsolutions.lablensfx.properties.IpAddressProperties;
 import com.snjdigitalsolutions.lablensfx.properties.StatusBarProperties;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
@@ -53,15 +54,18 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
 
     private final StatusBarProperties statusBarProperties;
     private final HostManagementService hostManagementService;
+    private final IpAddressProperties ipAddressProperties;
     private final AlertUtility alertUtility;
 
     public HostPanel(@Value("classpath:/fxml/HostPanel.fxml") Resource fxml,
                      StatusBarProperties statusBarProperties,
                      HostPane hostPane,
                      HostManagementService hostManagementService,
+                     IpAddressProperties ipAddressProperties,
                      AlertUtility alertUtility){
         this.statusBarProperties = statusBarProperties;
         this.hostManagementService = hostManagementService;
+        this.ipAddressProperties = ipAddressProperties;
         this.alertUtility = alertUtility;
         NodeLoader.load(fxml, this);
     }
@@ -70,7 +74,11 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
     @Override
     public void performIntialization() {
         addSelectedStyle(this);
-        ipAddressLabel.textProperty().bind(ipAddress);
+        if (ipAddressProperties.isShowIpProperty()){
+            ipAddressLabel.textProperty().bind(ipAddress);
+        } else {
+            ipAddressLabel.textProperty().setValue("xxx.xxx.xxx.xxx");
+        }
         hostNameLabel.textProperty().bind(hostname);
         sshPortLabel.textProperty().bind(sshPort.asString());
     }

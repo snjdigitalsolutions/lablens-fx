@@ -1,5 +1,6 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
+import com.snjdigitalsolutions.lablensfx.properties.IpAddressProperties;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import com.snjdigitalsolutions.lablensfx.shapes.StatusIndicator;
@@ -45,12 +46,15 @@ public class HostPanelLarge extends GridPane implements IpSortable {
     @Setter
     private Long computeResourceId;
     private final HostManagementService hostManagementService;
+    private final IpAddressProperties ipAddressProperties;
 
     public HostPanelLarge(@Value("classpath:/fxml/HostPanelLarge.fxml") Resource fxml,
                           StatusIndicator statusIndicator,
-                          HostManagementService hostManagementService) {
+                          HostManagementService hostManagementService,
+                          IpAddressProperties ipAddressProperties) {
         this.statusIndicator = statusIndicator;
         this.hostManagementService = hostManagementService;
+        this.ipAddressProperties = ipAddressProperties;
         NodeLoader.load(fxml, this);
     }
 

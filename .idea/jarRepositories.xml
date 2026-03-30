@@ -7,9 +7,19 @@
       <option name="url" value="https://repo.maven.apache.org/maven2" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="snjds-nexus-maven-public" />
+      <option name="name" value="snjds-nexus-maven-public" />
+      <option name="url" value="https://nexus.snjdigitalsolutions.com/repository/maven-public/" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="central" />
       <option name="name" value="Maven Central repository" />
       <option name="url" value="https://repo1.maven.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="snjds-nexus-public-snapshots" />
+      <option name="name" value="snjds-nexus-public-snapshots" />
+      <option name="url" value="http://nexus.snjdigitalsolutions.com/repository/snjds-snapshots/" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="jboss.community" />
@@ -25,6 +35,11 @@
       <option name="id" value="central" />
       <option name="name" value="central" />
       <option name="url" value="https://repo1.maven.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="snjds-nexus-public-snapshots" />
+      <option name="name" value="snjds-nexus-public-snapshots" />
+      <option name="url" value="https://nexus.snjdigitalsolutions.com/repository/snjds-snapshots/" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="snjds-nexus" />

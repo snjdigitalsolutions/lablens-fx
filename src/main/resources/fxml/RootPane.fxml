@@ -30,6 +30,11 @@
                 <Menu mnemonicParsing="false" text="Edit">
                   <items>
                     <MenuItem fx:id="deleteSelectedHostsMenuItem" mnemonicParsing="false" text="Delete Selected Hosts" />
+                        <MenuItem fx:id="showHideIpMenuItem" mnemonicParsing="false" text="Unspecified Action">
+                           <graphic>
+                              <FontAwesomeIconView fx:id="showHideIpIconView" />
+                           </graphic>
+                        </MenuItem>
                   </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Help">
@@ -50,6 +55,11 @@
                      <HBox.margin>
                         <Insets top="10.0" />
                      </HBox.margin></Region>
+                  <Button fx:id="sshButton" mnemonicParsing="false">
+                     <graphic>
+                        <FontAwesomeIconView glyphName="TERMINAL" />
+                     </graphic>
+                  </Button>
                   <Button fx:id="addHostButton" mnemonicParsing="false" text="Add Host">
                      <graphic>
                         <FontAwesomeIconView glyphName="PLUS" />

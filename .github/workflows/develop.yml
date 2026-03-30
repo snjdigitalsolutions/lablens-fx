@@ -1,0 +1,43 @@
+name: Create library snapshot
+on:
+  workflow_dispatch:
+
+jobs:
+  execute_git_leaks:
+    name: Run GitLeaks
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Check for leaks
+        uses: gitleaks/gitleaks-action@v2
+
+  build_and_package:
+    name: Build and Package Library
+    needs: execute_git_leaks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Setup and show Java version
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'liberica'
+          java-version: '25'
+          java-package: 'jdk+fx'
+      - run: |
+          java --version
+          mvn --version
+
+      - name: Build Fat Jar
+        run: |
+          mvn -B --update-snapshots -DskipTests clean deploy -s ./settings.xml -P anonymous
+        env:
+          MAVEN_USER: ${{ secrets.MAVEN_USER }}
+          MAVEN_PASSKEY: ${{ secrets.MAVEN_PASSKEY }}

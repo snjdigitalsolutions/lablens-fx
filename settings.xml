@@ -6,28 +6,28 @@
     <servers>
         <server>
             <id>snjds-nexus-maven-public</id>
-            <username></username>
-            <password></password>
+            <username>${env.MAVEN_USER}</username>
+            <password>${env.MAVEN_PASSKEY}</password>
         </server>
         <server>
             <id>snjds-nexus-private-releases</id>
-            <username></username>
-            <password></password>
+            <username>${env.MAVEN_USER}</username>
+            <password>${env.MAVEN_PASSKEY}</password>
         </server>
         <server>
             <id>snjds-nexus-private-snapshots</id>
-            <username></username>
-            <password></password>
+            <username>${env.MAVEN_USER}</username>
+            <password>${env.MAVEN_PASSKEY}</password>
         </server>
         <server>
             <id>snjds-nexus-public-releases</id>
-            <username></username>
-            <password></password>
+            <username>${env.MAVEN_USER}</username>
+            <password>${env.MAVEN_PASSKEY}</password>
         </server>
         <server>
             <id>snjds-nexus-public-snapshots</id>
-            <username></username>
-            <password></password>
+            <username>${env.MAVEN_USER}</username>
+            <password>${env.MAVEN_PASSKEY}</password>
         </server>
     </servers>
 

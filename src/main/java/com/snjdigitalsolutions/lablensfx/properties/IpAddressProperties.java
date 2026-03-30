@@ -1,0 +1,19 @@
+package com.snjdigitalsolutions.lablensfx.properties;
+
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import org.springframework.stereotype.Component;
+
+@Component
+public class IpAddressProperties {
+
+    private final BooleanProperty showIpProperty = new SimpleBooleanProperty(true);
+
+    public boolean isShowIpProperty() {
+        return showIpProperty.get();
+    }
+
+    public BooleanProperty showIpPropertyProperty() {
+        return showIpProperty;
+    }
+}

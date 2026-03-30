@@ -6,6 +6,7 @@ import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeUtility;
+import com.snjdigitalsolutions.springbootutilityfx.node.utility.StageNodeBuilder;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -13,6 +14,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
@@ -90,5 +92,14 @@ public class PassphraseDialog extends GridPane implements SpringInitializableNod
         return (!passphrasePasswordField.getText()
                 .isBlank() || noPassphraseCheckbox.isSelected()) && !userNamerTextField.getText()
                 .isBlank();
+    }
+
+    public void showDialog() {
+        StageNodeBuilder.builder()
+                .setNode(this)
+                .setTitle("SSH Passphrase")
+                .setModality(Modality.APPLICATION_MODAL)
+                .setResizable(false)
+                .buildAndShow();
     }
 }

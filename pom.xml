@@ -67,7 +67,7 @@
         <dependency>
             <groupId>com.snjdigitalsolutions</groupId>
             <artifactId>springboot-utility-fx</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0-develop-SNAPSHOT</version>
         </dependency>
         <!-- /JavaFX -->
         <!-- SSH -->

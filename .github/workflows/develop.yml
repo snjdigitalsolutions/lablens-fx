@@ -18,7 +18,7 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
 
   build_and_package:
-    name: Build and Package Library
+    name: Build and Package Executable for Linux
     needs: execute_git_leaks
     runs-on: ubuntu-latest
     env:
@@ -45,13 +45,13 @@ jobs:
           else
             # Sanitize branch name (slashes, etc.)
             SAFE_BRANCH=$(echo "$BRANCH" | sed 's/[^a-zA-Z0-9]/-/g')
-            VERSION="${LIBRARY_VERSION}-${SAFE_BRANCH}-SNAPSHOT"
+            VERSION="${LIBRARY_VERSION}-${SAFE_BRANCH}-linux-SNAPSHOT"
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Build Fat Jar
         run: |
-          mvn -B -X -e --update-snapshots -DskipTests -Drevision=${{ env.VERSION }} clean deploy -s ./settings.xml -P anonymous
+          mvn -B --update-snapshots -DskipTests -Drevision=${{ env.VERSION }} clean deploy -s ./settings.xml -P anonymous
         env:
           MAVEN_USER: ${{ secrets.MAVEN_USER }}
           MAVEN_PASSKEY: ${{ secrets.MAVEN_PASSKEY }}

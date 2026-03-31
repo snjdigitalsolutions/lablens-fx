@@ -7,6 +7,8 @@ import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
 import com.snjdigitalsolutions.lablensfx.properties.IpAddressProperties;
 import com.snjdigitalsolutions.lablensfx.properties.StatusBarProperties;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
+import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
+import com.snjdigitalsolutions.lablensfx.shapes.StatusIndicator;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.ButtonUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.TooltipGenerator;
@@ -19,6 +21,7 @@ import javafx.scene.layout.BorderPane;
 import org.controlsfx.control.StatusBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -55,6 +58,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
 
     private IpState currentState = IpState.SHOW;
 
+    private final ObjectProvider<StatusIndicator> statusIndicatorProvider;
     private final HostPane hostPane;
     private final HostFormPane hostFormPane;
     private final StatusBarProperties statusBarProperties;
@@ -64,7 +68,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     private final IpAddressProperties ipAddressProperties;
     private final ButtonUtility buttonUtility;
 
-    public LabLensFxBootReadyController(HostPane hostPane,
+    public LabLensFxBootReadyController(ObjectProvider<StatusIndicator> statusIndicatorProvider, HostPane hostPane,
                                         HostFormPane hostFormPane,
                                         StatusBarProperties statusBarProperties,
                                         DashboardPane dashboardPane,
@@ -73,6 +77,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                                         TooltipGenerator tooltipGenerator,
                                         PassphraseDialog passphraseDialog,
                                         IpAddressProperties ipAddressProperties) {
+        this.statusIndicatorProvider = statusIndicatorProvider;
         this.hostPane = hostPane;
         this.hostFormPane = hostFormPane;
         this.statusBarProperties = statusBarProperties;
@@ -89,6 +94,9 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         rootPane.setLeft(hostPane);
         rootPane.setCenter(dashboardPane);
         statusBar.textProperty().bind(statusBarProperties.statusProperty());
+        StatusIndicator indicator = statusIndicatorProvider.getObject();
+        indicator.hostSshStatusProperty().setValue(SshStatus.OFFLINE);
+        statusBar.getRightItems().add(indicator);
         initializeDeleteSelectedHostMenuItem();
         initializeAddHostButton();
         initializeSshButton();

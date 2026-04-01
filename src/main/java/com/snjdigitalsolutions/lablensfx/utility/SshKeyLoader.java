@@ -17,7 +17,11 @@ import java.util.List;
 public class SshKeyLoader implements SpringInitializableNode {
 
     private final List<String> privateKeyFileNameList = new ArrayList<>();
-    private Path sshDir = Paths.get(System.getProperty("user.home"), ".ssh");
+    private final KeyDirectoryProvider keyDirectoryProvider;
+
+    public SshKeyLoader(KeyDirectoryProvider keyDirectoryProvider) {
+        this.keyDirectoryProvider = keyDirectoryProvider;
+    }
 
     @Override
     public void performIntialization() {
@@ -29,13 +33,14 @@ public class SshKeyLoader implements SpringInitializableNode {
                 "id_dsa"));
     }
 
-    public List<KeyPair> getAvailableKeys() {
+    public List<Path> getAvailableKeyFilePaths() {
+        List<Path> validFilePaths = new ArrayList<>();
         for (String fileName : privateKeyFileNameList){
-            Path filePath = sshDir.resolve(fileName);
+            Path filePath = Path.of(keyDirectoryProvider.keyDirectoryPath().toString(), fileName);
             if (Files.isRegularFile(filePath)){
-
+                validFilePaths.add(filePath);
             }
         }
-        return null;
+        return validFilePaths;
     }
 }

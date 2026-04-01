@@ -1,7 +1,8 @@
 package com.snjdigitalsolutions.lablensfx.service;
 
-import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
 import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
+import com.snjdigitalsolutions.lablensfx.utility.KeyDirectoryProvider;
+import com.snjdigitalsolutions.lablensfx.utility.SshKeyLoader;
 import jakarta.annotation.PreDestroy;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.channel.ChannelExec;
@@ -18,8 +19,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -27,31 +28,39 @@ public class SshService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SshService.class);
     private final SshProperties sshProperties;
+    private final SshKeyLoader sshKeyLoader;
     private SshClient client;
     private boolean clientInitialized = false;
 
-    public SshService(SshProperties sshProperties) {
+    public SshService(SshProperties sshProperties,
+                      SshKeyLoader sshKeyLoader) {
         this.sshProperties = sshProperties;
+        this.sshKeyLoader = sshKeyLoader;
     }
 
-    synchronized public void init() {
+    synchronized public boolean init() {
         if (!clientInitialized) {
             client = SshClient.setUpDefaultClient();
             client.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
-            //TODO need to fix this. Documentation states the apache library should scan for
-            // a private key, but I was having issues. This is valid and should be fixed.
-            Path sshDir = Paths.get(System.getProperty("user.home"), ".ssh/id_rsa");
-            FileKeyPairProvider keyPairProvider = new FileKeyPairProvider(sshDir);
-            if (sshProperties.getPassPhraseMode().equals(PassPhraseMode.PROVIDED)) {
-                keyPairProvider.setPasswordFinder(FilePasswordProvider.of(sshProperties.getPassPhrase()));
-                client.setKeyIdentityProvider(keyPairProvider);
-                client.start();
-                LOGGER.info("SSH client started, loading keys from {}", sshDir);
-                clientInitialized = true;
+            List<Path> availableKeyPaths = sshKeyLoader.getAvailableKeyFilePaths();
+            if (availableKeyPaths.isEmpty()){
+                LOGGER.error("No key files available");
             } else {
-                LOGGER.error("Passphrase has not been set");
+                Path sshKeyPath = availableKeyPaths.getFirst();
+                FileKeyPairProvider keyPairProvider = new FileKeyPairProvider(sshKeyPath);
+                if (sshProperties.getPassPhraseMode()
+                        .equals(PassPhraseMode.PROVIDED)) {
+                    keyPairProvider.setPasswordFinder(FilePasswordProvider.of(sshProperties.getPassPhrase()));
+                    client.setKeyIdentityProvider(keyPairProvider);
+                    client.start();
+                    LOGGER.info("SSH client started, loading keys from {}", sshKeyPath);
+                    clientInitialized = true;
+                } else {
+                    LOGGER.error("Passphrase has not been set");
+                }
             }
         }
+        return clientInitialized;
     }
 
     @PreDestroy

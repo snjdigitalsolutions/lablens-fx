@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-//TODO need unit test
 @Component
 public class EtcOsReleaseParser {
 

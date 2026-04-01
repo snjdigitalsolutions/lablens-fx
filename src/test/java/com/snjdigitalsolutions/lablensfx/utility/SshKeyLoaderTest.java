@@ -1,36 +1,37 @@
 package com.snjdigitalsolutions.lablensfx.utility;
 
+import com.snjdigitalsolutions.lablensfx.AbstractTest;
 import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
 import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import org.junit.jupiter.api.Test;
 
-import java.security.KeyPair;
+import java.nio.file.Path;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
-
-class SshKeyLoaderTest {
-
+class SshKeyLoaderTest extends AbstractTest {
 
     private final SshProperties sshProperties = new SshProperties();
 
     @Test
     public void getAvailableKeysTest() {
         //Arrange
-        SshKeyLoader sshKeyLoader = new SshKeyLoader();
+        Path directoryPath = keyDirectoryProvider.keyDirectoryPath();
         sshKeyLoader.performIntialization();
-        sshProperties.passPhraseProperty().setValue("");
-        sshProperties.passPhraseModeProperty().setValue(PassPhraseMode.PROVIDED);
+        sshProperties.passPhraseProperty()
+                .setValue("");
+        sshProperties.passPhraseModeProperty()
+                .setValue(PassPhraseMode.PROVIDED);
 
         //Act
-        List<KeyPair> keyPairs = sshKeyLoader.getAvailableKeys();
-        keyPairs.forEach(pair -> {
-            System.out.println(pair.toString());
-        });
+        List<Path> filePaths = sshKeyLoader.getAvailableKeyFilePaths();
 
         //Assert
-        assertNotNull(keyPairs);
+        assertEquals("src/test/resources", directoryPath.toString());
+        assertFalse(filePaths.isEmpty());
+
+
     }
 
 }

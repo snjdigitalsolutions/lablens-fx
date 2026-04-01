@@ -136,21 +136,22 @@ public class HostManagementService implements SpringInitializableNode {
     public void verifyHostSshStatus() {
         if (sshProperties.getPassPhraseMode().equals(PassPhraseMode.PROVIDED) ||
                 sshProperties.getPassPhraseMode().equals(PassPhraseMode.NOT_NEEDED)){
-            sshService.init();
-            SshStatusTask statusTask = new SshStatusTask(computeResourceProperties, hostStatusDialog, sshService);
-            hostStatusDialog.setOnDialogClosed(() -> {
-                if (statusTask.isRunning()) {
-                    statusTask.cancel();
-                }
-            });
-            hostStatusDialog.getStatusCheckProgressBar().progressProperty().bind(statusTask.progressProperty());
-            TaskStarter.startTask(statusTask);
-            StageNodeBuilder.builder()
-                    .setModality(Modality.APPLICATION_MODAL)
-                    .setResizable(false)
-                    .setTitle("SSH Status")
-                    .setNode(hostStatusDialog)
-                    .buildAndShow();
+            if(sshService.init()){
+                SshStatusTask statusTask = new SshStatusTask(computeResourceProperties, hostStatusDialog, sshService);
+                hostStatusDialog.setOnDialogClosed(() -> {
+                    if (statusTask.isRunning()) {
+                        statusTask.cancel();
+                    }
+                });
+                hostStatusDialog.getStatusCheckProgressBar().progressProperty().bind(statusTask.progressProperty());
+                TaskStarter.startTask(statusTask);
+                StageNodeBuilder.builder()
+                        .setModality(Modality.APPLICATION_MODAL)
+                        .setResizable(false)
+                        .setTitle("SSH Status")
+                        .setNode(hostStatusDialog)
+                        .buildAndShow();
+            }
         } else {
             alertUtility.warningAlert("Key Passphrase", "The passphrase for key decryption has not been set.");
         }

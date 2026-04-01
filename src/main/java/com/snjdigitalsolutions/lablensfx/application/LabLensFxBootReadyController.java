@@ -1,9 +1,6 @@
 package com.snjdigitalsolutions.lablensfx.application;
 
-import com.snjdigitalsolutions.lablensfx.nodes.DashboardPane;
-import com.snjdigitalsolutions.lablensfx.nodes.HostFormPane;
-import com.snjdigitalsolutions.lablensfx.nodes.HostPane;
-import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
+import com.snjdigitalsolutions.lablensfx.nodes.*;
 import com.snjdigitalsolutions.lablensfx.properties.IpAddressProperties;
 import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
 import com.snjdigitalsolutions.lablensfx.properties.StatusBarProperties;
@@ -58,6 +55,8 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     @FXML
     private Button timelineButton;
     @FXML
+    private Button dashboardButton;
+    @FXML
     private MenuItem deleteSelectedHostsMenuItem;
     @FXML
     private MenuItem showHideIpMenuItem;
@@ -72,6 +71,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     private final StatusBarProperties statusBarProperties;
     private final SshProperties sshProperties;
     private final DashboardPane dashboardPane;
+    private final ConfigurationPane configurationPane;
     private final HostManagementService hostManagementService;
     private final PassphraseDialog passphraseDialog;
     private final IpAddressProperties ipAddressProperties;
@@ -88,6 +88,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                                         HostManagementService hostManagementService,
                                         ButtonUtility buttonUtility,
                                         TooltipGenerator tooltipGenerator,
+                                        ConfigurationPane configurationPane,
                                         PassphraseDialog passphraseDialog,
                                         IpAddressProperties ipAddressProperties) {
         this.statusIndicatorProvider = statusIndicatorProvider;
@@ -99,6 +100,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         this.hostManagementService = hostManagementService;
         this.buttonUtility = buttonUtility;
         this.tooltipGenerator = tooltipGenerator;
+        this.configurationPane = configurationPane;
         this.passphraseDialog = passphraseDialog;
         this.ipAddressProperties = ipAddressProperties;
     }
@@ -106,7 +108,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     @Override
     public void performIntialization() {
         rootPane.setLeft(hostPane);
-        rootPane.setCenter(dashboardPane);
+        setDashboardVisible();
         statusBar.textProperty().bind(statusBarProperties.statusProperty());
         initializeViewButtons();
         initializeSshCredentialIndicator();
@@ -123,25 +125,37 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                         .setValue(SshStatus.OFFLINE);
             }
         });
+        configButton.setOnAction(event -> {
+            setConfigurationVisible();
+        });
+        dashboardButton.setOnAction(event -> {
+            setDashboardVisible();
+        });
+    }
 
+    private void setConfigurationVisible() {
+        rootPane.setCenter(configurationPane);
+    }
+
+    private void setDashboardVisible() {
+        rootPane.setCenter(dashboardPane);
     }
 
     private void initializeViewButtons() {
-        configButton.setDisable(true);
-        logButton.setDisable(true);
-        timelineButton.setDisable(true);
+        disableNonDashboardButtons(true);
         statusBarProperties.numberOfSelectedHostsProperty()
                 .addListener((obj, oldVal, newVal) -> {
-                    if (newVal.intValue() == 1) {
-                        configButton.setDisable(false);
-                        logButton.setDisable(false);
-                        timelineButton.setDisable(false);
-                    } else {
-                        configButton.setDisable(true);
-                        logButton.setDisable(true);
-                        timelineButton.setDisable(true);
-                    }
+                    disableNonDashboardButtons(newVal.intValue() != 1);
                 });
+    }
+
+    private void disableNonDashboardButtons(boolean value) {
+        configButton.setDisable(value);
+        logButton.setDisable(value);
+        timelineButton.setDisable(value);
+        if (value) {
+            setDashboardVisible();
+        }
     }
 
     private void initializeSshCredentialIndicator() {

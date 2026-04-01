@@ -6,8 +6,8 @@ import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
 import com.snjdigitalsolutions.lablensfx.properties.StatusBarProperties;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
+import com.snjdigitalsolutions.lablensfx.shapes.SshPassphraseIndicator;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
-import com.snjdigitalsolutions.lablensfx.shapes.StatusIndicator;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.ButtonUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.TooltipGenerator;
@@ -65,7 +65,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
 
     private IpState currentState = IpState.SHOW;
 
-    private final ObjectProvider<StatusIndicator> statusIndicatorProvider;
+    private final ObjectProvider<SshPassphraseIndicator> statusIndicatorProvider;
     private final HostPane hostPane;
     private final HostFormPane hostFormPane;
     private final StatusBarProperties statusBarProperties;
@@ -77,9 +77,9 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     private final IpAddressProperties ipAddressProperties;
     private final ButtonUtility buttonUtility;
 
-    private StatusIndicator indicator;
+    private SshPassphraseIndicator indicator;
 
-    public LabLensFxBootReadyController(ObjectProvider<StatusIndicator> statusIndicatorProvider,
+    public LabLensFxBootReadyController(ObjectProvider<SshPassphraseIndicator> statusIndicatorProvider,
                                         HostPane hostPane,
                                         HostFormPane hostFormPane,
                                         StatusBarProperties statusBarProperties,
@@ -117,13 +117,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         initializeSshButton();
         initializeShowHideIpMenuItem();
         sshProperties.passPhraseModeProperty().addListener((obj, oldVal, newVal) -> {
-            if (newVal.equals(PassPhraseMode.PROVIDED)) {
-                indicator.hostSshStatusProperty()
-                        .setValue(SshStatus.ONLINE);
-            } else {
-                indicator.hostSshStatusProperty()
-                        .setValue(SshStatus.OFFLINE);
-            }
+            indicator.passPhraseMode().setValue(newVal);
         });
         configButton.setOnAction(event -> {
             setConfigurationVisible();
@@ -160,7 +154,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
 
     private void initializeSshCredentialIndicator() {
         indicator = statusIndicatorProvider.getObject();
-        indicator.hostSshStatusProperty().setValue(SshStatus.OFFLINE);
+        indicator.passPhraseMode().setValue(PassPhraseMode.NOT_PROVIDED);
         statusBar.getRightItems().add(indicator);
     }
 

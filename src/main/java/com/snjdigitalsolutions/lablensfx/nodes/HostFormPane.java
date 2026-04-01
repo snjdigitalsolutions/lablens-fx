@@ -69,19 +69,17 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
             if (!autoCheckBox.isSelected() && performFormValidation(autoCheckBox.isSelected())) {
                 if (computeResourceProperties.getComputerResourceBeingEdited() == null) {
                     ComputeResource resource = new ComputeResource();
-                    setValuesOnResource(resource);
-                    resource.setSshCommunicate(0L);
+                    setValuesOnResource(resource,true);
                     hostManagementService.addComputeResource(resource);
                     this.close(event);
                 } else {
                     ComputeResource resource = computeResourceProperties.getComputerResourceBeingEdited();
-                    setValuesOnResource(resource);
+                    setValuesOnResource(resource,false);
                     hostManagementService.updateComputeResource(resource);
                     this.close(event);
                 }
             } else if (autoCheckBox.isSelected() && performFormValidation(autoCheckBox.isSelected())) {
                 try {
-                    //TODO get rid of username hard code
                     String osReleaseText = sshService.executeCommand(ipaddressTextField.getText(), Integer.parseInt(sshPortTextField.getText()), "cat /etc/os-release");
                     String hostName = sshService.executeCommand(ipaddressTextField.getText(), Integer.parseInt(sshPortTextField.getText()),  "hostname");
                     String[] hostParts = new String[1];
@@ -119,7 +117,7 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
                 });
     }
 
-    private void setValuesOnResource(ComputeResource resource) {
+    private void setValuesOnResource(ComputeResource resource, boolean newResource) {
         resource.setHostName(hostNameTextField.getText());
         resource.setIpAddress(ipaddressTextField.getText());
         resource.setOperatingSystem(operatingSystemTextField.getText());
@@ -127,6 +125,9 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
         if (!descriptionTextArea.getText()
                 .isEmpty()) {
             resource.setDescription(descriptionTextArea.getText());
+        }
+        if (newResource){
+            resource.setSshCommunicate(0L);
         }
     }
 

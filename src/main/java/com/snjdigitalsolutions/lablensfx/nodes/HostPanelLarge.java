@@ -3,6 +3,7 @@ package com.snjdigitalsolutions.lablensfx.nodes;
 import com.snjdigitalsolutions.lablensfx.properties.IpAddressProperties;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
+import com.snjdigitalsolutions.lablensfx.shapes.SshStatusIndicator;
 import com.snjdigitalsolutions.lablensfx.shapes.StatusIndicator;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
 import javafx.beans.property.*;
@@ -40,7 +41,7 @@ public class HostPanelLarge extends GridPane implements IpSortable {
     private ToggleSwitch sshCommToggle;
     private final BooleanProperty sshToggleValue = new SimpleBooleanProperty(true);
     @Getter
-    private final StatusIndicator statusIndicator;
+    private final SshStatusIndicator statusIndicator;
 
     @Getter
     @Setter
@@ -49,7 +50,7 @@ public class HostPanelLarge extends GridPane implements IpSortable {
     private final IpAddressProperties ipAddressProperties;
 
     public HostPanelLarge(@Value("classpath:/fxml/HostPanelLarge.fxml") Resource fxml,
-                          StatusIndicator statusIndicator,
+                          SshStatusIndicator statusIndicator,
                           HostManagementService hostManagementService,
                           IpAddressProperties ipAddressProperties) {
         this.statusIndicator = statusIndicator;

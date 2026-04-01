@@ -101,5 +101,6 @@ public class PassphraseDialog extends GridPane implements SpringInitializableNod
                 .setModality(Modality.APPLICATION_MODAL)
                 .setResizable(false)
                 .buildAndShow();
+        userNamerTextField.requestFocus();
     }
 }

@@ -19,6 +19,7 @@ jobs:
 
   build_and_package:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest

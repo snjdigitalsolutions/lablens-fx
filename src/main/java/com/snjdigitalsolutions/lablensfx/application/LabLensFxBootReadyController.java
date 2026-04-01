@@ -5,8 +5,10 @@ import com.snjdigitalsolutions.lablensfx.nodes.HostFormPane;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPane;
 import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
 import com.snjdigitalsolutions.lablensfx.properties.IpAddressProperties;
+import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
 import com.snjdigitalsolutions.lablensfx.properties.StatusBarProperties;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
+import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import com.snjdigitalsolutions.lablensfx.shapes.StatusIndicator;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
@@ -50,6 +52,12 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     @FXML
     private Button sshButton;
     @FXML
+    private Button configButton;
+    @FXML
+    private Button logButton;
+    @FXML
+    private Button timelineButton;
+    @FXML
     private MenuItem deleteSelectedHostsMenuItem;
     @FXML
     private MenuItem showHideIpMenuItem;
@@ -62,15 +70,20 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     private final HostPane hostPane;
     private final HostFormPane hostFormPane;
     private final StatusBarProperties statusBarProperties;
+    private final SshProperties sshProperties;
     private final DashboardPane dashboardPane;
     private final HostManagementService hostManagementService;
     private final PassphraseDialog passphraseDialog;
     private final IpAddressProperties ipAddressProperties;
     private final ButtonUtility buttonUtility;
 
-    public LabLensFxBootReadyController(ObjectProvider<StatusIndicator> statusIndicatorProvider, HostPane hostPane,
+    private StatusIndicator indicator;
+
+    public LabLensFxBootReadyController(ObjectProvider<StatusIndicator> statusIndicatorProvider,
+                                        HostPane hostPane,
                                         HostFormPane hostFormPane,
                                         StatusBarProperties statusBarProperties,
+                                        SshProperties sshProperties,
                                         DashboardPane dashboardPane,
                                         HostManagementService hostManagementService,
                                         ButtonUtility buttonUtility,
@@ -81,6 +94,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         this.hostPane = hostPane;
         this.hostFormPane = hostFormPane;
         this.statusBarProperties = statusBarProperties;
+        this.sshProperties = sshProperties;
         this.dashboardPane = dashboardPane;
         this.hostManagementService = hostManagementService;
         this.buttonUtility = buttonUtility;
@@ -94,13 +108,46 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         rootPane.setLeft(hostPane);
         rootPane.setCenter(dashboardPane);
         statusBar.textProperty().bind(statusBarProperties.statusProperty());
-        StatusIndicator indicator = statusIndicatorProvider.getObject();
-        indicator.hostSshStatusProperty().setValue(SshStatus.OFFLINE);
-        statusBar.getRightItems().add(indicator);
+        initializeViewButtons();
+        initializeSshCredentialIndicator();
         initializeDeleteSelectedHostMenuItem();
         initializeAddHostButton();
         initializeSshButton();
         initializeShowHideIpMenuItem();
+        sshProperties.passPhraseModeProperty().addListener((obj, oldVal, newVal) -> {
+            if (newVal.equals(PassPhraseMode.PROVIDED)) {
+                indicator.hostSshStatusProperty()
+                        .setValue(SshStatus.ONLINE);
+            } else {
+                indicator.hostSshStatusProperty()
+                        .setValue(SshStatus.OFFLINE);
+            }
+        });
+
+    }
+
+    private void initializeViewButtons() {
+        configButton.setDisable(true);
+        logButton.setDisable(true);
+        timelineButton.setDisable(true);
+        statusBarProperties.numberOfSelectedHostsProperty()
+                .addListener((obj, oldVal, newVal) -> {
+                    if (newVal.intValue() == 1) {
+                        configButton.setDisable(false);
+                        logButton.setDisable(false);
+                        timelineButton.setDisable(false);
+                    } else {
+                        configButton.setDisable(true);
+                        logButton.setDisable(true);
+                        timelineButton.setDisable(true);
+                    }
+                });
+    }
+
+    private void initializeSshCredentialIndicator() {
+        indicator = statusIndicatorProvider.getObject();
+        indicator.hostSshStatusProperty().setValue(SshStatus.OFFLINE);
+        statusBar.getRightItems().add(indicator);
     }
 
     private void initializeSshButton() {

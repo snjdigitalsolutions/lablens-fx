@@ -45,7 +45,7 @@ public class StatusBarProperties implements SpringInitializableNode {
         numberOfSelectedHosts.addListener((obj, oldVal, newVal) -> {
             if (selectedApplicationView.get().equals(ApplicationView.DASHBOARD) && newVal.intValue() > 0) {
                 LOGGER.debug("{} Hosts Selected", newVal);
-                statusMessage.setValue(newVal + " Hosts Selected");
+                statusMessage.setValue("Hosts Selected: " + newVal);
                 disableDeleteHostMenuItem.setValue(false);
             } else if (selectedApplicationView.get().equals(ApplicationView.DASHBOARD) && newVal.intValue() == 0) {
                 statusMessage.setValue("");

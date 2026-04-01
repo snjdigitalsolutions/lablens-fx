@@ -178,16 +178,7 @@ public class HostManagementService implements SpringInitializableNode {
         computeResourceProperties.getComputeResourcesMap()
                 .values()
                 .forEach(resource -> {
-                    LOGGER.debug("Adding panel for resource: {}", resource.getHostName());
-                    HostPanel panel = hostPanelProvider.getObject();
-                    panel.getStyleClass()
-                            .add("host-panel");
-                    panel.hostnameProperty()
-                            .setValue(resource.getHostName());
-                    panel.ipAddressProperty()
-                            .setValue(resource.getIpAddress());
-                    panel.setComputeResource(resource);
-                    panels.add(panel);
+                    panels.add(createHostPanelForComputeResource(resource));
                 });
 
         //TODO create a comparator and interface for objects that have IP addresses
@@ -196,7 +187,8 @@ public class HostManagementService implements SpringInitializableNode {
         return panels;
     }
 
-    public HostPanel createHostPanelForComputeResource(ComputeResource resource) {
+    private HostPanel createHostPanelForComputeResource(ComputeResource resource) {
+        LOGGER.debug("Adding panel for resource: {}", resource.getHostName());
         HostPanel panel = hostPanelProvider.getObject();
         panel.getStyleClass()
                 .add("host-panel");
@@ -205,6 +197,7 @@ public class HostManagementService implements SpringInitializableNode {
         panel.ipAddressProperty()
                 .setValue(resource.getIpAddress());
         panel.setComputeResource(resource);
+        resource.setHostPanel(panel);
         return panel;
     }
 

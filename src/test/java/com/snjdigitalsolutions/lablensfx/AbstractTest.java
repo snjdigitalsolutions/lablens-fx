@@ -5,6 +5,8 @@ import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
 import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import com.snjdigitalsolutions.lablensfx.service.SshService;
 import com.snjdigitalsolutions.lablensfx.service.command.CheckElevatedPrivilegesRequired;
+import com.snjdigitalsolutions.lablensfx.service.command.ListFileCommand;
+import com.snjdigitalsolutions.lablensfx.service.command.commandparser.ListFileParser;
 import com.snjdigitalsolutions.lablensfx.utility.EtcOsReleaseParser;
 import com.snjdigitalsolutions.lablensfx.utility.KeyDirectoryProvider;
 import com.snjdigitalsolutions.lablensfx.utility.SshKeyLoader;
@@ -29,13 +31,10 @@ public class AbstractTest {
     @Value("${application.ssh.testhost}")
     protected String testhost;
 
-
     @Autowired
     protected KeyDirectoryProvider keyDirectoryProvider;
     @Autowired
     protected SshKeyLoader sshKeyLoader;
-    @Autowired
-    protected ContentReader contentReader;
     @Autowired
     protected EtcOsReleaseParser etcOsReleaseParser;
     @Autowired
@@ -44,7 +43,16 @@ public class AbstractTest {
     protected SshProperties sshProperties;
     @Autowired
     protected CheckElevatedPrivilegesRequired checkElevatedPrivilegesRequired;
+    @Autowired
+    protected ListFileCommand listFileCommand;
+    @Autowired
+    protected ListFileParser listFileParser;
 
+    /**
+     * Specifically for testing
+     */
+    @Autowired
+    protected ContentReader contentReader;
 
     @BeforeAll
     static void initToolkit() {

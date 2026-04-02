@@ -127,3 +127,4 @@ gitleaks-report.json
 claude.md
 CLAUDE.md
 .claude
+/src/test/resources/id_rsa

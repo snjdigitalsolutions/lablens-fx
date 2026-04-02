@@ -1,7 +1,6 @@
 package com.snjdigitalsolutions.lablensfx.service;
 
 import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
-import com.snjdigitalsolutions.lablensfx.utility.KeyDirectoryProvider;
 import com.snjdigitalsolutions.lablensfx.utility.SshKeyLoader;
 import jakarta.annotation.PreDestroy;
 import org.apache.sshd.client.SshClient;
@@ -32,8 +31,7 @@ public class SshService {
     private SshClient client;
     private boolean clientInitialized = false;
 
-    public SshService(SshProperties sshProperties,
-                      SshKeyLoader sshKeyLoader) {
+    public SshService(SshProperties sshProperties, SshKeyLoader sshKeyLoader) {
         this.sshProperties = sshProperties;
         this.sshKeyLoader = sshKeyLoader;
     }
@@ -43,7 +41,7 @@ public class SshService {
             client = SshClient.setUpDefaultClient();
             client.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
             List<Path> availableKeyPaths = sshKeyLoader.getAvailableKeyFilePaths();
-            if (availableKeyPaths.isEmpty()){
+            if (availableKeyPaths.isEmpty()) {
                 LOGGER.error("No key files available");
             } else {
                 Path sshKeyPath = availableKeyPaths.getFirst();
@@ -64,10 +62,13 @@ public class SshService {
     }
 
     @PreDestroy
-    public void shutdown() throws IOException {
+    public boolean shutdown() throws IOException {
+        boolean success = false;
         if (client != null) {
             client.stop();
+            success = true;
         }
+        return success;
     }
 
     /**
@@ -75,30 +76,34 @@ public class SshService {
      * Closes the session when done — call this per-command for simple use cases.
      */
     public String executeCommand(String host, int port, String command) throws Exception {
+        String response = "";
+        if (clientInitialized){
+            try (ClientSession session = client.connect(sshProperties.getSshUsername(), host, port)
+                    .verify(10, TimeUnit.SECONDS)
+                    .getSession()) {
 
-        try (ClientSession session = client.connect(sshProperties.getSshUsername(), host, port)
-                .verify(10, TimeUnit.SECONDS)
-                .getSession()) {
-
-            session.auth()
-                    .verify(10, TimeUnit.SECONDS);
-
-            try (ByteArrayOutputStream stdout = new ByteArrayOutputStream(); ByteArrayOutputStream stderr = new ByteArrayOutputStream(); ChannelExec channel = session.createExecChannel(command)) {
-
-                channel.setOut(stdout);
-                channel.setErr(stderr);
-                channel.open()
+                session.auth()
                         .verify(10, TimeUnit.SECONDS);
 
-                // Wait for the command to finish (or timeout after 30 s)
-                channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED), TimeUnit.SECONDS.toMillis(30));
+                try (ByteArrayOutputStream stdout = new ByteArrayOutputStream(); ByteArrayOutputStream stderr = new ByteArrayOutputStream(); ChannelExec channel = session.createExecChannel(command)) {
+                    channel.setOut(stdout);
+                    channel.setErr(stderr);
+                    channel.open()
+                            .verify(10, TimeUnit.SECONDS);
 
-                if (stderr.size() > 0) {
-                    LOGGER.warn("stderr from [{}]: {}", command, stderr);
+                    // Wait for the command to finish (or timeout after 30 s)
+                    channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED), TimeUnit.SECONDS.toMillis(30));
+
+                    if (stderr.size() > 0) {
+                        LOGGER.warn("stderr from [{}]: {}", command, stderr);
+                    }
+
+                    response = stdout.toString(StandardCharsets.UTF_8);
                 }
-
-                return stdout.toString(StandardCharsets.UTF_8);
             }
+        } else {
+            LOGGER.error("Client not initialized");
         }
+       return response;
     }
 }

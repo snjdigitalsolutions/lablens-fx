@@ -18,11 +18,6 @@ class SshKeyLoaderTest extends AbstractTest {
     public void getAvailableKeysTest() {
         //Arrange
         Path directoryPath = keyDirectoryProvider.keyDirectoryPath();
-        sshKeyLoader.performIntialization();
-        sshProperties.passPhraseProperty()
-                .setValue("");
-        sshProperties.passPhraseModeProperty()
-                .setValue(PassPhraseMode.PROVIDED);
 
         //Act
         List<Path> filePaths = sshKeyLoader.getAvailableKeyFilePaths();

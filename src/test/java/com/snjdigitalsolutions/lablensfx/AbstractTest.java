@@ -1,6 +1,7 @@
 package com.snjdigitalsolutions.lablensfx;
 
 import com.snjdigitalsolutions.lablensfx.configuration.LabLensFXConfiguration;
+import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
 import com.snjdigitalsolutions.lablensfx.service.SshService;
 import com.snjdigitalsolutions.lablensfx.utility.EtcOsReleaseParser;
 import com.snjdigitalsolutions.lablensfx.utility.KeyDirectoryProvider;
@@ -9,6 +10,7 @@ import com.snjdigitalsolutions.springbootutilityfx.configuration.SpringBootUtili
 import javafx.application.Platform;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
@@ -17,6 +19,14 @@ import org.springframework.test.context.ActiveProfiles;
 @Import({LabLensFXConfiguration.class, SpringBootUtilityConfiguration.class})
 @ActiveProfiles("test")
 public class AbstractTest {
+
+    @Value("${application.ssh.username}")
+    protected String username;
+    @Value("${application.ssh.passphrase}")
+    protected String passPhrase;
+    @Value("${application.ssh.testhost}")
+    protected String testhost;
+
 
     @Autowired
     protected KeyDirectoryProvider keyDirectoryProvider;
@@ -28,22 +38,19 @@ public class AbstractTest {
     protected EtcOsReleaseParser etcOsReleaseParser;
     @Autowired
     protected SshService sshService;
+    @Autowired
+    protected SshProperties sshProperties;
 
-    private static boolean toolKitInitialized = false;
 
     @BeforeAll
     static void initToolkit() {
-        if (!toolKitInitialized){
             try {
                 Platform.startup(() -> {
 
                 });
-                toolKitInitialized = true;
             } catch (Exception e) {
                 System.out.println("Platform already started");
             }
-        }
-
     }
 
 }

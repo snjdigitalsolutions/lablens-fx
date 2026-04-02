@@ -18,6 +18,7 @@ public class SshKeyLoader implements SpringInitializableNode {
 
     private final List<String> privateKeyFileNameList = new ArrayList<>();
     private final KeyDirectoryProvider keyDirectoryProvider;
+    private boolean initialized = false;
 
     public SshKeyLoader(KeyDirectoryProvider keyDirectoryProvider) {
         this.keyDirectoryProvider = keyDirectoryProvider;
@@ -31,10 +32,14 @@ public class SshKeyLoader implements SpringInitializableNode {
                 "id_ed25519",
                 "id_ed25519_sk",
                 "id_dsa"));
+        initialized = true;
     }
 
     public List<Path> getAvailableKeyFilePaths() {
         List<Path> validFilePaths = new ArrayList<>();
+        if (!initialized){
+            performIntialization();
+        }
         for (String fileName : privateKeyFileNameList){
             Path filePath = Path.of(keyDirectoryProvider.keyDirectoryPath().toString(), fileName);
             if (Files.isRegularFile(filePath)){

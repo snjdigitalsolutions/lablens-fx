@@ -1,7 +1,6 @@
 package com.snjdigitalsolutions.lablensfx.service.command;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
-import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
 import com.snjdigitalsolutions.lablensfx.service.SshService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,8 +18,8 @@ public class CheckElevatedPrivilegesRequired extends AbstractCommand {
 
     @Override
     public String executeCommand(ComputeResource computeResource) throws Exception {
-        if (!filePath.isEmpty()){
-            String command = "test -r " + filePath + "|| echo \"ELEVATION_REQUIRED\"";
+        if (!filePath.isEmpty()) {
+            String command = "test -r " + filePath + " || echo \"ELEVATION_REQUIRED\"";
             return sshService.executeCommand(computeResource.getHostName(), computeResource.getSshPort(), command);
         } else {
             throw new RuntimeException("File path cannot be blank. Use checkFilePath() to set file path and resource.");
@@ -30,8 +29,13 @@ public class CheckElevatedPrivilegesRequired extends AbstractCommand {
     public boolean checkFilePath(ComputeResource computeResource, String path) throws Exception {
         boolean elevationRequired = false;
         this.filePath = path;
-        String response = executeCommand(computeResource);
-        if (response.contains("ELEVATION_REQUIRED")){
+        String response = null;
+        try {
+            response = executeCommand(computeResource);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        if (response.contains("ELEVATION_REQUIRED")) {
             elevationRequired = true;
         }
         return elevationRequired;

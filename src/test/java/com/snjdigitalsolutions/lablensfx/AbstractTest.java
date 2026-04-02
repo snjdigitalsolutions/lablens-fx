@@ -5,6 +5,7 @@ import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
 import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import com.snjdigitalsolutions.lablensfx.service.SshService;
 import com.snjdigitalsolutions.lablensfx.service.command.CheckElevatedPrivilegesRequired;
+import com.snjdigitalsolutions.lablensfx.service.command.ElevatedPrivilegedPathTracker;
 import com.snjdigitalsolutions.lablensfx.service.command.ListFileCommand;
 import com.snjdigitalsolutions.lablensfx.service.command.commandparser.ListFileParser;
 import com.snjdigitalsolutions.lablensfx.utility.EtcOsReleaseParser;
@@ -47,6 +48,8 @@ public class AbstractTest {
     protected ListFileCommand listFileCommand;
     @Autowired
     protected ListFileParser listFileParser;
+    @Autowired
+    protected ElevatedPrivilegedPathTracker elevatedPrivilegedPathTracker;
 
     /**
      * Specifically for testing

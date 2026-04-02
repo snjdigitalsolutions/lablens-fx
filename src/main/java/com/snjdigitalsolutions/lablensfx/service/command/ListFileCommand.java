@@ -14,6 +14,7 @@ import java.util.List;
 public class ListFileCommand extends AbstractCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ListFileCommand.class);
+
     private String filePath = "";
 
     public ListFileCommand(SshService sshService) {
@@ -23,6 +24,7 @@ public class ListFileCommand extends AbstractCommand {
     @Override
     public String executeCommand(ComputeResource computeResource) throws Exception {
         if (!filePath.isEmpty()){
+
             String command = "find " + filePath + " -type f -printf \"%T+ %m %y %f %s\n\"";
             return sshService.executeCommand(computeResource.getHostName(), computeResource.getSshPort(), command);
         } else {

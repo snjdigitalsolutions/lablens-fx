@@ -102,7 +102,7 @@ public class SshService {
                 }
             }
         } else {
-            LOGGER.error("Client not initialized");
+            throw new RuntimeException("SSH client not initialized");
         }
        return response;
     }

@@ -2,7 +2,9 @@ package com.snjdigitalsolutions.lablensfx;
 
 import com.snjdigitalsolutions.lablensfx.configuration.LabLensFXConfiguration;
 import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
+import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import com.snjdigitalsolutions.lablensfx.service.SshService;
+import com.snjdigitalsolutions.lablensfx.service.command.CheckElevatedPrivilegesRequired;
 import com.snjdigitalsolutions.lablensfx.utility.EtcOsReleaseParser;
 import com.snjdigitalsolutions.lablensfx.utility.KeyDirectoryProvider;
 import com.snjdigitalsolutions.lablensfx.utility.SshKeyLoader;
@@ -40,6 +42,8 @@ public class AbstractTest {
     protected SshService sshService;
     @Autowired
     protected SshProperties sshProperties;
+    @Autowired
+    protected CheckElevatedPrivilegesRequired checkElevatedPrivilegesRequired;
 
 
     @BeforeAll
@@ -51,6 +55,15 @@ public class AbstractTest {
             } catch (Exception e) {
                 System.out.println("Platform already started");
             }
+    }
+
+    public void setSshProperties(){
+        sshProperties.sshUsernameProperty()
+                .setValue(username);
+        sshProperties.passPhraseProperty()
+                .setValue(passPhrase);
+        sshProperties.passPhraseModeProperty()
+                .setValue(PassPhraseMode.PROVIDED);
     }
 
 }

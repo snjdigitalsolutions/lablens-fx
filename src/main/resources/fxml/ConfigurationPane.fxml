@@ -32,9 +32,9 @@
                                  <children>
                                     <Label text="Path:" />
                                     <TextField fx:id="filePathTextField" promptText="Absolute Path" />
-                                    <Button fx:id="searchButton" mnemonicParsing="false">
+                                    <Button fx:id="addButton" mnemonicParsing="false">
                                        <graphic>
-                                          <FontAwesomeIconView glyphName="SEARCH" />
+                                          <FontAwesomeIconView glyphName="PLUS" />
                                        </graphic>
                                     </Button>
                                  </children>

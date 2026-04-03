@@ -6,6 +6,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "compute_resource")
 @Getter
@@ -27,6 +30,8 @@ public class ComputeResource {
     private Integer sshPort;
     @Column(name = "sshcom")
     private Long sshCommunicate;
+    @OneToMany(mappedBy = "computeResource")
+    private List<ConfigurationPath> configurationPaths = new ArrayList<>();
 
     @Transient
     private HostPanel hostPanel;

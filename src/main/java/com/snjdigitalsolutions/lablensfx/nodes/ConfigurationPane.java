@@ -19,7 +19,7 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
     @FXML
     private TextField filePathTextField;
     @FXML
-    private Button searchButton;
+    private Button addButton;
 
     private final double splitPaneDividerPosition = 0.5;
 
@@ -37,6 +37,11 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
                         splitPane.setDividerPosition(0, splitPaneDividerPosition);
                     }
                 });
+        addButton.setOnAction(event -> {
+
+        });
     }
+
+    private void validateFilePath() {}
 
 }

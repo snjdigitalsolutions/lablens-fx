@@ -2,9 +2,9 @@ package com.snjdigitalsolutions.lablensfx.service;
 
 import com.snjdigitalsolutions.lablensfx.nodes.*;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
-import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
-import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
-import com.snjdigitalsolutions.lablensfx.properties.StatusBarProperties;
+import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
+import com.snjdigitalsolutions.lablensfx.state.SshState;
+import com.snjdigitalsolutions.lablensfx.state.StatusBarState;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import com.snjdigitalsolutions.lablensfx.task.SshStatusForSingleHostTask;
@@ -33,41 +33,41 @@ public class HostManagementService implements SpringInitializableNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HostManagementService.class);
     private final Environment environment;
-    private final ComputeResourceProperties computeResourceProperties;
-    private final StatusBarProperties statusBarProperties;
+    private final ComputeResourceState computeResourceState;
+    private final StatusBarState statusBarProperties;
     private final ComputeResourceRepository computeResourceRepository;
     private final ObjectProvider<HostPanel> hostPanelProvider;
     private final HostStatusDialog hostStatusDialog;
     private final SshService sshService;
-    private final SshProperties sshProperties;
+    private final SshState sshState;
     private final PassphraseDialog passphraseDialog;
     private final AlertUtility alertUtility;
 
     @Value("${application.ssh.promptforpassphrase}")
     private boolean promptForPassPhrase;
 
-    public HostManagementService(ComputeResourceProperties computeResourceProperties, StatusBarProperties statusBarProperties, ComputeResourceRepository computeResourceRepository, ObjectProvider<HostPanel> hostPanelProvider, Environment environment, HostStatusDialog hostStatusDialog, SshService sshService, SshProperties sshProperties, PassphraseDialog passphraseDialog, AlertUtility alertUtility) {
-        this.computeResourceProperties = computeResourceProperties;
+    public HostManagementService(ComputeResourceState computeResourceState, StatusBarState statusBarProperties, ComputeResourceRepository computeResourceRepository, ObjectProvider<HostPanel> hostPanelProvider, Environment environment, HostStatusDialog hostStatusDialog, SshService sshService, SshState sshState, PassphraseDialog passphraseDialog, AlertUtility alertUtility) {
+        this.computeResourceState = computeResourceState;
         this.statusBarProperties = statusBarProperties;
         this.computeResourceRepository = computeResourceRepository;
         this.hostPanelProvider = hostPanelProvider;
         this.environment = environment;
         this.hostStatusDialog = hostStatusDialog;
         this.sshService = sshService;
-        this.sshProperties = sshProperties;
+        this.sshState = sshState;
         this.passphraseDialog = passphraseDialog;
         this.alertUtility = alertUtility;
     }
 
     @Override
     public void performIntialization() {
-        computeResourceProperties.getComputeResourcesMap()
+        computeResourceState.getComputeResourcesMap()
                 .addListener((MapChangeListener<Long, ComputeResource>) change -> {
                     if (change.wasRemoved()) {
                         computeResourceRepository.deleteById(change.getKey());
                     }
                 });
-        computeResourceProperties.computeResourcesLoadedProperty()
+        computeResourceState.computeResourcesLoadedProperty()
                 .addListener((obj, oldVal, newVal) -> {
                     if (newVal) {
                         verifyHostSshStatus();
@@ -79,7 +79,7 @@ public class HostManagementService implements SpringInitializableNode {
         statusBarProperties.selectedHostPanelListProperty()
                 .get()
                 .forEach(hostPanel -> {
-                    computeResourceProperties.getComputeResourcesMap()
+                    computeResourceState.getComputeResourcesMap()
                             .remove(hostPanel.getComputeResource()
                                     .getId());
                 });
@@ -91,23 +91,23 @@ public class HostManagementService implements SpringInitializableNode {
         if (!selectedHosts.isEmpty()) {
             deleteSelectedHosts();
         } else {
-            computeResourceProperties.getComputeResourcesMap()
+            computeResourceState.getComputeResourcesMap()
                     .remove(sourcePanel.getComputeResource()
                             .getId());
         }
     }
 
     public void editSelectedHost(HostPanel sourcePanel) {
-        ComputeResource resource = computeResourceProperties.getComputeResourcesMap()
+        ComputeResource resource = computeResourceState.getComputeResourcesMap()
                 .get(sourcePanel.getComputeResource()
                         .getId());
-        computeResourceProperties.computerResourceBeingEditedProperty()
+        computeResourceState.computerResourceBeingEditedProperty()
                 .setValue(resource);
     }
 
     public void addComputeResource(ComputeResource computeResource) {
         computeResource = computeResourceRepository.save(computeResource);
-        computeResourceProperties.getComputeResourcesMap()
+        computeResourceState.getComputeResourcesMap()
                 .put(computeResource.getId(), computeResource);
     }
 
@@ -120,24 +120,24 @@ public class HostManagementService implements SpringInitializableNode {
      * load resources one time.
      */
     public void loadComputeResources() {
-        if (!computeResourceProperties.computeResourcesLoadedProperty()
+        if (!computeResourceState.computeResourcesLoadedProperty()
                 .getValue()) {
             Iterable<ComputeResource> computeResources = computeResourceRepository.findAll();
             computeResources.forEach(resource -> {
-                computeResourceProperties.getComputeResourcesMap()
+                computeResourceState.getComputeResourcesMap()
                         .put(resource.getId(), resource);
             });
-            computeResourceProperties.computeResourcesLoadedProperty()
+            computeResourceState.computeResourcesLoadedProperty()
                     .setValue(true);
             LOGGER.debug("Compute resources loaded");
         }
     }
 
     public void verifyHostSshStatus() {
-        if (sshProperties.getPassPhraseMode().equals(PassPhraseMode.PROVIDED) ||
-                sshProperties.getPassPhraseMode().equals(PassPhraseMode.NOT_NEEDED)){
+        if (sshState.getPassPhraseMode().equals(PassPhraseMode.PROVIDED) ||
+                sshState.getPassPhraseMode().equals(PassPhraseMode.NOT_NEEDED)){
             if(sshService.init()){
-                SshStatusTask statusTask = new SshStatusTask(computeResourceProperties, hostStatusDialog, sshService);
+                SshStatusTask statusTask = new SshStatusTask(computeResourceState, hostStatusDialog, sshService);
                 hostStatusDialog.setOnDialogClosed(() -> {
                     if (statusTask.isRunning()) {
                         statusTask.cancel();
@@ -158,17 +158,17 @@ public class HostManagementService implements SpringInitializableNode {
     }
 
     public void verifyHostSshStatus(Long resourceID) {
-        SshStatusForSingleHostTask task = new SshStatusForSingleHostTask(resourceID, computeResourceProperties, sshService);
+        SshStatusForSingleHostTask task = new SshStatusForSingleHostTask(resourceID, computeResourceState, sshService);
         TaskStarter.startTask(task);
     }
 
     public void changeHostSshStatusToUnknown(HostPanelLarge panel, boolean decrement){
         panel.getStatusIndicator().hostSshStatusProperty().setValue(SshStatus.UNKNOWN);
-        computeResourceProperties.getComputeResourceOnlineStatusMap().put(panel.getComputeResourceId(), SshStatus.UNKNOWN);
+        computeResourceState.getComputeResourceOnlineStatusMap().put(panel.getComputeResourceId(), SshStatus.UNKNOWN);
         if (decrement) {
-            int currentCount = computeResourceProperties.getHostsOnline();
+            int currentCount = computeResourceState.getHostsOnline();
             if (currentCount > 0) {
-                computeResourceProperties.hostsOnlineProperty()
+                computeResourceState.hostsOnlineProperty()
                         .set(currentCount - 1);
             }
         }
@@ -176,7 +176,7 @@ public class HostManagementService implements SpringInitializableNode {
 
     public List<HostPanel> getHostPanels() {
         List<HostPanel> panels = new ArrayList<>();
-        computeResourceProperties.getComputeResourcesMap()
+        computeResourceState.getComputeResourcesMap()
                 .values()
                 .forEach(resource -> {
                     panels.add(createHostPanelForComputeResource(resource));
@@ -205,7 +205,7 @@ public class HostManagementService implements SpringInitializableNode {
     public void updateComputeResource(ComputeResource resource) {
         resource.updateHostPanels();
         computeResourceRepository.save(resource);
-        computeResourceProperties.computerResourceBeingEditedProperty()
+        computeResourceState.computerResourceBeingEditedProperty()
                 .setValue(null);
     }
 

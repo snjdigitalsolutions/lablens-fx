@@ -1,4 +1,4 @@
-package com.snjdigitalsolutions.lablensfx.properties;
+package com.snjdigitalsolutions.lablensfx.state;
 
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public class StatusBarProperties implements SpringInitializableNode {
+public class StatusBarState implements SpringInitializableNode {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(StatusBarProperties.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(StatusBarState.class);
 
     private final StringProperty statusMessage = new SimpleStringProperty("");
     private final ListProperty<HostPanel> selectedHostPanelList = new SimpleListProperty<>(FXCollections.observableArrayList());

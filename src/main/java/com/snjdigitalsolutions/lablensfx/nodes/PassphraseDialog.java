@@ -1,6 +1,6 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
-import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
+import com.snjdigitalsolutions.lablensfx.state.SshState;
 import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
@@ -36,17 +36,17 @@ public class PassphraseDialog extends GridPane implements SpringInitializableNod
     private Button submitButton;
 
     private final NodeUtility nodeUtility;
-    private final SshProperties sshProperties;
+    private final SshState sshState;
     private final AlertUtility alertUtility;
     @Setter
     private Runnable postDialogAction;
 
     public PassphraseDialog(@Value("classpath:/fxml/PassphraseDialog.fxml") Resource fxml,
                             NodeUtility nodeUtility,
-                            SshProperties sshProperties,
+                            SshState sshState,
                             AlertUtility alertUtility) {
         this.nodeUtility = nodeUtility;
-        this.sshProperties = sshProperties;
+        this.sshState = sshState;
         this.alertUtility = alertUtility;
         NodeLoader.load(fxml, this);
     }
@@ -55,11 +55,11 @@ public class PassphraseDialog extends GridPane implements SpringInitializableNod
     public void performIntialization() {
         Runnable submitAction = () -> {
             if (validateTextField() && postDialogAction != null) {
-                sshProperties.passPhraseProperty()
+                sshState.passPhraseProperty()
                         .setValue(passphrasePasswordField.getText());
-                sshProperties.sshUsernameProperty()
+                sshState.sshUsernameProperty()
                         .setValue(userNamerTextField.getText());
-                sshProperties.passPhraseModeProperty().setValue(PassPhraseMode.PROVIDED);
+                sshState.passPhraseModeProperty().setValue(PassPhraseMode.PROVIDED);
                 postDialogAction.run();
                 if (this.getScene() != null && this.getScene().getWindow() != null){
                     ((Stage)this.getScene().getWindow()).close();
@@ -77,7 +77,7 @@ public class PassphraseDialog extends GridPane implements SpringInitializableNod
         noPassphraseCheckbox.selectedProperty().addListener((obj, oldVal, newVal) -> {
             passphrasePasswordField.disableProperty().setValue(newVal);
             if (newVal){
-                sshProperties.passPhraseModeProperty().setValue(PassPhraseMode.NOT_NEEDED);
+                sshState.passPhraseModeProperty().setValue(PassPhraseMode.NOT_NEEDED);
             }
             userNamerTextField.requestFocus();
         });

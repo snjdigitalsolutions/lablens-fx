@@ -1,7 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
-import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
+import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.service.SshService;
 import com.snjdigitalsolutions.lablensfx.utility.EtcOsReleaseParser;
@@ -47,16 +47,16 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
     private final AlertUtility alertUtility;
     private final IpAddressUtility ipAddressUtility;
     private final HostManagementService hostManagementService;
-    private final ComputeResourceProperties computeResourceProperties;
+    private final ComputeResourceState computeResourceState;
     private final SshService sshService;
     private final EtcOsReleaseParser osReleaseParser;
 
-    public HostFormPane(@Value("classpath:/fxml/HostFormPane.fxml") Resource fxml, NodeUtility nodeUtility, AlertUtility alertUtility, IpAddressUtility ipAddressUtility, HostManagementService hostManagementService, ComputeResourceProperties computeResourceProperties, SshService sshService, EtcOsReleaseParser osReleaseParser) {
+    public HostFormPane(@Value("classpath:/fxml/HostFormPane.fxml") Resource fxml, NodeUtility nodeUtility, AlertUtility alertUtility, IpAddressUtility ipAddressUtility, HostManagementService hostManagementService, ComputeResourceState computeResourceState, SshService sshService, EtcOsReleaseParser osReleaseParser) {
         this.nodeUtility = nodeUtility;
         this.alertUtility = alertUtility;
         this.hostManagementService = hostManagementService;
         this.ipAddressUtility = ipAddressUtility;
-        this.computeResourceProperties = computeResourceProperties;
+        this.computeResourceState = computeResourceState;
         this.sshService = sshService;
         this.osReleaseParser = osReleaseParser;
         NodeLoader.load(fxml, this);
@@ -67,13 +67,13 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
         cancelButton.setOnAction(this::close);
         submitButton.setOnAction(event -> {
             if (!autoCheckBox.isSelected() && performFormValidation(autoCheckBox.isSelected())) {
-                if (computeResourceProperties.getComputerResourceBeingEdited() == null) {
+                if (computeResourceState.getComputerResourceBeingEdited() == null) {
                     ComputeResource resource = new ComputeResource();
                     setValuesOnResource(resource,true);
                     hostManagementService.addComputeResource(resource);
                     this.close(event);
                 } else {
-                    ComputeResource resource = computeResourceProperties.getComputerResourceBeingEdited();
+                    ComputeResource resource = computeResourceState.getComputerResourceBeingEdited();
                     setValuesOnResource(resource,false);
                     hostManagementService.updateComputeResource(resource);
                     this.close(event);
@@ -95,7 +95,7 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
                 }
             }
         });
-        computeResourceProperties.computerResourceBeingEditedProperty()
+        computeResourceState.computerResourceBeingEditedProperty()
                 .addListener((obj, oldVal, newVal) -> {
                     if (newVal != null) {
                         showPane(newVal);

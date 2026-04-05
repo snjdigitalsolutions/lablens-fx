@@ -1,11 +1,11 @@
 package com.snjdigitalsolutions.lablensfx;
 
 import com.snjdigitalsolutions.lablensfx.configuration.LabLensFXConfiguration;
-import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
+import com.snjdigitalsolutions.lablensfx.state.SshState;
 import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import com.snjdigitalsolutions.lablensfx.service.SshService;
-import com.snjdigitalsolutions.lablensfx.service.command.CheckElevatedPrivilegesRequired;
-import com.snjdigitalsolutions.lablensfx.service.command.ElevatedPrivilegedPathTracker;
+import com.snjdigitalsolutions.lablensfx.service.command.CheckElevatedPrivilegesRequiredCommand;
+import com.snjdigitalsolutions.lablensfx.state.ElevatedPrivilegedPathState;
 import com.snjdigitalsolutions.lablensfx.service.command.ListFileCommand;
 import com.snjdigitalsolutions.lablensfx.service.command.commandparser.ListFileParser;
 import com.snjdigitalsolutions.lablensfx.utility.EtcOsReleaseParser;
@@ -41,15 +41,15 @@ public class AbstractTest {
     @Autowired
     protected SshService sshService;
     @Autowired
-    protected SshProperties sshProperties;
+    protected SshState sshState;
     @Autowired
-    protected CheckElevatedPrivilegesRequired checkElevatedPrivilegesRequired;
+    protected CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand;
     @Autowired
     protected ListFileCommand listFileCommand;
     @Autowired
     protected ListFileParser listFileParser;
     @Autowired
-    protected ElevatedPrivilegedPathTracker elevatedPrivilegedPathTracker;
+    protected ElevatedPrivilegedPathState elevatedPrivilegedPathState;
 
     /**
      * Specifically for testing
@@ -69,11 +69,11 @@ public class AbstractTest {
     }
 
     public void setSshProperties(){
-        sshProperties.sshUsernameProperty()
+        sshState.sshUsernameProperty()
                 .setValue(username);
-        sshProperties.passPhraseProperty()
+        sshState.passPhraseProperty()
                 .setValue(passPhrase);
-        sshProperties.passPhraseModeProperty()
+        sshState.passPhraseModeProperty()
                 .setValue(PassPhraseMode.PROVIDED);
     }
 

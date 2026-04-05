@@ -1,6 +1,6 @@
 package com.snjdigitalsolutions.lablensfx.service;
 
-import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
+import com.snjdigitalsolutions.lablensfx.state.SshState;
 import com.snjdigitalsolutions.lablensfx.utility.SshKeyLoader;
 import jakarta.annotation.PreDestroy;
 import org.apache.sshd.client.SshClient;
@@ -26,13 +26,13 @@ import java.util.concurrent.TimeUnit;
 public class SshService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SshService.class);
-    private final SshProperties sshProperties;
+    private final SshState sshState;
     private final SshKeyLoader sshKeyLoader;
     private SshClient client;
     private boolean clientInitialized = false;
 
-    public SshService(SshProperties sshProperties, SshKeyLoader sshKeyLoader) {
-        this.sshProperties = sshProperties;
+    public SshService(SshState sshState, SshKeyLoader sshKeyLoader) {
+        this.sshState = sshState;
         this.sshKeyLoader = sshKeyLoader;
     }
 
@@ -46,9 +46,9 @@ public class SshService {
             } else {
                 Path sshKeyPath = availableKeyPaths.getFirst();
                 FileKeyPairProvider keyPairProvider = new FileKeyPairProvider(sshKeyPath);
-                if (sshProperties.getPassPhraseMode()
+                if (sshState.getPassPhraseMode()
                         .equals(PassPhraseMode.PROVIDED)) {
-                    keyPairProvider.setPasswordFinder(FilePasswordProvider.of(sshProperties.getPassPhrase()));
+                    keyPairProvider.setPasswordFinder(FilePasswordProvider.of(sshState.getPassPhrase()));
                     client.setKeyIdentityProvider(keyPairProvider);
                     client.start();
                     LOGGER.info("SSH client started, loading keys from {}", sshKeyPath);
@@ -78,7 +78,7 @@ public class SshService {
     public String executeCommand(String host, int port, String command) throws Exception {
         String response = "";
         if (clientInitialized){
-            try (ClientSession session = client.connect(sshProperties.getSshUsername(), host, port)
+            try (ClientSession session = client.connect(sshState.getSshUsername(), host, port)
                     .verify(10, TimeUnit.SECONDS)
                     .getSession()) {
 

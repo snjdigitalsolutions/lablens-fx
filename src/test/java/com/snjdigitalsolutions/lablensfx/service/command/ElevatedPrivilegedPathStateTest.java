@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class ElevatedPrivilegedPathTrackerTest extends AbstractTest {
+class ElevatedPrivilegedPathStateTest extends AbstractTest {
 
     @Mock
     private ComputeResource computeResource;
@@ -27,7 +27,7 @@ class ElevatedPrivilegedPathTrackerTest extends AbstractTest {
         when(computeResource.getSshPort()).thenReturn(22);
 
         //Act
-        boolean checked = elevatedPrivilegedPathTracker.hasBeenChecked(computeResource,"/var/log");
+        boolean checked = elevatedPrivilegedPathState.hasBeenChecked(computeResource,"/var/log");
 
         //Assert
         assertFalse(checked);
@@ -44,8 +44,8 @@ class ElevatedPrivilegedPathTrackerTest extends AbstractTest {
 
         //Act
         boolean required = false;
-        if (!elevatedPrivilegedPathTracker.hasBeenChecked(computeResource, "/root")){
-            required = elevatedPrivilegedPathTracker.checkElevationRequired(computeResource, "/root");
+        if (!elevatedPrivilegedPathState.hasBeenChecked(computeResource, "/root")){
+            required = elevatedPrivilegedPathState.checkElevationRequired(computeResource, "/root");
         }
 
         //Assert
@@ -62,10 +62,10 @@ class ElevatedPrivilegedPathTrackerTest extends AbstractTest {
         when(computeResource.getSshPort()).thenReturn(22);
 
         //Act
-        if (!elevatedPrivilegedPathTracker.hasBeenChecked(computeResource, "/root")){
-            elevatedPrivilegedPathTracker.checkElevationRequired(computeResource, "/root");
+        if (!elevatedPrivilegedPathState.hasBeenChecked(computeResource, "/root")){
+            elevatedPrivilegedPathState.checkElevationRequired(computeResource, "/root");
         }
-        boolean required = elevatedPrivilegedPathTracker.isElevationRequired(computeResource,"/root");
+        boolean required = elevatedPrivilegedPathState.isElevationRequired(computeResource,"/root");
 
         //Assert
         assertTrue(required);

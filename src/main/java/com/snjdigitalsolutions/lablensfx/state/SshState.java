@@ -1,11 +1,11 @@
-package com.snjdigitalsolutions.lablensfx.properties;
+package com.snjdigitalsolutions.lablensfx.state;
 
 import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import javafx.beans.property.*;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SshProperties {
+public class SshState {
 
     private final ObjectProperty<PassPhraseMode> passPhraseMode = new SimpleObjectProperty<>();
     private final StringProperty passPhrase = new SimpleStringProperty();

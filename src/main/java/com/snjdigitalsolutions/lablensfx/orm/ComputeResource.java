@@ -30,7 +30,8 @@ public class ComputeResource {
     private Integer sshPort;
     @Column(name = "sshcom")
     private Long sshCommunicate;
-    @OneToMany(mappedBy = "computeResource")
+    @OneToMany(mappedBy = "computeResource", fetch = FetchType.EAGER,
+            cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ConfigurationPath> configurationPaths = new ArrayList<>();
 
     @Transient

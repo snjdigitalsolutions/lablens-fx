@@ -2,7 +2,6 @@ package com.snjdigitalsolutions.lablensfx.service.command;
 
 import com.snjdigitalsolutions.lablensfx.AbstractTest;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
-import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import org.junit.jupiter.api.*;
 import org.mockito.Mock;
 
@@ -11,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class CheckElevatedPrivilegesRequiredTest extends AbstractTest {
+class CheckElevatedPrivilegesRequiredCommandTest extends AbstractTest {
 
     @Mock
     private ComputeResource computeResource;
@@ -24,7 +23,7 @@ class CheckElevatedPrivilegesRequiredTest extends AbstractTest {
         when(computeResource.getSshPort()).thenReturn(22);
 
         //Act
-        Exception ex = assertThrows(Exception.class, () -> checkElevatedPrivilegesRequired.executeCommand(computeResource));
+        Exception ex = assertThrows(Exception.class, () -> checkElevatedPrivilegesRequiredCommand.executeCommand(computeResource));
 
         //Assert
         assertThat(ex.getMessage()).contains("File path cannot be blank");
@@ -40,7 +39,7 @@ class CheckElevatedPrivilegesRequiredTest extends AbstractTest {
         when(computeResource.getSshPort()).thenReturn(22);
 
         //Act
-        boolean needed = checkElevatedPrivilegesRequired.checkFilePath(computeResource, "/var/log");
+        boolean needed = checkElevatedPrivilegesRequiredCommand.checkFilePath(computeResource, "/var/log");
 
         //Assert
         assertFalse(needed);
@@ -53,7 +52,7 @@ class CheckElevatedPrivilegesRequiredTest extends AbstractTest {
         when(computeResource.getSshPort()).thenReturn(22);
 
         //Act
-        boolean needed = checkElevatedPrivilegesRequired.checkFilePath(computeResource, "/root");
+        boolean needed = checkElevatedPrivilegesRequiredCommand.checkFilePath(computeResource, "/root");
 
         //Assert
         assertTrue(needed);

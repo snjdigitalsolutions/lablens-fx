@@ -1,20 +1,20 @@
-package com.snjdigitalsolutions.lablensfx.service.command;
+package com.snjdigitalsolutions.lablensfx.state;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
+import com.snjdigitalsolutions.lablensfx.service.command.CheckElevatedPrivilegesRequiredCommand;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Component
-public class ElevatedPrivilegedPathTracker {
+public class ElevatedPrivilegedPathState {
 
     private final Map<ComputeResource, Map<String, Boolean>> computerToPathMap = new HashMap<>();
+    private final CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand;
 
-    private final CheckElevatedPrivilegesRequired checkElevatedPrivilegesRequired;
-
-    public ElevatedPrivilegedPathTracker(CheckElevatedPrivilegesRequired checkElevatedPrivilegesRequired) {
-        this.checkElevatedPrivilegesRequired = checkElevatedPrivilegesRequired;
+    public ElevatedPrivilegedPathState(CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand) {
+        this.checkElevatedPrivilegesRequiredCommand = checkElevatedPrivilegesRequiredCommand;
     }
 
     public boolean hasBeenChecked(ComputeResource computeResource, String path) {
@@ -38,7 +38,7 @@ public class ElevatedPrivilegedPathTracker {
     public boolean checkElevationRequired(ComputeResource computeResource, String path) throws Exception {
         boolean elevationRequired = false;
         try {
-            elevationRequired = checkElevatedPrivilegesRequired.checkFilePath(computeResource, path);
+            elevationRequired = checkElevatedPrivilegesRequiredCommand.checkFilePath(computeResource, path);
             computerToPathMap.get(computeResource)
                     .put(path, elevationRequired);
         } catch (Exception e) {

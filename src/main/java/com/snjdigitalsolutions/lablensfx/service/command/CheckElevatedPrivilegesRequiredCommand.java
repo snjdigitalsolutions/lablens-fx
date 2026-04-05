@@ -7,12 +7,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CheckElevatedPrivilegesRequired extends AbstractCommand {
+public class CheckElevatedPrivilegesRequiredCommand extends AbstractCommand {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CheckElevatedPrivilegesRequired.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CheckElevatedPrivilegesRequiredCommand.class);
     private String filePath = "";
 
-    public CheckElevatedPrivilegesRequired(SshService sshService) {
+    public CheckElevatedPrivilegesRequiredCommand(SshService sshService) {
         super(sshService);
     }
 

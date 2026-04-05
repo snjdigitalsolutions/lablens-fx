@@ -1,7 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.application;
 
 import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
-import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
+import com.snjdigitalsolutions.lablensfx.state.SshState;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import com.snjdigitalsolutions.springbootutilityfx.splash.PostShowRunnable;
@@ -15,13 +15,13 @@ public class LabLensFxPostShowAction implements PostShowRunnable {
     @Value("${application.ssh.promptforpassphrase}")
     private Boolean promptForPassPhrase;
     private final HostManagementService hostManagementService;
-    private final SshProperties sshProperties;
+    private final SshState sshState;
     private final PassphraseDialog passphraseDialog;
     private final Environment environment;
 
-    public LabLensFxPostShowAction(HostManagementService hostManagementService, SshProperties sshProperties, PassphraseDialog passphraseDialog, Environment environment) {
+    public LabLensFxPostShowAction(HostManagementService hostManagementService, SshState sshState, PassphraseDialog passphraseDialog, Environment environment) {
         this.hostManagementService = hostManagementService;
-        this.sshProperties = sshProperties;
+        this.sshState = sshState;
         this.passphraseDialog = passphraseDialog;
         this.environment = environment;
     }
@@ -34,11 +34,11 @@ public class LabLensFxPostShowAction implements PostShowRunnable {
                 passphraseDialog.setPostDialogAction(hostManagementService::loadComputeResources);
             }
         } else {
-            sshProperties.passPhraseProperty()
+            sshState.passPhraseProperty()
                     .setValue(environment.getProperty("application.ssh.passphrase"));
-            sshProperties.sshUsernameProperty()
+            sshState.sshUsernameProperty()
                     .setValue(environment.getProperty("application.ssh.username"));
-            sshProperties.passPhraseModeProperty()
+            sshState.passPhraseModeProperty()
                     .setValue(PassPhraseMode.PROVIDED);
             hostManagementService.loadComputeResources();
         }

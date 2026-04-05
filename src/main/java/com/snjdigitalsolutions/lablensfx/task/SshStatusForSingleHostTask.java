@@ -1,8 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.task;
 
-import com.snjdigitalsolutions.lablensfx.nodes.HostStatusDialog;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
-import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
+import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import com.snjdigitalsolutions.lablensfx.service.SshService;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import javafx.application.Platform;
@@ -15,17 +14,17 @@ public class SshStatusForSingleHostTask extends Task<Void> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SshStatusForSingleHostTask.class);
     private final Long resourceID;
     private final SshService sshService;
-    private final ComputeResourceProperties computeResourceProperties;
+    private final ComputeResourceState computeResourceState;
 
-    public SshStatusForSingleHostTask(Long resourceId, ComputeResourceProperties computeResourceProperties, SshService sshService) {
+    public SshStatusForSingleHostTask(Long resourceId, ComputeResourceState computeResourceState, SshService sshService) {
         this.resourceID = resourceId;
-        this.computeResourceProperties = computeResourceProperties;
+        this.computeResourceState = computeResourceState;
         this.sshService = sshService;
     }
 
     @Override
     protected Void call() throws Exception {
-        ComputeResource resource = computeResourceProperties.getComputeResourcesMap().get(resourceID);
+        ComputeResource resource = computeResourceState.getComputeResourcesMap().get(resourceID);
         LOGGER.debug("Verifying host status: {}", resource.getHostName());
         try {
             String response = sshService.executeCommand(resource.getIpAddress(), resource.getSshPort(),  "whoami");
@@ -38,10 +37,10 @@ public class SshStatusForSingleHostTask extends Task<Void> {
                             .getStatusIndicator()
                             .hostSshStatusProperty()
                             .set(SshStatus.ONLINE);
-                    computeResourceProperties.getComputeResourceOnlineStatusMap().put(resourceID,SshStatus.ONLINE);
+                    computeResourceState.getComputeResourceOnlineStatusMap().put(resourceID,SshStatus.ONLINE);
                     if (!currentStatus.equals(SshStatus.ONLINE)){
-                        int value = computeResourceProperties.getHostsOnline();
-                        computeResourceProperties.hostsOnlineProperty().setValue(value + 1);
+                        int value = computeResourceState.getHostsOnline();
+                        computeResourceState.hostsOnlineProperty().setValue(value + 1);
                     }
                 });
             } else {
@@ -63,10 +62,10 @@ public class SshStatusForSingleHostTask extends Task<Void> {
                     .getStatusIndicator()
                     .hostSshStatusProperty()
                     .set(SshStatus.OFFLINE);
-            computeResourceProperties.getComputeResourceOnlineStatusMap().put(resourceID,SshStatus.OFFLINE);
+            computeResourceState.getComputeResourceOnlineStatusMap().put(resourceID,SshStatus.OFFLINE);
             if (currentStatus.equals(SshStatus.ONLINE)){
-                int value = computeResourceProperties.getHostsOnline();
-                computeResourceProperties.hostsOnlineProperty().setValue(value - 1);
+                int value = computeResourceState.getHostsOnline();
+                computeResourceState.hostsOnlineProperty().setValue(value - 1);
             }
         });
     }

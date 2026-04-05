@@ -1,8 +1,8 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
-import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
-import com.snjdigitalsolutions.lablensfx.properties.IpAddressProperties;
+import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
+import com.snjdigitalsolutions.lablensfx.state.ShowIpAddressState;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.utility.IpComparator;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
@@ -33,35 +33,35 @@ public class HostPane extends AnchorPane implements SpringInitializableNode {
 
     private final BooleanProperty performRefresh = new SimpleBooleanProperty(false);
 
-    private final ComputeResourceProperties computeResourceProperties;
+    private final ComputeResourceState computeResourceState;
     private final HostManagementService hostManagementService;
     private final IpComparator ipComparator;
-    private final IpAddressProperties ipAddressProperties;
+    private final ShowIpAddressState showIpAddressState;
 
-    public HostPane(@Value("classpath:/fxml/HostPane.fxml") Resource fxml, ComputeResourceProperties computeResourceProperties, HostManagementService hostManagementService, IpComparator ipComparator, IpAddressProperties ipAddressProperties) {
-        this.computeResourceProperties = computeResourceProperties;
+    public HostPane(@Value("classpath:/fxml/HostPane.fxml") Resource fxml, ComputeResourceState computeResourceState, HostManagementService hostManagementService, IpComparator ipComparator, ShowIpAddressState showIpAddressState) {
+        this.computeResourceState = computeResourceState;
         this.hostManagementService = hostManagementService;
         this.ipComparator = ipComparator;
-        this.ipAddressProperties = ipAddressProperties;
+        this.showIpAddressState = showIpAddressState;
         NodeLoader.load(fxml, this);
     }
 
     @Override
     public void performIntialization() {
-        performRefresh.bind(computeResourceProperties.computeResourcesLoadedProperty());
+        performRefresh.bind(computeResourceState.computeResourcesLoadedProperty());
         performRefresh.addListener((obj, oldVal, newVal) -> {
             if (newVal) {
                 refresh();
             }
         });
         panelVBox.setAlignment(Pos.CENTER_LEFT);
-        computeResourceProperties.computeResourcesMapProperty()
+        computeResourceState.computeResourcesMapProperty()
                 .addListener((MapChangeListener<Long, ComputeResource>) change -> {
                     if (performRefresh.getValue()) {
                         refresh();
                     }
                 });
-        ipAddressProperties.showIpPropertyProperty()
+        showIpAddressState.showIpPropertyProperty()
                 .addListener((obj, oldVal, newVal) -> {
                     refresh();
                 });

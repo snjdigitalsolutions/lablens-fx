@@ -8,8 +8,11 @@ import com.snjdigitalsolutions.lablensfx.utility.FilePathValidator;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import org.springframework.beans.factory.annotation.Value;
@@ -91,7 +94,9 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
                         computeResourceRepository.save(selectedResource);
                         selectedPathsTable.getItems().add(path);
                     } else {
-                        //Perform other checks
+                        computeResourceState.getSelectedResources().getFirst().getConfigurationPaths().forEach(path -> {
+
+                        });
                     }
                 } else {
                     alertUtility.warningAlert("Invalid Path", "The path entered is not a valid system path.");
@@ -126,6 +131,27 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
         TableColumn<ConfigurationPath, Boolean> privilegeColumn = new TableColumn<>("Privilege");
         privilegeColumn.setCellValueFactory(path -> path.getValue()
                 .requiresElevation());
+        privilegeColumn.setCellFactory(column -> new TableCell<>() {
+            private final FontAwesomeIconView privilegeIcon = new FontAwesomeIconView(FontAwesomeIcon.UNLOCK);
+            private final Label label = new Label();
+            {
+                label.setMaxWidth(Double.MAX_VALUE);
+                label.setAlignment(Pos.CENTER);
+                label.setGraphic(privilegeIcon);
+            }
+            @Override
+            protected void updateItem(Boolean item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item != null) {
+                    if (item) {
+                        privilegeIcon.setIcon(FontAwesomeIcon.LOCK);
+                    } else {
+                        privilegeIcon.setIcon(FontAwesomeIcon.UNLOCK);
+                    }
+                    setGraphic(label);
+                }
+            }
+        });
         return privilegeColumn;
     }
 

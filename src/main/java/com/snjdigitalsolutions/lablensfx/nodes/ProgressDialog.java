@@ -3,25 +3,30 @@ package com.snjdigitalsolutions.lablensfx.nodes;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 @Component
-public class HostStatusDialog extends AnchorPane implements SpringInitializableNode {
+public class ProgressDialog extends AnchorPane implements SpringInitializableNode {
 
     @FXML
+    private Label progressLabel;
+    @FXML
     @Getter
-    private ProgressBar statusCheckProgressBar;
+    private ProgressBar progressBar;
+    @Setter
     private Runnable onDialogClosed;
 
-    public HostStatusDialog(@Value("classpath:/fxml/HostStatusDialog.fxml") Resource fxml) {
+    public ProgressDialog(@Value("classpath:/fxml/ProgressDialog.fxml") Resource fxml) {
         NodeLoader.load(fxml, this);
     }
 
@@ -51,7 +56,7 @@ public class HostStatusDialog extends AnchorPane implements SpringInitializableN
         }
     }
 
-    public void setOnDialogClosed(Runnable onDialogClosed) {
-        this.onDialogClosed = onDialogClosed;
+    public void setProgressText(String text){
+        this.progressLabel.setText(text);
     }
 }

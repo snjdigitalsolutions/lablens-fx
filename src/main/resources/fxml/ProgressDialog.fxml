@@ -7,19 +7,18 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-
 <fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" type="AnchorPane" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <VBox spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <HBox alignment="CENTER" styleClass="ssh-progress-label" stylesheets="@../styles/application.css">
                <children>
-                  <Label text="Verifying Online Status via SSH" />
+                  <Label fx:id="progressLabel" />
                </children>
             </HBox>
             <HBox alignment="CENTER">
                <children>
-                  <ProgressBar fx:id="statusCheckProgressBar" prefWidth="200.0" progress="0.0" />
+                  <ProgressBar fx:id="progressBar" prefWidth="200.0" progress="0.0" />
                </children>
             </HBox>
          </children>

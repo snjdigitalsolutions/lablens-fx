@@ -5,7 +5,6 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 
@@ -18,11 +17,11 @@ class SshServiceTest extends AbstractTest {
     @Order(1)
     void init() {
         //Arrange
-        sshProperties.sshUsernameProperty()
+        sshState.sshUsernameProperty()
                 .setValue(username);
-        sshProperties.passPhraseProperty()
+        sshState.passPhraseProperty()
                 .setValue(passPhrase);
-        sshProperties.passPhraseModeProperty()
+        sshState.passPhraseModeProperty()
                 .setValue(PassPhraseMode.PROVIDED);
 
         //Act

@@ -1,8 +1,8 @@
 package com.snjdigitalsolutions.lablensfx.task;
 
-import com.snjdigitalsolutions.lablensfx.nodes.HostStatusDialog;
+import com.snjdigitalsolutions.lablensfx.nodes.ProgressDialog;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
-import com.snjdigitalsolutions.lablensfx.properties.ComputeResourceProperties;
+import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import com.snjdigitalsolutions.lablensfx.service.SshService;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import javafx.application.Platform;
@@ -16,19 +16,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class SshStatusTask extends Task<Void> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SshStatusTask.class);
-    private final ComputeResourceProperties computeResourceProperties;
-    private final HostStatusDialog hostStatusDialog;
+    private final ComputeResourceState computeResourceState;
+    private final ProgressDialog progressDialog;
     private final SshService sshService;
 
-    public SshStatusTask(ComputeResourceProperties computeResourceProperties, HostStatusDialog hostStatusDialog, SshService sshService) {
-        this.computeResourceProperties = computeResourceProperties;
-        this.hostStatusDialog = hostStatusDialog;
+    public SshStatusTask(ComputeResourceState computeResourceState, ProgressDialog progressDialog, SshService sshService) {
+        this.computeResourceState = computeResourceState;
+        this.progressDialog = progressDialog;
         this.sshService = sshService;
     }
 
     @Override
     protected Void call() throws Exception {
-        List<ComputeResource> resources = computeResourceProperties.getComputeResourcesMap()
+        List<ComputeResource> resources = computeResourceState.getComputeResourcesMap()
                 .values()
                 .stream()
                 .filter(resource -> resource.getSshCommunicate() > 0)
@@ -46,10 +46,10 @@ public class SshStatusTask extends Task<Void> {
                                 .getStatusIndicator()
                                 .hostSshStatusProperty()
                                 .set(SshStatus.ONLINE);
-                        computeResourceProperties.getComputeResourceOnlineStatusMap()
+                        computeResourceState.getComputeResourceOnlineStatusMap()
                                 .put(resource.getId(), SshStatus.ONLINE);
-                        int value = computeResourceProperties.getHostsOnline();
-                        computeResourceProperties.hostsOnlineProperty()
+                        int value = computeResourceState.getHostsOnline();
+                        computeResourceState.hostsOnlineProperty()
                                 .setValue(value + 1);
                     });
                 } else {
@@ -58,11 +58,11 @@ public class SshStatusTask extends Task<Void> {
                                 .getStatusIndicator()
                                 .hostSshStatusProperty()
                                 .set(SshStatus.OFFLINE);
-                        computeResourceProperties.getComputeResourceOnlineStatusMap()
+                        computeResourceState.getComputeResourceOnlineStatusMap()
                                 .put(resource.getId(), SshStatus.OFFLINE);
-                        int value = computeResourceProperties.getHostsOnline();
+                        int value = computeResourceState.getHostsOnline();
                         if (value > 0) {
-                            computeResourceProperties.hostsOnlineProperty()
+                            computeResourceState.hostsOnlineProperty()
                                     .setValue(value - 1);
                         }
                     });
@@ -74,11 +74,11 @@ public class SshStatusTask extends Task<Void> {
                             .getStatusIndicator()
                             .hostSshStatusProperty()
                             .set(SshStatus.OFFLINE);
-                    computeResourceProperties.getComputeResourceOnlineStatusMap()
+                    computeResourceState.getComputeResourceOnlineStatusMap()
                             .put(resource.getId(), SshStatus.OFFLINE);
-                    int value = computeResourceProperties.getHostsOnline();
+                    int value = computeResourceState.getHostsOnline();
                     if (value > 0) {
-                        computeResourceProperties.hostsOnlineProperty()
+                        computeResourceState.hostsOnlineProperty()
                                 .setValue(value - 1);
                     }
                 });
@@ -93,19 +93,19 @@ public class SshStatusTask extends Task<Void> {
     @Override
     protected void succeeded() {
         super.succeeded();
-        hostStatusDialog.closeDialog();
+        progressDialog.closeDialog();
     }
 
     @Override
     protected void cancelled() {
         super.cancelled();
-        hostStatusDialog.closeDialog();
+        progressDialog.closeDialog();
     }
 
     @Override
     protected void failed() {
         super.failed();
         LOGGER.error("SSH status Task failed...");
-        hostStatusDialog.closeDialog();
+        progressDialog.closeDialog();
     }
 }

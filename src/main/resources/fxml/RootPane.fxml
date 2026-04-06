@@ -30,6 +30,7 @@
                 <Menu mnemonicParsing="false" text="Edit">
                   <items>
                     <MenuItem fx:id="deleteSelectedHostsMenuItem" mnemonicParsing="false" text="Delete Selected Hosts" />
+                        <MenuItem fx:id="verifyPathPrivilegeMenuItem" mnemonicParsing="false" text="Verify Host Path Privileges" />
                         <MenuItem fx:id="showHideIpMenuItem" mnemonicParsing="false" text="Unspecified Action">
                            <graphic>
                               <FontAwesomeIconView fx:id="showHideIpIconView" />

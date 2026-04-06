@@ -1,8 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.utility;
 
 import com.snjdigitalsolutions.lablensfx.AbstractTest;
-import com.snjdigitalsolutions.lablensfx.properties.SshProperties;
-import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
+import com.snjdigitalsolutions.lablensfx.state.SshState;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
@@ -12,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SshKeyLoaderTest extends AbstractTest {
 
-    private final SshProperties sshProperties = new SshProperties();
+    private final SshState sshState = new SshState();
 
     @Test
     public void getAvailableKeysTest() {

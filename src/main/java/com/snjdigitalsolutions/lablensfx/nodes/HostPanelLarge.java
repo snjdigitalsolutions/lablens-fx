@@ -1,10 +1,9 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
-import com.snjdigitalsolutions.lablensfx.properties.IpAddressProperties;
+import com.snjdigitalsolutions.lablensfx.state.ShowIpAddressState;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatusIndicator;
-import com.snjdigitalsolutions.lablensfx.shapes.StatusIndicator;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
 import javafx.beans.property.*;
 import javafx.fxml.FXML;
@@ -47,15 +46,15 @@ public class HostPanelLarge extends GridPane implements IpSortable {
     @Setter
     private Long computeResourceId;
     private final HostManagementService hostManagementService;
-    private final IpAddressProperties ipAddressProperties;
+    private final ShowIpAddressState showIpAddressState;
 
     public HostPanelLarge(@Value("classpath:/fxml/HostPanelLarge.fxml") Resource fxml,
                           SshStatusIndicator statusIndicator,
                           HostManagementService hostManagementService,
-                          IpAddressProperties ipAddressProperties) {
+                          ShowIpAddressState showIpAddressState) {
         this.statusIndicator = statusIndicator;
         this.hostManagementService = hostManagementService;
-        this.ipAddressProperties = ipAddressProperties;
+        this.showIpAddressState = showIpAddressState;
         NodeLoader.load(fxml, this);
     }
 

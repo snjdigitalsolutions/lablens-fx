@@ -37,7 +37,7 @@ public class HostManagementService implements SpringInitializableNode {
     private final StatusBarState statusBarProperties;
     private final ComputeResourceRepository computeResourceRepository;
     private final ObjectProvider<HostPanel> hostPanelProvider;
-    private final HostStatusDialog hostStatusDialog;
+    private final ProgressDialog progressDialog;
     private final SshService sshService;
     private final SshState sshState;
     private final PassphraseDialog passphraseDialog;
@@ -46,13 +46,13 @@ public class HostManagementService implements SpringInitializableNode {
     @Value("${application.ssh.promptforpassphrase}")
     private boolean promptForPassPhrase;
 
-    public HostManagementService(ComputeResourceState computeResourceState, StatusBarState statusBarProperties, ComputeResourceRepository computeResourceRepository, ObjectProvider<HostPanel> hostPanelProvider, Environment environment, HostStatusDialog hostStatusDialog, SshService sshService, SshState sshState, PassphraseDialog passphraseDialog, AlertUtility alertUtility) {
+    public HostManagementService(ComputeResourceState computeResourceState, StatusBarState statusBarProperties, ComputeResourceRepository computeResourceRepository, ObjectProvider<HostPanel> hostPanelProvider, Environment environment, ProgressDialog progressDialog, SshService sshService, SshState sshState, PassphraseDialog passphraseDialog, AlertUtility alertUtility) {
         this.computeResourceState = computeResourceState;
         this.statusBarProperties = statusBarProperties;
         this.computeResourceRepository = computeResourceRepository;
         this.hostPanelProvider = hostPanelProvider;
         this.environment = environment;
-        this.hostStatusDialog = hostStatusDialog;
+        this.progressDialog = progressDialog;
         this.sshService = sshService;
         this.sshState = sshState;
         this.passphraseDialog = passphraseDialog;
@@ -137,19 +137,20 @@ public class HostManagementService implements SpringInitializableNode {
         if (sshState.getPassPhraseMode().equals(PassPhraseMode.PROVIDED) ||
                 sshState.getPassPhraseMode().equals(PassPhraseMode.NOT_NEEDED)){
             if(sshService.init()){
-                SshStatusTask statusTask = new SshStatusTask(computeResourceState, hostStatusDialog, sshService);
-                hostStatusDialog.setOnDialogClosed(() -> {
+                progressDialog.setProgressText("Verifying Online Status via SSH");
+                SshStatusTask statusTask = new SshStatusTask(computeResourceState, progressDialog, sshService);
+                progressDialog.setOnDialogClosed(() -> {
                     if (statusTask.isRunning()) {
                         statusTask.cancel();
                     }
                 });
-                hostStatusDialog.getStatusCheckProgressBar().progressProperty().bind(statusTask.progressProperty());
+                progressDialog.getProgressBar().progressProperty().bind(statusTask.progressProperty());
                 TaskStarter.startTask(statusTask);
                 StageNodeBuilder.builder()
                         .setModality(Modality.APPLICATION_MODAL)
                         .setResizable(false)
                         .setTitle("SSH Status")
-                        .setNode(hostStatusDialog)
+                        .setNode(progressDialog)
                         .buildAndShow();
             }
         } else {

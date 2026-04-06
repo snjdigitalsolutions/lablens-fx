@@ -20,6 +20,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 @Component
 public class ConfigurationPane extends AnchorPane implements SpringInitializableNode {
 
@@ -86,17 +88,19 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
                     ComputeResource selectedResource = computeResourceState.getSelectedResources().getFirst();
                     if (selectedResource.getConfigurationPaths()
                             .isEmpty()){
-                        ConfigurationPath path = new ConfigurationPath();
-                        path.setConfigurationPath(filePathTextField.getText());
-                        path.setRequiresElevation(false);
-                        selectedResource.getConfigurationPaths().add(path);
-                        path.setComputeResource(selectedResource);
-                        computeResourceRepository.save(selectedResource);
-                        selectedPathsTable.getItems().add(path);
+                        addPathtoComputeResource(selectedResource);
                     } else {
+                        AtomicBoolean duplicated = new AtomicBoolean(false);
                         computeResourceState.getSelectedResources().getFirst().getConfigurationPaths().forEach(path -> {
-
+                            if (filePathTextField.getText().equals(path.getConfigurationPath())) {
+                                duplicated.set(true);
+                            }
                         });
+                        if (!duplicated.get()){
+                            addPathtoComputeResource(selectedResource);
+                        } else {
+                            alertUtility.warningAlert("Duplication", "The file path has already been added to the host");
+                        }
                     }
                 } else {
                     alertUtility.warningAlert("Invalid Path", "The path entered is not a valid system path.");
@@ -107,12 +111,22 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
         });
     }
 
+    private void addPathtoComputeResource(ComputeResource selectedResource) {
+        ConfigurationPath path = new ConfigurationPath();
+        path.setConfigurationPath(filePathTextField.getText());
+        path.setRequiresElevation(false);
+        selectedResource.getConfigurationPaths().add(path);
+        path.setComputeResource(selectedResource);
+        computeResourceRepository.save(selectedResource);
+        selectedPathsTable.getItems().add(path);
+    }
+
     private void initializePathTable() {
         selectedPathsTable.setFocusTraversable(false);
         TableColumn<ConfigurationPath, String> pathColumn = getConfigurationPathStringTableColumn();
         pathColumn.prefWidthProperty().bind(selectedPathsTable.widthProperty().multiply(.6));
         TableColumn<ConfigurationPath, Boolean> elevateColumn = getConfigurationPathElevationrequiredTableColumn();
-        elevateColumn.prefWidthProperty().bind(selectedPathsTable.widthProperty().multiply(.4).subtract(2));
+        elevateColumn.prefWidthProperty().bind(selectedPathsTable.widthProperty().multiply(.4).subtract(3));
         selectedPathsTable.getColumns().add(pathColumn);
         selectedPathsTable.getColumns().add(elevateColumn);
         selectedPathsTable.setItems(FXCollections.observableArrayList());
@@ -142,6 +156,7 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
             @Override
             protected void updateItem(Boolean item, boolean empty) {
                 super.updateItem(item, empty);
+                setGraphic(null);
                 if (item != null) {
                     if (item) {
                         privilegeIcon.setIcon(FontAwesomeIcon.LOCK);

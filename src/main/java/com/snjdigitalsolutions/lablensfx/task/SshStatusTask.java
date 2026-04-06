@@ -1,6 +1,6 @@
 package com.snjdigitalsolutions.lablensfx.task;
 
-import com.snjdigitalsolutions.lablensfx.nodes.HostStatusDialog;
+import com.snjdigitalsolutions.lablensfx.nodes.ProgressDialog;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import com.snjdigitalsolutions.lablensfx.service.SshService;
@@ -17,12 +17,12 @@ public class SshStatusTask extends Task<Void> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SshStatusTask.class);
     private final ComputeResourceState computeResourceState;
-    private final HostStatusDialog hostStatusDialog;
+    private final ProgressDialog progressDialog;
     private final SshService sshService;
 
-    public SshStatusTask(ComputeResourceState computeResourceState, HostStatusDialog hostStatusDialog, SshService sshService) {
+    public SshStatusTask(ComputeResourceState computeResourceState, ProgressDialog progressDialog, SshService sshService) {
         this.computeResourceState = computeResourceState;
-        this.hostStatusDialog = hostStatusDialog;
+        this.progressDialog = progressDialog;
         this.sshService = sshService;
     }
 
@@ -93,19 +93,19 @@ public class SshStatusTask extends Task<Void> {
     @Override
     protected void succeeded() {
         super.succeeded();
-        hostStatusDialog.closeDialog();
+        progressDialog.closeDialog();
     }
 
     @Override
     protected void cancelled() {
         super.cancelled();
-        hostStatusDialog.closeDialog();
+        progressDialog.closeDialog();
     }
 
     @Override
     protected void failed() {
         super.failed();
         LOGGER.error("SSH status Task failed...");
-        hostStatusDialog.closeDialog();
+        progressDialog.closeDialog();
     }
 }

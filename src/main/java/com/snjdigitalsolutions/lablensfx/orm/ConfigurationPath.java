@@ -24,6 +24,12 @@ public class ConfigurationPath {
     private String configurationPath;
     @Column(name = "requires_elevation")
     private Boolean requiresElevation;
+    @Column(name = "elevation_check_complete")
+    private Boolean elevationCheckComplete;
+
+    @Transient
+    private BooleanProperty requiresElevationProperty;
+
 
     @Transient
     public StringProperty configurationPath() {
@@ -32,7 +38,13 @@ public class ConfigurationPath {
 
     @Transient
     public BooleanProperty requiresElevation() {
-        return new SimpleBooleanProperty(requiresElevation);
+        if (requiresElevationProperty == null){
+            requiresElevationProperty = new SimpleBooleanProperty(this.requiresElevation);
+            requiresElevationProperty.addListener((obj, oldVal, newVal) -> {
+                this.requiresElevation = newVal;
+            });
+        }
+        return requiresElevationProperty;
     }
 
 }

@@ -75,6 +75,10 @@ public class HostManagementService implements SpringInitializableNode {
                 });
     }
 
+    /**
+     * Any selected resource is deleted by this method, therefore
+     * the selected hosts state property is also cleared.
+     */
     public void deleteSelectedHosts() {
         statusBarProperties.selectedHostPanelListProperty()
                 .get()
@@ -83,6 +87,7 @@ public class HostManagementService implements SpringInitializableNode {
                         int onlineCount = computeResourceState.getHostsOnline();
                         computeResourceState.hostsOnlineProperty().setValue(onlineCount - 1);
                     }
+                    computeResourceState.getSelectedResources().remove(hostPanel.getComputeResource());
                     computeResourceState.getComputeResourcesMap()
                             .remove(hostPanel.getComputeResource()
                                     .getId());

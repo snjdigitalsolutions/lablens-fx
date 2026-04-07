@@ -145,10 +145,15 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
             event.consume();
         });
         deleteIcon.setOnMouseClicked(event -> {
-            AtomicReference<HostPanel> reference = new AtomicReference<>(this);
-            alertUtility.confirmAlert("Delete Hosts", "Are you sure you want to delete selected hosts?", () -> {
-                hostManagementService.deleteSelectedHosts(reference.get());
-            });
+            if (!computeResourceState.getSelectedResources()
+                    .isEmpty()){
+                AtomicReference<HostPanel> reference = new AtomicReference<>(this);
+                alertUtility.confirmAlert("Delete Hosts", "Are you sure you want to delete selected hosts?", () -> {
+                    hostManagementService.deleteSelectedHosts(reference.get());
+                });
+            } else {
+                alertUtility.warningAlert("No Selection", "No compute resources are selected");
+            }
             event.consume();
         });
 

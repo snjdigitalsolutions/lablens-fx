@@ -88,7 +88,7 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
                     ComputeResource selectedResource = computeResourceState.getSelectedResources().getFirst();
                     if (selectedResource.getConfigurationPaths()
                             .isEmpty()){
-                        addPathtoComputeResource(selectedResource);
+                        addPathAndClearPathTextField(selectedResource);
                     } else {
                         AtomicBoolean duplicated = new AtomicBoolean(false);
                         computeResourceState.getSelectedResources().getFirst().getConfigurationPaths().forEach(path -> {
@@ -97,7 +97,7 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
                             }
                         });
                         if (!duplicated.get()){
-                            addPathtoComputeResource(selectedResource);
+                            addPathAndClearPathTextField(selectedResource);
                         } else {
                             alertUtility.warningAlert("Duplication", "The file path has already been added to the host");
                         }
@@ -109,6 +109,11 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
                 alertUtility.warningAlert("Incorrect Selection", "One and only one host selection must be made.");
             }
         });
+    }
+
+    private void addPathAndClearPathTextField(ComputeResource selectedResource) {
+        addPathtoComputeResource(selectedResource);
+        filePathTextField.clear();
     }
 
     private void addPathtoComputeResource(ComputeResource selectedResource) {

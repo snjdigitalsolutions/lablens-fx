@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 public class LabLensFxBootReadyController implements SpringInitializableNode {
@@ -292,7 +293,9 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         deleteSelectedHostsMenuItem.disableProperty()
                 .bind(statusBarState.disableDeleteHostMenuItemProperty());
         deleteSelectedHostsMenuItem.setOnAction(event -> {
-            hostManagementService.deleteSelectedHosts();
+            alertUtility.confirmAlert("Delete Hosts", "Are you sure you want to delete selected hosts?", () -> {
+                hostManagementService.deleteSelectedHosts();
+            });
         });
     }
 

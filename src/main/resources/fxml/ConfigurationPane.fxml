@@ -38,6 +38,11 @@
                                           <FontAwesomeIconView glyphName="PLUS" />
                                        </graphic>
                                     </Button>
+                                    <Button fx:id="deleteButton" disable="true" mnemonicParsing="false">
+                                       <graphic>
+                                          <FontAwesomeIconView glyphName="MINUS" />
+                                       </graphic>
+                                    </Button>
                                  </children>
                               </HBox>
                               <TableView fx:id="selectedPathsTable" VBox.vgrow="ALWAYS" />

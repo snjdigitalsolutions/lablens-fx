@@ -32,6 +32,8 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
     @FXML
     private Button addButton;
     @FXML
+    private Button deleteButton;
+    @FXML
     private TableView<ConfigurationPath> selectedPathsTable;
 
     private final double splitPaneDividerPosition = 0.5;
@@ -56,7 +58,17 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
     public void performIntialization() {
         initializeDivider();
         initializeAddButton();
+        initializeDeleteButton();
         initializePathTable();
+    }
+
+    private void initializeDeleteButton() {
+        deleteButton.setOnAction(event -> {
+            computeResourceState.getSelectedResources().getFirst().getConfigurationPaths().remove(selectedPathsTable.getSelectionModel().getSelectedItem());
+            computeResourceRepository.save(computeResourceState.getSelectedResources().getFirst());
+            selectedPathsTable.getItems().remove(selectedPathsTable.getSelectionModel().getSelectedItem());
+            selectedPathsTable.getSelectionModel().clearSelection();
+        });
     }
 
     public void loadExistingPaths() {
@@ -122,8 +134,12 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
         path.setRequiresElevation(false);
         selectedResource.getConfigurationPaths().add(path);
         path.setComputeResource(selectedResource);
-        computeResourceRepository.save(selectedResource);
-        selectedPathsTable.getItems().add(path);
+        selectedResource = computeResourceRepository.save(selectedResource);
+        selectedPathsTable.getItems().clear();
+        selectedResource.getConfigurationPaths().forEach(savedPath -> {
+            selectedPathsTable.getItems().add(savedPath);
+        });
+
     }
 
     private void initializePathTable() {
@@ -135,6 +151,14 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
         selectedPathsTable.getColumns().add(pathColumn);
         selectedPathsTable.getColumns().add(elevateColumn);
         selectedPathsTable.setItems(FXCollections.observableArrayList());
+        selectedPathsTable.getSelectionModel().selectedItemProperty().addListener((obj, oldVal, newVal) -> {
+            if (newVal != null){
+                System.out.println(newVal.getId());
+                deleteButton.setDisable(false);
+            } else {
+                deleteButton.setDisable(true);
+            }
+        });
     }
 
     @NonNull

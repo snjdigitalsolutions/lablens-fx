@@ -2,6 +2,8 @@ package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
+import com.snjdigitalsolutions.lablensfx.service.HostPanelStylingService;
+import com.snjdigitalsolutions.lablensfx.service.ViewService;
 import com.snjdigitalsolutions.lablensfx.state.*;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
@@ -13,7 +15,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import lombok.Getter;
@@ -52,6 +53,7 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
     @Setter
     private ComputeResource computeResource;
 
+
     private final StatusBarState statusBarState;
     private final HostManagementService hostManagementService;
     private final ShowIpAddressState showIpAddressState;
@@ -60,8 +62,25 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
     private final SelectedViewState selectedViewState;
     private final ConfigurationPane configurationPane;
     private final MenuItemSelectionState menuItemSelectionState;
+    private final ViewService viewService;
+    private final HostPanelStylingService hostPanelStylingService;
 
-    public HostPanel(@Value("classpath:/fxml/HostPanel.fxml") Resource fxml, StatusBarState statusBarState, HostPane hostPane, HostManagementService hostManagementService, ShowIpAddressState showIpAddressState, AlertUtility alertUtility, ComputeResourceState computeResourceState, SelectedViewState selectedViewState, ConfigurationPane configurationPane, MenuItemSelectionState menuItemSelectionState) {
+    private boolean selected = false;
+
+    public HostPanel(@Value("classpath:/fxml/HostPanel.fxml") Resource fxml,
+                     StatusBarState statusBarState,
+                     HostPane hostPane,
+                     HostManagementService hostManagementService,
+                     ShowIpAddressState showIpAddressState,
+                     AlertUtility alertUtility,
+                     ComputeResourceState computeResourceState,
+                     SelectedViewState selectedViewState,
+                     ConfigurationPane configurationPane,
+                     MenuItemSelectionState menuItemSelectionState,
+                     ViewService viewService,
+                     HostPanelStylingService hostPanelStylingService
+    )
+    {
         this.statusBarState = statusBarState;
         this.hostManagementService = hostManagementService;
         this.showIpAddressState = showIpAddressState;
@@ -70,83 +89,33 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
         this.selectedViewState = selectedViewState;
         this.configurationPane = configurationPane;
         this.menuItemSelectionState = menuItemSelectionState;
+        this.viewService = viewService;
+        this.hostPanelStylingService = hostPanelStylingService;
         NodeLoader.load(fxml, this);
     }
 
     @PostConstruct
     @Override
     public void performIntialization() {
-        addSelectedStyle(this);
+        initializeMouseClickAction();
+        bindProperties();
+        initializePencilIconClick();
+        initializeDeleteIconClick();
+
         if (showIpAddressState.isShowIpProperty()) {
             ipAddressLabel.textProperty()
                     .bind(ipAddress);
         } else {
-            ipAddressLabel.textProperty().unbind();
+            ipAddressLabel.textProperty()
+                    .unbind();
             ipAddressLabel.textProperty()
                     .setValue("xxx.xxx.xxx.xxx");
         }
-        hostNameLabel.textProperty()
-                .bind(hostname);
-        sshPortLabel.textProperty()
-                .bind(sshPort.asString());
     }
 
-    private void addSelectedStyle(Node node) {
-        node.setOnMouseClicked(event -> {
-            if (node.getStyleClass()
-                    .contains("host-panel-selected")) {
-                node.getStyleClass()
-                        .remove("host-panel-selected");
-                int currentValue = statusBarState.numberOfSelectedHostsProperty()
-                        .getValue();
-                currentValue--;
-                LOGGER.debug("Panel deselected - {}", currentValue);
-                statusBarState.numberOfSelectedHostsProperty()
-                        .set(currentValue);
-                statusBarState.selectedHostPanelListProperty()
-                        .remove(this);
-                computeResourceState.getSelectedResources()
-                        .remove(this.computeResource);
-            } else {
-                if (statusBarState.numberOfSelectedHostsProperty()
-                        .intValue() >= 1 && selectedViewState.getSelectedView() != ApplicationView.DASHBOARD) {
-                    AtomicBoolean yesResponse = new AtomicBoolean(false);
-                    if (menuItemSelectionState.isConfirmConfigurationChangeSelection()){
-                        alertUtility.confirmAlert("Multiple Selections", "Do you wish to return to the dashboard?", () -> {
-                            yesResponse.set(true);
-                        });
-                    }
-
-                    if (yesResponse.get()) {
-                        addedSelectionStyleToNode(node);
-                    } else {
-                        computeResourceState.getSelectedResources()
-                                .getFirst()
-                                .getHostPanel()
-                                .getStyleClass()
-                                .remove("host-panel-selected");
-                        computeResourceState.getSelectedResources()
-                                .clear();
-                        computeResourceState.getSelectedResources()
-                                .add(this.computeResource);
-                        getStyleClass()
-                                .add("host-panel-selected");
-                        statusBarState.getSelectedHostPanelList().clear();
-                        statusBarState.getSelectedHostPanelList().add(this);
-                        configurationPane.loadExistingPaths();
-                    }
-                } else {
-                    addedSelectionStyleToNode(node);
-                }
-            }
-        });
-        pencilIcon.setOnMouseClicked(event -> {
-            hostManagementService.editSelectedHost(this);
-            event.consume();
-        });
+    private void initializeDeleteIconClick() {
         deleteIcon.setOnMouseClicked(event -> {
-            if (!computeResourceState.getSelectedResources()
-                    .isEmpty()){
+            if (hostManagementService.isComputeResourceSelected()) {
                 AtomicReference<HostPanel> reference = new AtomicReference<>(this);
                 alertUtility.confirmAlert("Delete Hosts", "Are you sure you want to delete selected hosts?", () -> {
                     hostManagementService.deleteSelectedHosts(reference.get());
@@ -156,22 +125,58 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
             }
             event.consume();
         });
-
     }
 
-    private void addedSelectionStyleToNode(Node node) {
-        node.getStyleClass()
-                .add("host-panel-selected");
-        int currentValue = statusBarState.numberOfSelectedHostsProperty()
-                .getValue();
-        currentValue++;
-        LOGGER.debug("Panel selected - {}", currentValue);
-        statusBarState.numberOfSelectedHostsProperty()
-                .set(currentValue);
-        statusBarState.selectedHostPanelListProperty()
-                .add(this);
-        computeResourceState.getSelectedResources()
-                .add(this.computeResource);
+    private void initializePencilIconClick() {
+        pencilIcon.setOnMouseClicked(event -> {
+            hostManagementService.editSelectedHost(this);
+            event.consume();
+        });
+    }
+
+    private void bindProperties() {
+        hostNameLabel.textProperty()
+                .bind(hostname);
+        sshPortLabel.textProperty()
+                .bind(sshPort.asString());
+    }
+
+    private void initializeMouseClickAction() {
+        this.setOnMouseClicked(event -> {
+            // When HostPanel is previously selected
+            if (selected) {
+                selected = false;
+                hostPanelStylingService.removeSelectionStyle(this);
+                hostManagementService.removeComputeResourceFromSelectedSources(this, this.computeResource);
+            } else {
+                //When multiple hosts will be selected and user not on dashboard view
+                if (hostManagementService.multipleHostsBeingSelected() && !viewService.dashboardSelected()) {
+                    AtomicBoolean yesResponse = new AtomicBoolean(false);
+                    if (menuItemSelectionState.isConfirmConfigurationChangeSelection()) {
+                        alertUtility.confirmAlert("Multiple Selections", "Do you wish to return to the dashboard?", () -> {
+                            yesResponse.set(true);
+                        });
+                    }
+                    //When choosing to return to dashboard allow multiple host selections
+                    if (yesResponse.get()) {
+                        addSelectionStyling();
+                    } else {
+                        //TODO map host panel to resource
+                        hostPanelStylingService.addSelectionStyle(this);
+                        hostManagementService.clearCurrentlySelectedHostAndAddNewlySelectedHost(this, this.computeResource);
+                        configurationPane.loadExistingPaths();
+                    }
+                } else {
+                    addSelectionStyling();
+                }
+            }
+        });
+    }
+
+    private void addSelectionStyling() {
+        selected = true;
+        hostPanelStylingService.addSelectionStyle(this);
+        hostManagementService.addComputeResourceToSelectedSources(this, this.computeResource);
     }
 
     @Override

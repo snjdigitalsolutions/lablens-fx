@@ -14,6 +14,7 @@ public class StatusBarState implements SpringInitializableNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StatusBarState.class);
 
+    //TODO selected and status bar should be separate state classes
     private final StringProperty statusMessage = new SimpleStringProperty("");
     private final ListProperty<HostPanel> selectedHostPanelList = new SimpleListProperty<>(FXCollections.observableArrayList());
     private final IntegerProperty numberOfSelectedHosts = new SimpleIntegerProperty(0);

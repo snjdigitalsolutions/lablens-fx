@@ -1,22 +1,19 @@
 package com.snjdigitalsolutions.lablensfx.application;
 
 import com.snjdigitalsolutions.lablensfx.nodes.*;
-import com.snjdigitalsolutions.lablensfx.service.VerifyHostConfigurationService;
-import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
-import com.snjdigitalsolutions.lablensfx.state.ShowIpAddressState;
-import com.snjdigitalsolutions.lablensfx.state.SshState;
-import com.snjdigitalsolutions.lablensfx.state.StatusBarState;
+import com.snjdigitalsolutions.lablensfx.orm.Setting;
+import com.snjdigitalsolutions.lablensfx.repository.SettingRepository;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
+import com.snjdigitalsolutions.lablensfx.service.VerifyHostConfigurationService;
+import com.snjdigitalsolutions.lablensfx.setting.SettingType;
 import com.snjdigitalsolutions.lablensfx.shapes.SshPassphraseIndicator;
-import com.snjdigitalsolutions.lablensfx.task.VerifyHostConfigurationPathTask;
+import com.snjdigitalsolutions.lablensfx.state.*;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
-import com.snjdigitalsolutions.springbootutilityfx.node.utility.ButtonUtility;
-import com.snjdigitalsolutions.springbootutilityfx.node.utility.TaskStarter;
+import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.TooltipGenerator;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
@@ -27,27 +24,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 @Component
 public class LabLensFxBootReadyController implements SpringInitializableNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LabLensFxBootReadyController.class);
     private final TooltipGenerator tooltipGenerator;
 
-    private enum IpState {
-        SHOW("Hide IP Addresses"),
-        HIDE("Show IP Addresses");
-
-        private final String menuItemMessage;
-
-        IpState(String menuItemMessage){
-            this.menuItemMessage = menuItemMessage;
-        }
-    };
-
     @FXML
     private StatusBar statusBar;
     @FXML
     private BorderPane rootPane;
+
     @FXML
     private Button addHostButton;
     @FXML
@@ -60,21 +50,24 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     private Button timelineButton;
     @FXML
     private Button dashboardButton;
+
     @FXML
     private MenuItem deleteSelectedHostsMenuItem;
     @FXML
     private MenuItem showHideIpMenuItem;
     @FXML
+    private MenuItem confirmConfigurationSelectionChangesMenuItem;
+    @FXML
     private MenuItem verifyPathPrivilegeMenuItem;
     @FXML
     private FontAwesomeIconView showHideIpIconView;
-
-    private IpState currentState = IpState.SHOW;
+    @FXML
+    private FontAwesomeIconView confirmChangeIconView;
 
     private final ObjectProvider<SshPassphraseIndicator> statusIndicatorProvider;
     private final HostPane hostPane;
     private final HostFormPane hostFormPane;
-    private final StatusBarState statusBarProperties;
+    private final StatusBarState statusBarState;
     private final SshState sshState;
     private final DashboardPane dashboardPane;
     private final ConfigurationPane configurationPane;
@@ -82,13 +75,18 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     private final PassphraseDialog passphraseDialog;
     private final ShowIpAddressState showIpAddressState;
     private final VerifyHostConfigurationService verifyHostConfigurationService;
+    private final SelectedViewState selectedViewState;
+    private final MenuItemSelectionState menuItemSelectionState;
+    private final SettingState settingState;
+    private final SettingRepository settingRepository;
+    private final AlertUtility alertUtility;
 
     private SshPassphraseIndicator indicator;
 
     public LabLensFxBootReadyController(ObjectProvider<SshPassphraseIndicator> statusIndicatorProvider,
                                         HostPane hostPane,
                                         HostFormPane hostFormPane,
-                                        StatusBarState statusBarProperties,
+                                        StatusBarState statusBarState,
                                         SshState sshState,
                                         DashboardPane dashboardPane,
                                         HostManagementService hostManagementService,
@@ -96,11 +94,18 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                                         ConfigurationPane configurationPane,
                                         PassphraseDialog passphraseDialog,
                                         ShowIpAddressState showIpAddressState,
-                                        VerifyHostConfigurationService verifyHostConfigurationService) {
+                                        VerifyHostConfigurationService verifyHostConfigurationService,
+                                        SelectedViewState selectedViewState,
+                                        MenuItemSelectionState menuItemSelectionState,
+                                        SettingState settingState,
+                                        SettingRepository settingRepository,
+                                        AlertUtility alertUtility
+    )
+    {
         this.statusIndicatorProvider = statusIndicatorProvider;
         this.hostPane = hostPane;
         this.hostFormPane = hostFormPane;
-        this.statusBarProperties = statusBarProperties;
+        this.statusBarState = statusBarState;
         this.sshState = sshState;
         this.dashboardPane = dashboardPane;
         this.hostManagementService = hostManagementService;
@@ -109,45 +114,143 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         this.passphraseDialog = passphraseDialog;
         this.showIpAddressState = showIpAddressState;
         this.verifyHostConfigurationService = verifyHostConfigurationService;
+        this.selectedViewState = selectedViewState;
+        this.menuItemSelectionState = menuItemSelectionState;
+        this.settingState = settingState;
+        this.settingRepository = settingRepository;
+        this.alertUtility = alertUtility;
     }
 
     @Override
     public void performIntialization() {
         rootPane.setLeft(hostPane);
         setDashboardVisible();
-        statusBar.textProperty().bind(statusBarProperties.statusProperty());
+        initializeStatusBar();
         initializeViewButtons();
         initializeSshCredentialIndicator();
         initializeDeleteSelectedHostMenuItem();
         initializeAddHostButton();
         initializeSshButton();
-        initializeShowHideIpMenuItem();
-        sshState.passPhraseModeProperty().addListener((obj, oldVal, newVal) -> {
-            indicator.passPhraseMode().setValue(newVal);
-        });
-        configButton.setOnAction(event -> {
-            setConfigurationVisible();
-        });
+        initializePrivilegeMenuItem();
+        initializeApplicationSettings();
+        initializeConfigurationButton();
+        initializeDashboardButton();
+        sshState.passPhraseModeProperty()
+                .addListener((obj, oldVal, newVal) -> {
+                    indicator.passPhraseMode()
+                            .setValue(newVal);
+                });
+    }
+
+    private void initializeStatusBar() {
+        statusBar.textProperty()
+                .bind(statusBarState.statusProperty());
+    }
+
+    private void initializeDashboardButton() {
         dashboardButton.setOnAction(event -> {
             setDashboardVisible();
         });
-        verifyPathPrivilegeMenuItem.setOnAction(event -> {
-            verifyHostConfigurationService.startTask();
+    }
+
+    private void initializeConfigurationButton() {
+        configButton.setOnAction(event -> {
+            setConfigurationVisible();
         });
     }
 
+    private void initializeApplicationSettings() {
+        //Ensure default values are populated in datasource
+        for (SettingType type : SettingType.values()) {
+            Optional<Setting> settingValue = settingRepository.findBySettingName(type.getName());
+            if (settingValue.isEmpty()) {
+                Setting setting = new Setting();
+                setting.setSettingName(type.getName());
+                if (type.isBoolType()) {
+                    setting.setBoolValue((boolean) type.getDefaultValue());
+                } else {
+                    setting.setStringValue((String) type.getDefaultValue());
+                }
+                settingRepository.save(setting);
+                LOGGER.debug("Setting loaded: {} with default value of {}", type.getName(), type.getDefaultValue());
+            } else {
+                LOGGER.debug("Setting in database: {}", type.getName());
+            }
+        }
+
+        //Load all settings
+        settingRepository.findAll()
+                .forEach(setting -> {
+                    Arrays.stream(SettingType.values())
+                            .filter(settingType -> settingType.getName()
+                                    .equals(setting.getSettingName()))
+                            .forEach(match -> {
+                                switch (match) {
+                                    case CONFIG_CONFIRMATION -> {
+                                        settingState.promptWhenConfigSelectionChangesProperty()
+                                                .setValue(setting.getBoolValue());
+                                    }
+                                    case SHOW_IP_ADDRESSES -> {
+                                        settingState.showIPsProperty()
+                                                .setValue(setting.getBoolValue());
+                                    }
+                                }
+                            });
+                });
+
+        //Setup change listeners
+        settingState.showIPsProperty()
+                .addListener((obj, oldVal, newVal) -> {
+                    LOGGER.debug("Show IP property value: {}", newVal);
+                    Optional<Setting> optSetting = settingRepository.findBySettingName(SettingType.SHOW_IP_ADDRESSES.getName());
+                    optSetting.ifPresent(setting -> setting.setBoolValue(newVal));
+                    settingRepository.save(optSetting.get());
+                });
+
+        settingState.promptWhenConfigSelectionChangesProperty()
+                .addListener((obj, oldVal, newVal) -> {
+                    Optional<Setting> optSetting = settingRepository.findBySettingName(SettingType.CONFIG_CONFIRMATION.getName());
+                    optSetting.ifPresent(value -> value.setBoolValue(newVal));
+                    settingRepository.save(optSetting.get());
+                });
+
+        settingState.settingsLoadedProperty()
+                .addListener((obj, oldVal, newVal) -> {
+                    LOGGER.debug("Settings loaded...");
+                    initializeShowHideIpMenuItemAfterSettingsLoaded();
+                    initializeConfirmConfigurationSelectionChangeAfterSettingsLoaded();
+                });
+
+        settingState.settingsLoadedProperty().setValue(true);
+    }
+
+    private void initializePrivilegeMenuItem() {
+        verifyPathPrivilegeMenuItem.setDisable(true);
+        verifyPathPrivilegeMenuItem.setOnAction(event -> {
+            verifyHostConfigurationService.startTask();
+        });
+        statusBarState.numberOfSelectedHostsProperty()
+                .addListener((obj, oldVal, newVal) -> {
+                    verifyPathPrivilegeMenuItem.setDisable(newVal.intValue() != 1);
+                });
+    }
+
     private void setConfigurationVisible() {
+        selectedViewState.selectedViewProperty()
+                .setValue(ApplicationView.CONFIGURATIONS);
         configurationPane.loadExistingPaths();
         rootPane.setCenter(configurationPane);
     }
 
     private void setDashboardVisible() {
+        selectedViewState.selectedViewProperty()
+                .setValue(ApplicationView.DASHBOARD);
         rootPane.setCenter(dashboardPane);
     }
 
     private void initializeViewButtons() {
         disableNonDashboardButtons(true);
-        statusBarProperties.numberOfSelectedHostsProperty()
+        statusBarState.numberOfSelectedHostsProperty()
                 .addListener((obj, oldVal, newVal) -> {
                     disableNonDashboardButtons(newVal.intValue() != 1);
                 });
@@ -155,6 +258,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
 
     private void disableNonDashboardButtons(boolean value) {
         configButton.setDisable(value);
+        addHostButton.setDisable(!value);
         logButton.setDisable(value);
         timelineButton.setDisable(value);
         if (value) {
@@ -164,8 +268,10 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
 
     private void initializeSshCredentialIndicator() {
         indicator = statusIndicatorProvider.getObject();
-        indicator.passPhraseMode().setValue(PassPhraseMode.NOT_PROVIDED);
-        statusBar.getRightItems().add(indicator);
+        indicator.passPhraseMode()
+                .setValue(PassPhraseMode.NOT_PROVIDED);
+        statusBar.getRightItems()
+                .add(indicator);
     }
 
     private void initializeSshButton() {
@@ -183,26 +289,59 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     }
 
     private void initializeDeleteSelectedHostMenuItem() {
-        deleteSelectedHostsMenuItem.disableProperty().bind(statusBarProperties.disableDeleteHostMenuItemProperty());
+        deleteSelectedHostsMenuItem.disableProperty()
+                .bind(statusBarState.disableDeleteHostMenuItemProperty());
         deleteSelectedHostsMenuItem.setOnAction(event -> {
             hostManagementService.deleteSelectedHosts();
         });
     }
 
-    private void initializeShowHideIpMenuItem() {
-        showHideIpMenuItem.setText(IpState.SHOW.menuItemMessage);
-        showHideIpIconView.setIcon(FontAwesomeIcon.EYE_SLASH);
+    private void initializeShowHideIpMenuItemAfterSettingsLoaded() {
+        if (settingState.isShowIPs()){
+            showHideIpIconView.setIcon(FontAwesomeIcon.CHECK);
+            showIpAddressState.showIpPropertyProperty()
+                    .setValue(true);
+        } else {
+            showHideIpIconView.setIcon(FontAwesomeIcon.TIMES);
+            showIpAddressState.showIpPropertyProperty()
+                    .setValue(false);
+        }
         showHideIpMenuItem.setOnAction(event -> {
-            if (currentState.equals(IpState.SHOW)){
-                showHideIpIconView.setIcon(FontAwesomeIcon.EYE);
-                currentState = IpState.HIDE;
-                showHideIpMenuItem.setText(IpState.HIDE.menuItemMessage);
-                showIpAddressState.showIpPropertyProperty().setValue(false);
+            if (settingState.isShowIPs()) {
+                showHideIpIconView.setIcon(FontAwesomeIcon.TIMES);
+                showIpAddressState.showIpPropertyProperty()
+                        .setValue(false);
+                settingState.showIPsProperty()
+                        .setValue(false);
             } else {
-                showHideIpIconView.setIcon(FontAwesomeIcon.EYE_SLASH);
-                currentState = IpState.SHOW;
-                showHideIpMenuItem.setText(IpState.SHOW.menuItemMessage);
-                showIpAddressState.showIpPropertyProperty().setValue(true);
+                showHideIpIconView.setIcon(FontAwesomeIcon.CHECK);
+                showIpAddressState.showIpPropertyProperty()
+                        .setValue(true);
+                settingState.showIPsProperty()
+                        .setValue(true);
+            }
+        });
+    }
+
+    private void initializeConfirmConfigurationSelectionChangeAfterSettingsLoaded() {
+        if (settingState.isPromptWhenConfigSelectionChanges()){
+            confirmChangeIconView.setIcon(FontAwesomeIcon.CHECK);
+            menuItemSelectionState.confirmConfigurationChangeSelectionProperty().setValue(true);
+        } else {
+            confirmChangeIconView.setIcon(FontAwesomeIcon.TIMES);
+            menuItemSelectionState.confirmConfigurationChangeSelectionProperty().setValue(false);
+        }
+        confirmConfigurationSelectionChangesMenuItem.setOnAction(event -> {
+            if (menuItemSelectionState.isConfirmConfigurationChangeSelection()) {
+                confirmChangeIconView.setIcon(FontAwesomeIcon.TIMES);
+                menuItemSelectionState.confirmConfigurationChangeSelectionProperty()
+                        .setValue(false);
+                settingState.promptWhenConfigSelectionChangesProperty().setValue(false);
+            } else {
+                confirmChangeIconView.setIcon(FontAwesomeIcon.CHECK);
+                menuItemSelectionState.confirmConfigurationChangeSelectionProperty()
+                        .setValue(true);
+                settingState.promptWhenConfigSelectionChangesProperty().setValue(true);
             }
         });
     }

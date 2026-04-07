@@ -2,6 +2,7 @@ package com.snjdigitalsolutions.lablensfx.orm;
 
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanelLarge;
+import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -52,6 +53,10 @@ public class ComputeResource {
                 .setValue(description);
         hostPanelLarge.sshPortProperty()
                 .setValue(sshPort);
+    }
+
+    public boolean isHostOnline() {
+        return hostPanelLarge.getStatusIndicator().getHostSshStatus().equals(SshStatus.ONLINE);
     }
 
 }

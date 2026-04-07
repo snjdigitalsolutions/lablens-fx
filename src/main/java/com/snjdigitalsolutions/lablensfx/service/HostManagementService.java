@@ -79,6 +79,10 @@ public class HostManagementService implements SpringInitializableNode {
         statusBarProperties.selectedHostPanelListProperty()
                 .get()
                 .forEach(hostPanel -> {
+                    if (hostPanel.getComputeResource().isHostOnline()) {
+                        int onlineCount = computeResourceState.getHostsOnline();
+                        computeResourceState.hostsOnlineProperty().setValue(onlineCount - 1);
+                    }
                     computeResourceState.getComputeResourcesMap()
                             .remove(hostPanel.getComputeResource()
                                     .getId());
@@ -91,6 +95,10 @@ public class HostManagementService implements SpringInitializableNode {
         if (!selectedHosts.isEmpty()) {
             deleteSelectedHosts();
         } else {
+            if (sourcePanel.getComputeResource().isHostOnline()) {
+                int onlineCount = computeResourceState.getHostsOnline();
+                computeResourceState.hostsOnlineProperty().setValue(onlineCount - 1);
+            }
             computeResourceState.getComputeResourcesMap()
                     .remove(sourcePanel.getComputeResource()
                             .getId());

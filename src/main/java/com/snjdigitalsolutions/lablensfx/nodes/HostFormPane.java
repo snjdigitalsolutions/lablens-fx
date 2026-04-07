@@ -1,9 +1,10 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
-import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.service.SshService;
+import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
+import com.snjdigitalsolutions.lablensfx.state.SettingState;
 import com.snjdigitalsolutions.lablensfx.utility.EtcOsReleaseParser;
 import com.snjdigitalsolutions.springbootutilityfx.node.CloseableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
@@ -14,6 +15,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Modality;
 import org.slf4j.Logger;
@@ -43,6 +46,8 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
     @FXML
     private Button submitButton;
 
+    private String actualIpValue = "";
+
     private final NodeUtility nodeUtility;
     private final AlertUtility alertUtility;
     private final IpAddressUtility ipAddressUtility;
@@ -50,8 +55,19 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
     private final ComputeResourceState computeResourceState;
     private final SshService sshService;
     private final EtcOsReleaseParser osReleaseParser;
+    private final SettingState settingState;
 
-    public HostFormPane(@Value("classpath:/fxml/HostFormPane.fxml") Resource fxml, NodeUtility nodeUtility, AlertUtility alertUtility, IpAddressUtility ipAddressUtility, HostManagementService hostManagementService, ComputeResourceState computeResourceState, SshService sshService, EtcOsReleaseParser osReleaseParser) {
+    public HostFormPane(@Value("classpath:/fxml/HostFormPane.fxml") Resource fxml,
+                        NodeUtility nodeUtility,
+                        AlertUtility alertUtility,
+                        IpAddressUtility ipAddressUtility,
+                        HostManagementService hostManagementService,
+                        ComputeResourceState computeResourceState,
+                        SshService sshService,
+                        EtcOsReleaseParser osReleaseParser,
+                        SettingState settingState
+    )
+    {
         this.nodeUtility = nodeUtility;
         this.alertUtility = alertUtility;
         this.hostManagementService = hostManagementService;
@@ -59,31 +75,49 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
         this.computeResourceState = computeResourceState;
         this.sshService = sshService;
         this.osReleaseParser = osReleaseParser;
+        this.settingState = settingState;
         NodeLoader.load(fxml, this);
     }
 
     @Override
     public void performIntialization() {
+        ipaddressTextField.setTextFormatter(new TextFormatter<>(change -> {
+            if (!settingState.isShowIPs()) {
+                int start = change.getRangeStart();
+                int end = change.getRangeEnd();
+                actualIpValue = actualIpValue.substring(0, start) + change.getText() + actualIpValue.substring(end);
+                change.setText(change.getText().replaceAll("[0-9]", "x"));
+            }
+            return change;
+        }));
+        settingState.showIPsProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal) {
+                actualIpValue = ipaddressTextField.getText();
+                ipaddressTextField.setText(actualIpValue.replaceAll("[0-9]", "x"));
+            } else {
+                ipaddressTextField.setText(actualIpValue);
+            }
+        });
         cancelButton.setOnAction(this::close);
         submitButton.setOnAction(event -> {
             if (!autoCheckBox.isSelected() && performFormValidation(autoCheckBox.isSelected())) {
                 if (computeResourceState.getComputerResourceBeingEdited() == null) {
                     ComputeResource resource = new ComputeResource();
-                    setValuesOnResource(resource,true);
+                    setValuesOnResource(resource, true);
                     hostManagementService.addComputeResource(resource);
                     this.close(event);
                 } else {
                     ComputeResource resource = computeResourceState.getComputerResourceBeingEdited();
-                    setValuesOnResource(resource,false);
+                    setValuesOnResource(resource, false);
                     hostManagementService.updateComputeResource(resource);
                     this.close(event);
                 }
             } else if (autoCheckBox.isSelected() && performFormValidation(autoCheckBox.isSelected())) {
                 try {
-                    String osReleaseText = sshService.executeCommand(ipaddressTextField.getText(), Integer.parseInt(sshPortTextField.getText()), "cat /etc/os-release");
-                    String hostName = sshService.executeCommand(ipaddressTextField.getText(), Integer.parseInt(sshPortTextField.getText()),  "hostname");
+                    String osReleaseText = sshService.executeCommand(getIpAddress(), Integer.parseInt(sshPortTextField.getText()), "cat /etc/os-release");
+                    String hostName = sshService.executeCommand(getIpAddress(), Integer.parseInt(sshPortTextField.getText()), "hostname");
                     String[] hostParts = new String[1];
-                    if (!hostName.isEmpty()){
+                    if (!hostName.isEmpty()) {
                         hostParts = hostName.split("\\.");
                     }
                     hostNameTextField.setText(hostParts[0]);
@@ -117,16 +151,19 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
                 });
     }
 
-    private void setValuesOnResource(ComputeResource resource, boolean newResource) {
+    private void setValuesOnResource(ComputeResource resource,
+                                     boolean newResource
+    )
+    {
         resource.setHostName(hostNameTextField.getText());
-        resource.setIpAddress(ipaddressTextField.getText());
+        resource.setIpAddress(getIpAddress());
         resource.setOperatingSystem(operatingSystemTextField.getText());
         resource.setSshPort(Integer.parseInt(sshPortTextField.getText()));
         if (!descriptionTextArea.getText()
                 .isEmpty()) {
             resource.setDescription(descriptionTextArea.getText());
         }
-        if (newResource){
+        if (newResource) {
             resource.setSshCommunicate(0L);
         }
     }
@@ -135,11 +172,11 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
         boolean valid = false;
         if (!autoPopulate) {
             if (!hostNameTextField.getText()
-                    .isEmpty() && !ipaddressTextField.getText()
+                    .isEmpty() && !getIpAddress()
                     .isEmpty() && !operatingSystemTextField.getText()
                     .isEmpty() && !sshPortTextField.getText()
                     .isEmpty()) {
-                if (ipAddressUtility.isValidIpAddress(ipaddressTextField.getText())) {
+                if (ipAddressUtility.isValidIpAddress(getIpAddress())) {
                     valid = true;
                 } else {
                     alertUtility.warningAlert("Invalid Address", "The IP address entered is invalid.");
@@ -148,7 +185,7 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
                 alertUtility.warningAlert("Populate Fields", "Only the description is optional.");
             }
         } else {
-            if (!ipaddressTextField.getText()
+            if (!getIpAddress()
                     .isEmpty() && !sshPortTextField.getText()
                     .isEmpty()) {
                 valid = true;
@@ -159,9 +196,14 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
         return valid;
     }
 
+    private String getIpAddress() {
+        return !settingState.isShowIPs() ? actualIpValue : ipaddressTextField.getText();
+    }
+
     private void clearForm() {
         hostNameTextField.clear();
         ipaddressTextField.clear();
+        actualIpValue = "";
         operatingSystemTextField.clear();
         descriptionTextArea.clear();
         sshPortTextField.clear();
@@ -179,14 +221,19 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
 
     public void showPane(ComputeResource resource) {
         hostNameTextField.setText(resource.getHostName());
-        ipaddressTextField.setText(resource.getIpAddress());
+        if (!settingState.isShowIPs()) {
+            actualIpValue = resource.getIpAddress();
+            ipaddressTextField.setText(actualIpValue.replaceAll("[0-9]", "x"));
+        } else {
+            ipaddressTextField.setText(resource.getIpAddress());
+        }
         operatingSystemTextField.setText(resource.getOperatingSystem());
         descriptionTextArea.setText(resource.getDescription());
         if (resource.getSshPort() == null) {
             sshPortTextField.setText("0");
         } else {
             sshPortTextField.setText(resource.getSshPort()
-                    .toString());
+                                             .toString());
         }
         makeFormVisible("Edit Host");
     }

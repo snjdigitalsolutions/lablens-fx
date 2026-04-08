@@ -37,23 +37,17 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
     private final double splitPaneDividerPosition = 0.5;
     private final FilePathValidator filePathValidator;
     private final AlertUtility alertUtility;
-    //    private final ComputeResourceState computeResourceState;
-//    private final ComputeResourceRepository computeResourceRepository;
     private final HostManagementService hostManagementService;
 
     public ConfigurationPane(@Value("classpath:/fxml/ConfigurationPane.fxml") Resource fxml,
                              FilePathValidator filePathValidator,
                              AlertUtility alertUtility,
-                             ComputeResourceState computeResourceState,
-                             ComputeResourceRepository computeResourceRepository,
                              HostManagementService hostManagementService
     )
     {
         this.filePathValidator = filePathValidator;
         this.alertUtility = alertUtility;
         this.hostManagementService = hostManagementService;
-//        this.computeResourceState = computeResourceState;
-//        this.computeResourceRepository = computeResourceRepository;
         NodeLoader.load(fxml, this);
     }
 
@@ -109,6 +103,7 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
                     alertUtility.warningAlert("Not Added", "Unable to add configuration path to host. Check for duplicate entry");
                 } else {
                     filePathTextField.clear();
+                    loadExistingPaths();
                 }
             } else {
                 alertUtility.warningAlert("Invalid Path", "The path entered is not a valid system path.");
@@ -136,7 +131,6 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
                 .selectedItemProperty()
                 .addListener((obj, oldVal, newVal) -> {
                     if (newVal != null) {
-                        System.out.println(newVal.getId());
                         deleteButton.setDisable(false);
                     } else {
                         deleteButton.setDisable(true);

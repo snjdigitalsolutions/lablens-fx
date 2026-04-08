@@ -78,7 +78,11 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                 .add(createSummaryPanel(SummaryPanelType.NUM_LOG_ERROR));
         computeResourceState.getComputeResourcesMap()
                 .addListener((MapChangeListener<Long, ComputeResource>) change -> {
-                    if (change.wasAdded() || change.wasRemoved()) {
+                    if (change.wasAdded() && !change.wasRemoved()) {
+                        if (performRefresh.getValue()) {
+                            refresh();
+                        }
+                    } else if (!change.wasAdded() && change.wasRemoved()) {
                         if (performRefresh.getValue()) {
                             refresh();
                         }

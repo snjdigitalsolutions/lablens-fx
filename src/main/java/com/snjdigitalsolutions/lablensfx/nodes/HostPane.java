@@ -57,8 +57,14 @@ public class HostPane extends AnchorPane implements SpringInitializableNode {
         panelVBox.setAlignment(Pos.CENTER_LEFT);
         computeResourceState.computeResourcesMapProperty()
                 .addListener((MapChangeListener<Long, ComputeResource>) change -> {
-                    if (performRefresh.getValue()) {
-                        refresh();
+                    if (change.wasAdded() && !change.wasRemoved()) {
+                        if (performRefresh.getValue()) {
+                            refresh();
+                        }
+                    } else if (!change.wasAdded() && change.wasRemoved()) {
+                        if (performRefresh.getValue()) {
+                            refresh();
+                        }
                     }
                 });
         showIpAddressState.showIpPropertyProperty()

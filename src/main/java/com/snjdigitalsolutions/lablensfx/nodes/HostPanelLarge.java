@@ -41,7 +41,6 @@ public class HostPanelLarge extends GridPane implements IpSortable {
     private final BooleanProperty sshToggleValue = new SimpleBooleanProperty(true);
     @Getter
     private final SshStatusIndicator statusIndicator;
-
     @Getter
     @Setter
     private Long computeResourceId;

@@ -84,7 +84,7 @@ public class HostManagementService implements SpringInitializableNode {
     public void performIntialization() {
         computeResourceState.getComputeResourcesMap()
                 .addListener((MapChangeListener<Long, ComputeResource>) change -> {
-                    if (change.wasRemoved()) {
+                    if (change.wasRemoved() && !change.wasAdded()) {
                         computeResourceRepository.deleteById(change.getKey());
                     }
                 });
@@ -275,9 +275,11 @@ public class HostManagementService implements SpringInitializableNode {
                 .setValue(resource.getDescription());
         largePanel.sshPortProperty()
                 .setValue(resource.getSshPort());
-
-
-        computeResourceRepository.save(resource);
+        resource = computeResourceRepository.save(resource);
+        computeResourceState.getComputeResourceHostPanelMap().get(resource.getId()).setComputeResource(resource);
+        computeResourceState.getSelectedResources().clear();
+        computeResourceState.getSelectedResources().add(resource);
+        computeResourceState.getComputeResourcesMap().put(resource.getId(), resource);
         computeResourceState.computerResourceBeingEditedProperty()
                 .setValue(null);
     }
@@ -416,6 +418,9 @@ public class HostManagementService implements SpringInitializableNode {
                     .clear();
             computeResourceState.getSelectedResources()
                     .add(resource);
+            computeResourceState.getComputeResourceHostPanelMap().get(resource.getId()).setComputeResource(resource);
+            computeResourceState.getComputeResourcesMap()
+                    .put(resource.getId(), resource);
             success = true;
         }
         return success;
@@ -455,8 +460,13 @@ public class HostManagementService implements SpringInitializableNode {
                     resourcePaths.add(configurationPath);
                 }
             }
+
             if (!isDuplicate.get()) {
+                configurationPath.setComputeResource(resource);
                 resource = computeResourceRepository.save(resource);
+                computeResourceState.getComputeResourceHostPanelMap().get(resource.getId()).setComputeResource(resource);
+                computeResourceState.getSelectedResources().clear();
+                computeResourceState.getSelectedResources().add(resource);
                 computeResourceState.getComputeResourcesMap()
                         .put(resource.getId(), resource);
                 success = true;

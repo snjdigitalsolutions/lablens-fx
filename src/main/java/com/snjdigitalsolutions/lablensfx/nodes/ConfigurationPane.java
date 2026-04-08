@@ -1,8 +1,8 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
-import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
+import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import com.snjdigitalsolutions.lablensfx.utility.FilePathValidator;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
@@ -19,8 +19,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
 public class ConfigurationPane extends AnchorPane implements SpringInitializableNode {
@@ -39,18 +37,23 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
     private final double splitPaneDividerPosition = 0.5;
     private final FilePathValidator filePathValidator;
     private final AlertUtility alertUtility;
-    private final ComputeResourceState computeResourceState;
-    private final ComputeResourceRepository computeResourceRepository;
+    //    private final ComputeResourceState computeResourceState;
+//    private final ComputeResourceRepository computeResourceRepository;
+    private final HostManagementService hostManagementService;
 
     public ConfigurationPane(@Value("classpath:/fxml/ConfigurationPane.fxml") Resource fxml,
                              FilePathValidator filePathValidator,
                              AlertUtility alertUtility,
                              ComputeResourceState computeResourceState,
-                             ComputeResourceRepository computeResourceRepository) {
+                             ComputeResourceRepository computeResourceRepository,
+                             HostManagementService hostManagementService
+    )
+    {
         this.filePathValidator = filePathValidator;
         this.alertUtility = alertUtility;
-        this.computeResourceState = computeResourceState;
-        this.computeResourceRepository = computeResourceRepository;
+        this.hostManagementService = hostManagementService;
+//        this.computeResourceState = computeResourceState;
+//        this.computeResourceRepository = computeResourceRepository;
         NodeLoader.load(fxml, this);
     }
 
@@ -64,22 +67,24 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
 
     private void initializeDeleteButton() {
         deleteButton.setOnAction(event -> {
-            computeResourceState.getSelectedResources().getFirst().getConfigurationPaths().remove(selectedPathsTable.getSelectionModel().getSelectedItem());
-            computeResourceRepository.save(computeResourceState.getSelectedResources().getFirst());
-            selectedPathsTable.getItems().remove(selectedPathsTable.getSelectionModel().getSelectedItem());
-            selectedPathsTable.getSelectionModel().clearSelection();
+            hostManagementService.removeConfigurationPathFromSelectedResource(selectedPathsTable.getSelectionModel()
+                                                                                      .getSelectedItem());
+            selectedPathsTable.getItems()
+                    .remove(selectedPathsTable.getSelectionModel()
+                                    .getSelectedItem());
+            selectedPathsTable.getSelectionModel()
+                    .clearSelection();
         });
     }
 
     public void loadExistingPaths() {
-        if (computeResourceState.getSelectedResources().size() == 1){
-            selectedPathsTable.getItems().clear();
-            computeResourceState.getSelectedResources().getFirst().getConfigurationPaths().forEach(path -> {
-                selectedPathsTable.getItems().add(path);
-            });
-        } else {
-            alertUtility.warningAlert("No Selection", "No compute resource is selected");
-        }
+        selectedPathsTable.getItems()
+                .clear();
+        hostManagementService.getConfigurationPathsForSelectedResource()
+                .forEach(path -> {
+                    selectedPathsTable.getItems()
+                            .add(path);
+                });
     }
 
     private void initializeDivider() {
@@ -95,70 +100,48 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
 
     private void initializeAddButton() {
         addButton.setOnAction(event -> {
-            if (computeResourceState.getSelectedResources().size() == 1){
-                if (filePathValidator.isValid(filePathTextField.getText())) {
-                    ComputeResource selectedResource = computeResourceState.getSelectedResources().getFirst();
-                    if (selectedResource.getConfigurationPaths()
-                            .isEmpty()){
-                        addPathAndClearPathTextField(selectedResource);
-                    } else {
-                        AtomicBoolean duplicated = new AtomicBoolean(false);
-                        computeResourceState.getSelectedResources().getFirst().getConfigurationPaths().forEach(path -> {
-                            if (filePathTextField.getText().equals(path.getConfigurationPath())) {
-                                duplicated.set(true);
-                            }
-                        });
-                        if (!duplicated.get()){
-                            addPathAndClearPathTextField(selectedResource);
-                        } else {
-                            alertUtility.warningAlert("Duplication", "The file path has already been added to the host");
-                        }
-                    }
+            if (filePathValidator.isValid(filePathTextField.getText())) {
+                ConfigurationPath path = new ConfigurationPath();
+                path.setConfigurationPath(filePathTextField.getText());
+                path.setRequiresElevation(false);
+                path.setElevationCheckComplete(false);
+                if (!hostManagementService.addPathToSelectedResource(path)) {
+                    alertUtility.warningAlert("Not Added", "Unable to add configuration path to host. Check for duplicate entry");
                 } else {
-                    alertUtility.warningAlert("Invalid Path", "The path entered is not a valid system path.");
+                    filePathTextField.clear();
                 }
             } else {
-                alertUtility.warningAlert("Incorrect Selection", "One and only one host selection must be made.");
+                alertUtility.warningAlert("Invalid Path", "The path entered is not a valid system path.");
             }
         });
-    }
-
-    private void addPathAndClearPathTextField(ComputeResource selectedResource) {
-        addPathtoComputeResource(selectedResource);
-        filePathTextField.clear();
-    }
-
-    private void addPathtoComputeResource(ComputeResource selectedResource) {
-        ConfigurationPath path = new ConfigurationPath();
-        path.setConfigurationPath(filePathTextField.getText());
-        path.setRequiresElevation(false);
-        selectedResource.getConfigurationPaths().add(path);
-        path.setComputeResource(selectedResource);
-        selectedResource = computeResourceRepository.save(selectedResource);
-        selectedPathsTable.getItems().clear();
-        selectedResource.getConfigurationPaths().forEach(savedPath -> {
-            selectedPathsTable.getItems().add(savedPath);
-        });
-
     }
 
     private void initializePathTable() {
         selectedPathsTable.setFocusTraversable(false);
         TableColumn<ConfigurationPath, String> pathColumn = getConfigurationPathStringTableColumn();
-        pathColumn.prefWidthProperty().bind(selectedPathsTable.widthProperty().multiply(.6));
+        pathColumn.prefWidthProperty()
+                .bind(selectedPathsTable.widthProperty()
+                              .multiply(.6));
         TableColumn<ConfigurationPath, Boolean> elevateColumn = getConfigurationPathElevationrequiredTableColumn();
-        elevateColumn.prefWidthProperty().bind(selectedPathsTable.widthProperty().multiply(.4).subtract(3));
-        selectedPathsTable.getColumns().add(pathColumn);
-        selectedPathsTable.getColumns().add(elevateColumn);
+        elevateColumn.prefWidthProperty()
+                .bind(selectedPathsTable.widthProperty()
+                              .multiply(.4)
+                              .subtract(3));
+        selectedPathsTable.getColumns()
+                .add(pathColumn);
+        selectedPathsTable.getColumns()
+                .add(elevateColumn);
         selectedPathsTable.setItems(FXCollections.observableArrayList());
-        selectedPathsTable.getSelectionModel().selectedItemProperty().addListener((obj, oldVal, newVal) -> {
-            if (newVal != null){
-                System.out.println(newVal.getId());
-                deleteButton.setDisable(false);
-            } else {
-                deleteButton.setDisable(true);
-            }
-        });
+        selectedPathsTable.getSelectionModel()
+                .selectedItemProperty()
+                .addListener((obj, oldVal, newVal) -> {
+                    if (newVal != null) {
+                        System.out.println(newVal.getId());
+                        deleteButton.setDisable(false);
+                    } else {
+                        deleteButton.setDisable(true);
+                    }
+                });
     }
 
     @NonNull
@@ -177,13 +160,18 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
         privilegeColumn.setCellFactory(column -> new TableCell<>() {
             private final FontAwesomeIconView privilegeIcon = new FontAwesomeIconView(FontAwesomeIcon.UNLOCK);
             private final Label label = new Label();
+
             {
                 label.setMaxWidth(Double.MAX_VALUE);
                 label.setAlignment(Pos.CENTER);
                 label.setGraphic(privilegeIcon);
             }
+
             @Override
-            protected void updateItem(Boolean item, boolean empty) {
+            protected void updateItem(Boolean item,
+                                      boolean empty
+            )
+            {
                 super.updateItem(item, empty);
                 setGraphic(null);
                 if (item != null) {

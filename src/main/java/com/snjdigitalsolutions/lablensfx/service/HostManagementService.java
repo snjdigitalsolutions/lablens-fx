@@ -5,6 +5,7 @@ import com.snjdigitalsolutions.lablensfx.nodes.HostPanelLarge;
 import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
 import com.snjdigitalsolutions.lablensfx.nodes.ProgressDialog;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
+import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
@@ -103,8 +104,7 @@ public class HostManagementService implements SpringInitializableNode {
         statusBarProperties.selectedHostPanelListProperty()
                 .get()
                 .forEach(hostPanel -> {
-                    if (hostPanel.getComputeResource()
-                            .isHostOnline()) {
+                    if (isHostOnline(hostPanel.getComputeResource())) {
                         int onlineCount = computeResourceState.getHostsOnline();
                         computeResourceState.hostsOnlineProperty()
                                 .setValue(onlineCount - 1);
@@ -123,8 +123,7 @@ public class HostManagementService implements SpringInitializableNode {
         if (!selectedHosts.isEmpty()) {
             deleteSelectedHosts();
         } else {
-            if (sourcePanel.getComputeResource()
-                    .isHostOnline()) {
+            if (isHostOnline(sourcePanel.getComputeResource())) {
                 int onlineCount = computeResourceState.getHostsOnline();
                 computeResourceState.hostsOnlineProperty()
                         .setValue(onlineCount - 1);
@@ -133,6 +132,14 @@ public class HostManagementService implements SpringInitializableNode {
                     .remove(sourcePanel.getComputeResource()
                                     .getId());
         }
+    }
+
+    private boolean isHostOnline(ComputeResource computeResource) {
+        return computeResourceState.getComputeResourceHostPanelLargeMap()
+                .get(computeResource.getId())
+                .getStatusIndicator()
+                .getHostSshStatus()
+                .equals(SshStatus.ONLINE);
     }
 
     public void editSelectedHost(HostPanel sourcePanel) {
@@ -177,7 +184,7 @@ public class HostManagementService implements SpringInitializableNode {
                 .equals(PassPhraseMode.NOT_NEEDED)) {
             if (sshService.init()) {
                 progressDialog.setProgressText("Verifying Online Status via SSH");
-                SshStatusTask statusTask = new SshStatusTask(computeResourceState, progressDialog, sshService);
+                SshStatusTask statusTask = new SshStatusTask(computeResourceState, progressDialog, sshService, this);
                 progressDialog.setOnDialogClosed(() -> {
                     if (statusTask.isRunning()) {
                         statusTask.cancel();
@@ -200,7 +207,7 @@ public class HostManagementService implements SpringInitializableNode {
     }
 
     public void verifyHostSshStatus(Long resourceID) {
-        SshStatusForSingleHostTask task = new SshStatusForSingleHostTask(resourceID, computeResourceState, sshService);
+        SshStatusForSingleHostTask task = new SshStatusForSingleHostTask(resourceID, computeResourceState, sshService, this);
         TaskStarter.startTask(task);
     }
 
@@ -246,12 +253,30 @@ public class HostManagementService implements SpringInitializableNode {
         panel.ipAddressProperty()
                 .setValue(resource.getIpAddress());
         panel.setComputeResource(resource);
-        resource.setHostPanel(panel);
+        computeResourceState.getComputeResourceHostPanelMap()
+                .put(resource.getId(), panel);
         return panel;
     }
 
     public void updateComputeResource(ComputeResource resource) {
-        resource.updateHostPanels();
+        HostPanel smallPanel = computeResourceState.getComputeResourceHostPanelMap()
+                .get(resource.getId());
+        HostPanelLarge largePanel = computeResourceState.getComputeResourceHostPanelLargeMap()
+                .get(resource.getId());
+        smallPanel.hostnameProperty()
+                .setValue(resource.getHostName());
+        smallPanel.ipAddressProperty()
+                .setValue(resource.getIpAddress());
+        largePanel.hostnameProperty()
+                .setValue(resource.getHostName());
+        largePanel.ipAddressProperty()
+                .setValue(resource.getIpAddress());
+        largePanel.descriptionProperty()
+                .setValue(resource.getDescription());
+        largePanel.sshPortProperty()
+                .setValue(resource.getSshPort());
+
+
         computeResourceRepository.save(resource);
         computeResourceState.computerResourceBeingEditedProperty()
                 .setValue(null);
@@ -323,10 +348,15 @@ public class HostManagementService implements SpringInitializableNode {
                 .intValue() >= 1;
     }
 
-    public void clearCurrentlySelectedHostAndAddNewlySelectedHost(HostPanel hostPanel, ComputeResource computeResource) {
-        computeResourceState.getSelectedResources()
-                .getFirst()
-                .getHostPanel()
+    public void clearCurrentlySelectedHostAndAddNewlySelectedHost(HostPanel hostPanel,
+                                                                  ComputeResource computeResource
+    )
+    {
+
+        ComputeResource currentlySelectedResource = computeResourceState.getSelectedResources()
+                .getFirst();
+        computeResourceState.getComputeResourceHostPanelMap()
+                .get(currentlySelectedResource.getId())
                 .getStyleClass()
                 .remove("host-panel-selected");
         computeResourceState.getSelectedResources()
@@ -342,5 +372,96 @@ public class HostManagementService implements SpringInitializableNode {
     public boolean isComputeResourceSelected() {
         return !computeResourceState.getSelectedResources()
                 .isEmpty();
+    }
+
+    public void setResourceStateOnline(ComputeResource resource) {
+        computeResourceState.getComputeResourceHostPanelLargeMap()
+                .get(resource.getId())
+                .getStatusIndicator()
+                .hostSshStatusProperty()
+                .set(SshStatus.ONLINE);
+        computeResourceState.getComputeResourceOnlineStatusMap()
+                .put(resource.getId(), SshStatus.ONLINE);
+        int value = computeResourceState.getHostsOnline();
+        computeResourceState.hostsOnlineProperty()
+                .setValue(value + 1);
+    }
+
+    public void setResourceStateOffline(ComputeResource resource) {
+        computeResourceState.getComputeResourceHostPanelLargeMap()
+                .get(resource.getId())
+                .getStatusIndicator()
+                .hostSshStatusProperty()
+                .set(SshStatus.OFFLINE);
+        computeResourceState.getComputeResourceOnlineStatusMap()
+                .put(resource.getId(), SshStatus.OFFLINE);
+        int value = computeResourceState.getHostsOnline();
+        if (value > 0) {
+            computeResourceState.hostsOnlineProperty()
+                    .setValue(value - 1);
+        }
+    }
+
+    public boolean removeConfigurationPathFromSelectedResource(ConfigurationPath configurationPath) {
+        boolean success = false;
+        if (computeResourceState.getSelectedResources()
+                .size() == 1) {
+            computeResourceState.getSelectedResources()
+                    .getFirst()
+                    .getConfigurationPaths()
+                    .remove(configurationPath);
+            ComputeResource resource = computeResourceRepository.save(computeResourceState.getSelectedResources()
+                                                                              .getFirst());
+            computeResourceState.getSelectedResources()
+                    .clear();
+            computeResourceState.getSelectedResources()
+                    .add(resource);
+            success = true;
+        }
+        return success;
+    }
+
+    public List<ConfigurationPath> getConfigurationPathsForSelectedResource() {
+        List<ConfigurationPath> hostPaths = new ArrayList<>();
+        if (computeResourceState.getSelectedResources()
+                .size() == 1) {
+            hostPaths.addAll(computeResourceState.getSelectedResources()
+                                     .getFirst()
+                                     .getConfigurationPaths());
+        }
+        return hostPaths;
+    }
+
+    public boolean addPathToSelectedResource(ConfigurationPath configurationPath) {
+        boolean success = false;
+        AtomicBoolean isDuplicate = new AtomicBoolean(false);
+        if (computeResourceState.isSingleSourceSelected()) {
+            Long resourceId = computeResourceState.getSelectedResources()
+                    .getFirst()
+                    .getId();
+            ComputeResource resource = computeResourceState.getComputeResourcesMap()
+                    .get(resourceId);
+            List<ConfigurationPath> resourcePaths = resource.getConfigurationPaths();
+            if (resourcePaths.isEmpty()) {
+                resourcePaths.add(configurationPath);
+            } else {
+                resourcePaths.forEach(path -> {
+                    if (path.getConfigurationPath()
+                            .equals(configurationPath.getConfigurationPath())) {
+                        isDuplicate.set(true);
+                    }
+                });
+                if (!isDuplicate.get()) {
+                    resourcePaths.add(configurationPath);
+                }
+            }
+            if (!isDuplicate.get()) {
+                resource = computeResourceRepository.save(resource);
+                computeResourceState.getComputeResourcesMap()
+                        .put(resource.getId(), resource);
+                success = true;
+            }
+        }
+        return success;
     }
 }

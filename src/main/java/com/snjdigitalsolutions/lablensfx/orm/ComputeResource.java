@@ -35,28 +35,4 @@ public class ComputeResource {
             cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ConfigurationPath> configurationPaths = new ArrayList<>();
 
-    @Transient
-    private HostPanel hostPanel;
-    @Transient
-    private HostPanelLarge hostPanelLarge;
-
-    public void updateHostPanels() {
-        hostPanel.hostnameProperty()
-                .setValue(hostName);
-        hostPanel.ipAddressProperty()
-                .setValue(ipAddress);
-        hostPanelLarge.hostnameProperty()
-                .setValue(hostName);
-        hostPanelLarge.ipAddressProperty()
-                .setValue(ipAddress);
-        hostPanelLarge.descriptionProperty()
-                .setValue(description);
-        hostPanelLarge.sshPortProperty()
-                .setValue(sshPort);
-    }
-
-    public boolean isHostOnline() {
-        return hostPanelLarge.getStatusIndicator().getHostSshStatus().equals(SshStatus.ONLINE);
-    }
-
 }

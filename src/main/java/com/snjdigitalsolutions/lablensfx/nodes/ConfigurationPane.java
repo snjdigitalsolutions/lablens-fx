@@ -1,5 +1,6 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
+import com.snjdigitalsolutions.lablensfx.application.ChangeListenerRegistry;
 import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.utility.FilePathValidator;
@@ -37,18 +38,20 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
     private final FilePathValidator filePathValidator;
     private final AlertUtility alertUtility;
     private final HostManagementService hostManagementService;
+    private final ChangeListenerRegistry changeListenerRegistry;
 
     public ConfigurationPane(@Value("classpath:/fxml/ConfigurationPane.fxml") Resource fxml,
                              ConfigurationPathTableView configurationPathTableView,
                              FilePathValidator filePathValidator,
                              AlertUtility alertUtility,
-                             HostManagementService hostManagementService
+                             HostManagementService hostManagementService, ChangeListenerRegistry changeListenerRegistry
     )
     {
         this.configurationPathTableView = configurationPathTableView;
         this.filePathValidator = filePathValidator;
         this.alertUtility = alertUtility;
         this.hostManagementService = hostManagementService;
+        this.changeListenerRegistry = changeListenerRegistry;
         NodeLoader.load(fxml, this);
     }
 
@@ -75,14 +78,12 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
     }
 
     private void initializeDivider() {
-        splitPane.getDividers()
-                .getFirst()
-                .positionProperty()
-                .addListener((obj, oldVal, newVal) -> {
-                    if (newVal.doubleValue() != splitPaneDividerPosition) {
-                        splitPane.setDividerPosition(0, splitPaneDividerPosition);
-                    }
-                });
+        ChangeListener<Number> dividerPositionChangeListener = (obj, oldVal, newVal) -> {
+            if (newVal.doubleValue() != splitPaneDividerPosition) {
+                splitPane.setDividerPosition(0, splitPaneDividerPosition);
+            }
+        };
+        changeListenerRegistry.add(this, splitPane.getDividers().getFirst().positionProperty(), dividerPositionChangeListener);
     }
 
     private void initializeAddButton() {

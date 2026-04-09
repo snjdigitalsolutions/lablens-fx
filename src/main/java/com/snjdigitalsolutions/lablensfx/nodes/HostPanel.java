@@ -4,6 +4,7 @@ import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.service.HostPanelStylingService;
 import com.snjdigitalsolutions.lablensfx.service.ViewService;
+import com.snjdigitalsolutions.lablensfx.service.node.HostPanelService;
 import com.snjdigitalsolutions.lablensfx.state.*;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
@@ -61,6 +62,7 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
     private final MenuItemSelectionState menuItemSelectionState;
     private final ViewService viewService;
     private final HostPanelStylingService hostPanelStylingService;
+    private final HostPanelService hostPanelService;
 
     private boolean selected = false;
 
@@ -71,7 +73,7 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
                      ConfigurationPane configurationPane,
                      MenuItemSelectionState menuItemSelectionState,
                      ViewService viewService,
-                     HostPanelStylingService hostPanelStylingService
+                     HostPanelStylingService hostPanelStylingService, HostPanelService hostPanelService
     )
     {
         this.hostManagementService = hostManagementService;
@@ -81,6 +83,7 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
         this.menuItemSelectionState = menuItemSelectionState;
         this.viewService = viewService;
         this.hostPanelStylingService = hostPanelStylingService;
+        this.hostPanelService = hostPanelService;
         NodeLoader.load(fxml, this);
     }
 
@@ -163,6 +166,10 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
                 }
             }
         });
+    }
+
+    public void setSelectionState(boolean selected) {
+        this.selected = selected;
     }
 
     private void addSelectionStyling() {

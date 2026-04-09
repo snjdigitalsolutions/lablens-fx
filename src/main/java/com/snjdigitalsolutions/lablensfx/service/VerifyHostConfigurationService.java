@@ -41,7 +41,11 @@ public class VerifyHostConfigurationService implements TaskStartingService {
                 .buildAndShow();
         Task<Void> task = new VerifyHostConfigurationPathTask(computeResourceState,
                 checkElevatedPrivilegesRequiredCommand,
-                progressDialog, computeResourceRepository::saveAll
+                progressDialog, list -> {
+                    list.forEach(computeResource -> {
+                        computeResourceState.updateComputeResource(computeResource);
+                    });
+                }
         );
         progressDialog.getProgressBar()
                 .progressProperty()

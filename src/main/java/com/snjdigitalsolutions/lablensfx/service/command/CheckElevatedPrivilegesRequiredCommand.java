@@ -20,7 +20,7 @@ public class CheckElevatedPrivilegesRequiredCommand extends AbstractCommand {
     public String executeCommand(ComputeResource computeResource) throws Exception {
         if (!filePath.isEmpty()) {
             String command = "test -r " + filePath + " || echo \"ELEVATION_REQUIRED\"";
-            return sshService.executeCommand(computeResource.getHostName(), computeResource.getSshPort(), command);
+            return sshService.executeCommand(computeResource.getIpAddress(), computeResource.getSshPort(), command);
         } else {
             throw new RuntimeException("File path cannot be blank. Use checkFilePath() to set file path and resource.");
         }

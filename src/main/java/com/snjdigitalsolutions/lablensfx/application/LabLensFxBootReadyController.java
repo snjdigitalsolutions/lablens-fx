@@ -6,6 +6,7 @@ import com.snjdigitalsolutions.lablensfx.repository.SettingRepository;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import com.snjdigitalsolutions.lablensfx.service.VerifyHostConfigurationService;
+import com.snjdigitalsolutions.lablensfx.service.node.ConfigurationPaneService;
 import com.snjdigitalsolutions.lablensfx.setting.SettingType;
 import com.snjdigitalsolutions.lablensfx.shapes.SshPassphraseIndicator;
 import com.snjdigitalsolutions.lablensfx.state.*;
@@ -72,6 +73,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     private final SshState sshState;
     private final DashboardPane dashboardPane;
     private final ConfigurationPane configurationPane;
+    private final ConfigurationPaneService configurationPaneService;
     private final HostManagementService hostManagementService;
     private final PassphraseDialog passphraseDialog;
     private final ShowIpAddressState showIpAddressState;
@@ -93,6 +95,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                                         HostManagementService hostManagementService,
                                         TooltipGenerator tooltipGenerator,
                                         ConfigurationPane configurationPane,
+                                        ConfigurationPaneService configurationPaneService,
                                         PassphraseDialog passphraseDialog,
                                         ShowIpAddressState showIpAddressState,
                                         VerifyHostConfigurationService verifyHostConfigurationService,
@@ -112,6 +115,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         this.hostManagementService = hostManagementService;
         this.tooltipGenerator = tooltipGenerator;
         this.configurationPane = configurationPane;
+        this.configurationPaneService = configurationPaneService;
         this.passphraseDialog = passphraseDialog;
         this.showIpAddressState = showIpAddressState;
         this.verifyHostConfigurationService = verifyHostConfigurationService;
@@ -239,7 +243,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     private void setConfigurationVisible() {
         selectedViewState.selectedViewProperty()
                 .setValue(ApplicationView.CONFIGURATIONS);
-        configurationPane.loadExistingPaths();
+        configurationPaneService.loadExistingPaths();
         rootPane.setCenter(configurationPane);
     }
 

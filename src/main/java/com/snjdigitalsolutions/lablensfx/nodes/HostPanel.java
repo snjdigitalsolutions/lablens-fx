@@ -5,7 +5,8 @@ import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.service.HostPanelStylingService;
 import com.snjdigitalsolutions.lablensfx.service.ViewService;
 import com.snjdigitalsolutions.lablensfx.service.node.HostPanelService;
-import com.snjdigitalsolutions.lablensfx.state.*;
+import com.snjdigitalsolutions.lablensfx.state.MenuItemSelectionState;
+import com.snjdigitalsolutions.lablensfx.state.ShowIpAddressState;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
@@ -50,15 +51,11 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
     private FontAwesomeIconView deleteIcon;
     @FXML
     private FontAwesomeIconView pencilIcon;
-    @Getter
-    @Setter
-    private ComputeResource computeResource;
 
 
     private final HostManagementService hostManagementService;
     private final ShowIpAddressState showIpAddressState;
     private final AlertUtility alertUtility;
-    private final ConfigurationPane configurationPane;
     private final MenuItemSelectionState menuItemSelectionState;
     private final ViewService viewService;
     private final HostPanelStylingService hostPanelStylingService;
@@ -70,16 +67,15 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
                      HostManagementService hostManagementService,
                      ShowIpAddressState showIpAddressState,
                      AlertUtility alertUtility,
-                     ConfigurationPane configurationPane,
                      MenuItemSelectionState menuItemSelectionState,
                      ViewService viewService,
-                     HostPanelStylingService hostPanelStylingService, HostPanelService hostPanelService
+                     HostPanelStylingService hostPanelStylingService,
+                     HostPanelService hostPanelService
     )
     {
         this.hostManagementService = hostManagementService;
         this.showIpAddressState = showIpAddressState;
         this.alertUtility = alertUtility;
-        this.configurationPane = configurationPane;
         this.menuItemSelectionState = menuItemSelectionState;
         this.viewService = viewService;
         this.hostPanelStylingService = hostPanelStylingService;
@@ -136,13 +132,12 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
 
     private void initializeMouseClickAction() {
         this.setOnMouseClicked(event -> {
-            // HostPanel currently selected
-            if (selected) {
+            if (selected) { // HostPanel currently selected
                 selected = false;
                 hostPanelStylingService.removeSelectionStyle(this);
-                hostManagementService.removeComputeResourceFromSelectedSources(this, this.computeResource);
-            } else {
-                //When multiple hosts selected and user not on dashboard view
+                hostManagementService.removeComputeResourceFromSelectedSources(this);
+            } else { //When multiple hosts selected and user not on dashboard view
+
                 LOGGER.debug("Multiple hosts being selected: " + hostManagementService.multipleHostsBeingSelected());
                 if (hostManagementService.multipleHostsBeingSelected() && !viewService.dashboardSelected()) {
                     AtomicBoolean yesResponse = new AtomicBoolean(false);
@@ -153,16 +148,15 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
                     }
                     //When choosing to return to dashboard allow multiple host selections
                     if (yesResponse.get()) {
-                        addSelectionStyling();
+                        hostManagementService.addComputeResourceToSelectedSources(this);
+                        hostPanelService.setHostPanelSelected(this);
                     } else {
-                        //TODO map host panel to resource
-                        hostPanelStylingService.addSelectionStyle(this);
-                        selected = true;
-                        hostManagementService.clearCurrentlySelectedHostAndAddNewlySelectedHost(this, this.computeResource);
-                        configurationPane.loadExistingPaths();
+                        hostManagementService.clearCurrentlySelectedHostAndAddNewlySelectedHost(this);
+                        hostPanelService.changeSelectedHostPanel(this);
                     }
                 } else {
-                    addSelectionStyling();
+                    hostManagementService.addComputeResourceToSelectedSources(this);
+                    hostPanelService.setHostPanelSelected(this);
                 }
             }
         });
@@ -170,17 +164,6 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
 
     public void setSelectionState(boolean selected) {
         this.selected = selected;
-    }
-
-    private void addSelectionStyling() {
-        selected = true;
-        hostPanelStylingService.addSelectionStyle(this);
-        hostManagementService.addComputeResourceToSelectedSources(this, this.computeResource);
-    }
-
-    public void removeSelectionStyling() {
-        selected = false;
-        hostPanelStylingService.removeSelectionStyle(this);
     }
 
     @Override

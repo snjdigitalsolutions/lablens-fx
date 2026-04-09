@@ -44,15 +44,22 @@ public class StatusBarState implements SpringInitializableNode {
     @Override
     public void performIntialization() {
         numberOfSelectedHosts.addListener((obj, oldVal, newVal) -> {
-            if (selectedApplicationView.get().equals(ApplicationView.DASHBOARD) && newVal.intValue() > 0) {
+            if (selectedApplicationView.get()
+                    .equals(ApplicationView.DASHBOARD) && newVal.intValue() > 0) {
                 LOGGER.debug("{} Hosts Selected", newVal);
                 statusMessage.setValue("Hosts Selected: " + newVal);
                 disableDeleteHostMenuItem.setValue(false);
-            } else if (selectedApplicationView.get().equals(ApplicationView.DASHBOARD) && newVal.intValue() == 0) {
+            } else if (selectedApplicationView.get()
+                    .equals(ApplicationView.DASHBOARD) && newVal.intValue() == 0) {
                 statusMessage.setValue("");
                 disableDeleteHostMenuItem.setValue(true);
             }
         });
+    }
+
+    public void setHostPanelAsOnlySelection(HostPanel panel) {
+        getSelectedHostPanelList().clear();
+        getSelectedHostPanelList().add(panel);
     }
 
 }

@@ -1,7 +1,6 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.application.ChangeListenerRegistry;
-import com.snjdigitalsolutions.lablensfx.application.ChangeListenerRegistry;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
@@ -66,9 +65,9 @@ public class HostPane extends AnchorPane implements SpringInitializableNode {
                 refresh();
             }
         });
-        changeListenerRegistry.add(this, showIpAddressState.showIpPropertyProperty(),(obj, oldVal, newVal) -> {
+        changeListenerRegistry.add(this, showIpAddressState.showIpPropertyProperty(), (obj, oldVal, newVal) -> {
             refresh();
-        } );
+        });
 
         MapChangeListener<Long, ComputeResource> onComputeResourceChange = change -> {
             if (change.wasAdded() != change.wasRemoved()) {

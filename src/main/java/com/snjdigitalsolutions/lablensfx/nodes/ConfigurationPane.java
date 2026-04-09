@@ -2,7 +2,7 @@ package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.application.ChangeListenerRegistry;
 import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
-import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
+import com.snjdigitalsolutions.lablensfx.service.node.ConfigurationPaneService;
 import com.snjdigitalsolutions.lablensfx.utility.FilePathValidator;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
@@ -37,21 +37,22 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
     private final double splitPaneDividerPosition = 0.5;
     private final FilePathValidator filePathValidator;
     private final AlertUtility alertUtility;
-    private final HostManagementService hostManagementService;
     private final ChangeListenerRegistry changeListenerRegistry;
+    private final ConfigurationPaneService configurationPaneService;
 
     public ConfigurationPane(@Value("classpath:/fxml/ConfigurationPane.fxml") Resource fxml,
                              ConfigurationPathTableView configurationPathTableView,
                              FilePathValidator filePathValidator,
                              AlertUtility alertUtility,
-                             HostManagementService hostManagementService, ChangeListenerRegistry changeListenerRegistry
+                             ChangeListenerRegistry changeListenerRegistry,
+                             ConfigurationPaneService configurationPaneService
     )
     {
         this.configurationPathTableView = configurationPathTableView;
         this.filePathValidator = filePathValidator;
         this.alertUtility = alertUtility;
-        this.hostManagementService = hostManagementService;
         this.changeListenerRegistry = changeListenerRegistry;
+        this.configurationPaneService = configurationPaneService;
         NodeLoader.load(fxml, this);
     }
 
@@ -65,16 +66,10 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
 
     private void initializeDeleteButton() {
         deleteButton.setOnAction(event -> {
-            hostManagementService.removeConfigurationPathFromSelectedResource(configurationPathTableView.getSelectedItem());
+            configurationPaneService.removeConfigurationPathFromSelectedResource(configurationPathTableView.getSelectedItem());
             configurationPathTableView.removeCurrentlySelectedItem();
             configurationPathTableView.clearSelection();
         });
-    }
-
-    public void loadExistingPaths() {
-        configurationPathTableView.clearItems();
-        hostManagementService.getConfigurationPathsForSelectedResource()
-                .forEach(configurationPathTableView::addItem);
     }
 
     private void initializeDivider() {
@@ -83,7 +78,9 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
                 splitPane.setDividerPosition(0, splitPaneDividerPosition);
             }
         };
-        changeListenerRegistry.add(this, splitPane.getDividers().getFirst().positionProperty(), dividerPositionChangeListener);
+        changeListenerRegistry.add(this, splitPane.getDividers()
+                .getFirst()
+                .positionProperty(), dividerPositionChangeListener);
     }
 
     private void initializeAddButton() {
@@ -93,11 +90,11 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
                 path.setConfigurationPath(filePathTextField.getText());
                 path.setRequiresElevation(false);
                 path.setElevationCheckComplete(false);
-                if (!hostManagementService.addPathToSelectedResource(path)) {
+                if (!configurationPaneService.addPathToSelectedResource(path)) {
                     alertUtility.warningAlert("Not Added", "Unable to add configuration path to host. Check for duplicate entry");
                 } else {
                     filePathTextField.clear();
-                    loadExistingPaths();
+                    configurationPaneService.loadExistingPaths();
                 }
             } else {
                 alertUtility.warningAlert("Invalid Path", "The path entered is not a valid system path.");

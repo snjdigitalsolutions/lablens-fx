@@ -3,6 +3,7 @@ package com.snjdigitalsolutions.lablensfx.state;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanelLarge;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
+import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -16,11 +17,25 @@ public class ComputeResourceState {
     private final MapProperty<Long, ComputeResource> computeResourcesMap = new SimpleMapProperty<>(FXCollections.observableHashMap());
     private final MapProperty<Long, SshStatus> computeResourceOnlineStatusMap = new SimpleMapProperty<>(FXCollections.observableHashMap());
     private final MapProperty<Long, HostPanel> computeResourceHostPanelMap = new SimpleMapProperty<>(FXCollections.observableHashMap());
+    private final MapProperty<HostPanel, ComputeResource> hostPanelToComputeResourceMap = new SimpleMapProperty<>(FXCollections.observableHashMap());
     private final MapProperty<Long, HostPanelLarge> computeResourceHostPanelLargeMap = new SimpleMapProperty<>(FXCollections.observableHashMap());
     private final ObjectProperty<ComputeResource> computerResourceBeingEdited = new SimpleObjectProperty<>();
-    private final IntegerProperty hostsOnline = new SimpleIntegerProperty(0);
+    private final IntegerProperty hostsOnlineCount = new SimpleIntegerProperty(0);
     private final ListProperty<ComputeResource> selectedResources = new SimpleListProperty<>(FXCollections.observableArrayList());
     private final BooleanProperty computeResourcesLoaded = new SimpleBooleanProperty(false);
+    private final ComputeResourceRepository computeResourceRepository;
+
+    public ComputeResourceState(ComputeResourceRepository computeResourceRepository) {
+        this.computeResourceRepository = computeResourceRepository;
+    }
+
+    public ObservableMap<HostPanel, ComputeResource> getHostPanelToComputeResourceMap() {
+        return hostPanelToComputeResourceMap.get();
+    }
+
+    public MapProperty<HostPanel, ComputeResource> hostPanelToComputeResourceMapProperty() {
+        return hostPanelToComputeResourceMap;
+    }
 
     public ObservableMap<Long, ComputeResource> getComputeResourcesMap() {
         return computeResourcesMap.get();
@@ -46,12 +61,12 @@ public class ComputeResourceState {
         return computerResourceBeingEdited;
     }
 
-    public int getHostsOnline() {
-        return hostsOnline.get();
+    public int getHostsOnlineCount() {
+        return hostsOnlineCount.get();
     }
 
-    public IntegerProperty hostsOnlineProperty() {
-        return hostsOnline;
+    public IntegerProperty hostsOnlineCountProperty() {
+        return hostsOnlineCount;
     }
 
     public ObservableMap<Long, SshStatus> getComputeResourceOnlineStatusMap() {
@@ -70,10 +85,6 @@ public class ComputeResourceState {
         return selectedResources;
     }
 
-    public boolean isSingleSourceSelected() {
-        return selectedResources.size() == 1;
-    }
-
     public ObservableMap<Long, HostPanel> getComputeResourceHostPanelMap() {
         return computeResourceHostPanelMap.get();
     }
@@ -89,4 +100,35 @@ public class ComputeResourceState {
     public MapProperty<Long, HostPanelLarge> computeResourceHostPanelLargeMapProperty() {
         return computeResourceHostPanelLargeMap;
     }
+
+    public boolean isSingleSourceSelected() {
+        return selectedResources.size() == 1;
+    }
+
+    public void setResourceOfHostPanelAsOnlySelection(HostPanel panel) {
+        getSelectedResources().clear();
+        getSelectedResources().add(getHostPanelToComputeResourceMap().get(panel));
+    }
+
+    /**
+     * Method called when a ComputeResource has been updated and
+     * the database and state objects need to updated to match.
+     *
+     * @param computeResource the modified ComputeResource
+     */
+    public void updateComputeResource(ComputeResource computeResource) {
+        selectedResources.remove(computeResource);
+        ComputeResource savedResource = computeResourceRepository.save(computeResource);
+        selectedResources.add(savedResource);
+        computeResourcesMap.put(savedResource.getId(), savedResource);
+        HostPanel mappedPanel = computeResourceHostPanelMap.get(savedResource.getId());
+        hostPanelToComputeResourceMap.put(mappedPanel, savedResource);
+    }
+
+    public void addNewComputeResource(ComputeResource computeResource) {
+        computeResource = computeResourceRepository.save(computeResource);
+        getComputeResourcesMap().put(computeResource.getId(), computeResource);
+    }
+
+
 }

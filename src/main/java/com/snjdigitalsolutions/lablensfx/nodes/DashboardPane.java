@@ -125,7 +125,7 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                         });
             }
             case NUM_ONLINE -> {
-                computeResourceState.hostsOnlineProperty()
+                computeResourceState.hostsOnlineCountProperty()
                         .addListener((obj, oldVal, newVal) -> {
                             panel.setCountLabel(newVal.toString());
                         });

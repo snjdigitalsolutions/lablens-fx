@@ -7,6 +7,7 @@ import com.snjdigitalsolutions.lablensfx.nodes.ProgressDialog;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
+import com.snjdigitalsolutions.lablensfx.service.node.HostPanelService;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import com.snjdigitalsolutions.lablensfx.state.SshState;
@@ -30,7 +31,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 public class HostManagementService implements SpringInitializableNode {
@@ -48,6 +48,7 @@ public class HostManagementService implements SpringInitializableNode {
     private final AlertUtility alertUtility;
     private final StatusBarState statusBarState;
     private final HostPanelStylingService hostPanelStylingService;
+    private final HostPanelService hostPanelService;
 
     @Value("${application.ssh.promptforpassphrase}")
     private boolean promptForPassPhrase;
@@ -63,7 +64,8 @@ public class HostManagementService implements SpringInitializableNode {
                                  PassphraseDialog passphraseDialog,
                                  AlertUtility alertUtility,
                                  StatusBarState statusBarState,
-                                 HostPanelStylingService hostPanelStylingService
+                                 HostPanelStylingService hostPanelStylingService,
+                                 HostPanelService hostPanelService
     )
     {
         this.computeResourceState = computeResourceState;
@@ -78,6 +80,7 @@ public class HostManagementService implements SpringInitializableNode {
         this.alertUtility = alertUtility;
         this.statusBarState = statusBarState;
         this.hostPanelStylingService = hostPanelStylingService;
+        this.hostPanelService = hostPanelService;
     }
 
     @Override
@@ -104,16 +107,17 @@ public class HostManagementService implements SpringInitializableNode {
         statusBarProperties.selectedHostPanelListProperty()
                 .get()
                 .forEach(hostPanel -> {
-                    if (isHostOnline(hostPanel.getComputeResource())) {
-                        int onlineCount = computeResourceState.getHostsOnline();
-                        computeResourceState.hostsOnlineProperty()
+                    ComputeResource computeResourceForPanel = computeResourceState.getHostPanelToComputeResourceMap()
+                            .get(hostPanel);
+                    if (isHostOnline(computeResourceForPanel)) {
+                        int onlineCount = computeResourceState.getHostsOnlineCount();
+                        computeResourceState.hostsOnlineCountProperty()
                                 .setValue(onlineCount - 1);
                     }
                     computeResourceState.getSelectedResources()
-                            .remove(hostPanel.getComputeResource());
+                            .remove(computeResourceForPanel);
                     computeResourceState.getComputeResourcesMap()
-                            .remove(hostPanel.getComputeResource()
-                                            .getId());
+                            .remove(computeResourceForPanel.getId());
                 });
     }
 
@@ -123,14 +127,16 @@ public class HostManagementService implements SpringInitializableNode {
         if (!selectedHosts.isEmpty()) {
             deleteSelectedHosts();
         } else {
-            if (isHostOnline(sourcePanel.getComputeResource())) {
-                int onlineCount = computeResourceState.getHostsOnline();
-                computeResourceState.hostsOnlineProperty()
+            if (isHostOnline(computeResourceState.getHostPanelToComputeResourceMap()
+                                     .get(sourcePanel))) {
+                int onlineCount = computeResourceState.getHostsOnlineCount();
+                computeResourceState.hostsOnlineCountProperty()
                         .setValue(onlineCount - 1);
             }
+            ComputeResource computeResourceForPanel = computeResourceState.getHostPanelToComputeResourceMap()
+                    .get(sourcePanel);
             computeResourceState.getComputeResourcesMap()
-                    .remove(sourcePanel.getComputeResource()
-                                    .getId());
+                    .remove(computeResourceForPanel.getId());
         }
     }
 
@@ -143,17 +149,14 @@ public class HostManagementService implements SpringInitializableNode {
     }
 
     public void editSelectedHost(HostPanel sourcePanel) {
-        ComputeResource resource = computeResourceState.getComputeResourcesMap()
-                .get(sourcePanel.getComputeResource()
-                             .getId());
+        ComputeResource resource = computeResourceState.getHostPanelToComputeResourceMap()
+                .get(sourcePanel);
         computeResourceState.computerResourceBeingEditedProperty()
                 .setValue(resource);
     }
 
     public void addComputeResource(ComputeResource computeResource) {
-        computeResource = computeResourceRepository.save(computeResource);
-        computeResourceState.getComputeResourcesMap()
-                .put(computeResource.getId(), computeResource);
+        computeResourceState.addNewComputeResource(computeResource);
     }
 
     public Optional<ComputeResource> getComputerResourceById(Long id) {
@@ -221,9 +224,9 @@ public class HostManagementService implements SpringInitializableNode {
         computeResourceState.getComputeResourceOnlineStatusMap()
                 .put(panel.getComputeResourceId(), SshStatus.UNKNOWN);
         if (decrement) {
-            int currentCount = computeResourceState.getHostsOnline();
+            int currentCount = computeResourceState.getHostsOnlineCount();
             if (currentCount > 0) {
-                computeResourceState.hostsOnlineProperty()
+                computeResourceState.hostsOnlineCountProperty()
                         .set(currentCount - 1);
             }
         }
@@ -236,10 +239,6 @@ public class HostManagementService implements SpringInitializableNode {
                 .forEach(resource -> {
                     panels.add(createHostPanelForComputeResource(resource));
                 });
-
-        //TODO create a comparator and interface for objects that have IP addresses
-//        panels = ipAddressUtility.sortIpAddresses(panels);
-
         return panels;
     }
 
@@ -252,9 +251,10 @@ public class HostManagementService implements SpringInitializableNode {
                 .setValue(resource.getHostName());
         panel.ipAddressProperty()
                 .setValue(resource.getIpAddress());
-        panel.setComputeResource(resource);
         computeResourceState.getComputeResourceHostPanelMap()
                 .put(resource.getId(), panel);
+        computeResourceState.getHostPanelToComputeResourceMap()
+                .put(panel, resource);
         return panel;
     }
 
@@ -275,43 +275,32 @@ public class HostManagementService implements SpringInitializableNode {
                 .setValue(resource.getDescription());
         largePanel.sshPortProperty()
                 .setValue(resource.getSshPort());
-        resource = computeResourceRepository.save(resource);
-        computeResourceState.getComputeResourceHostPanelMap().get(resource.getId()).setComputeResource(resource);
-        computeResourceState.getSelectedResources().clear();
-        computeResourceState.getSelectedResources().add(resource);
-        computeResourceState.getComputeResourcesMap().put(resource.getId(), resource);
+        computeResourceState.updateComputeResource(resource);
         computeResourceState.computerResourceBeingEditedProperty()
                 .setValue(null);
     }
 
-    public boolean setResourceSshCommValue(Long resourceID,
-                                           Long value
+    public void setResourceSshCommValue(Long resourceID,
+                                        Long value
     )
     {
-        AtomicBoolean success = new AtomicBoolean(false);
         Optional<ComputeResource> resource = computeResourceRepository.findById(resourceID);
         resource.ifPresent(computeResource -> {
             computeResource.setSshCommunicate(value);
-            computeResource = computeResourceRepository.save(computeResource);
-            if (computeResource.getSshCommunicate()
-                    .equals(value)) {
-                success.set(true);
-            }
+            computeResourceState.updateComputeResource(computeResource);
         });
-        return success.get();
     }
 
     public boolean sshNeededOnStartup() {
         return computeResourceRepository.countComputeResourceBySshCommunicateIsGreaterThan(0L) > 0;
     }
 
-    public void addComputeResourceToSelectedSources(HostPanel hostPanel,
-                                                    ComputeResource computeResource
-    )
+    public void addComputeResourceToSelectedSources(HostPanel hostPanel)
     {
         incrementsSelectedHostCount(hostPanel);
         computeResourceState.getSelectedResources()
-                .add(computeResource);
+                .add(computeResourceState.getHostPanelToComputeResourceMap()
+                             .get(hostPanel));
     }
 
     private void incrementsSelectedHostCount(HostPanel hostPanel) {
@@ -325,13 +314,13 @@ public class HostManagementService implements SpringInitializableNode {
                 .add(hostPanel);
     }
 
-    public void removeComputeResourceFromSelectedSources(HostPanel hostPanel,
-                                                         ComputeResource computeResource
-    )
+    public void removeComputeResourceFromSelectedSources(HostPanel hostPanel)
     {
         decreaseSelectedHostCount(hostPanel);
+        ComputeResource resourceForPanel = computeResourceState.getHostPanelToComputeResourceMap()
+                .get(hostPanel);
         computeResourceState.getSelectedResources()
-                .remove(computeResource);
+                .remove(resourceForPanel);
     }
 
     private void decreaseSelectedHostCount(HostPanel hostPanel) {
@@ -350,24 +339,15 @@ public class HostManagementService implements SpringInitializableNode {
                 .intValue() >= 1;
     }
 
-    public void clearCurrentlySelectedHostAndAddNewlySelectedHost(HostPanel hostPanel,
-                                                                  ComputeResource computeResource
-    )
+    public void clearCurrentlySelectedHostAndAddNewlySelectedHost(HostPanel newlySelectedHostPanel)
     {
-
-        ComputeResource currentlySelectedResource = computeResourceState.getSelectedResources()
+        var currentlySelectedResource = computeResourceState.getSelectedResources()
                 .getFirst();
-        computeResourceState.getComputeResourceHostPanelMap()
-                .get(currentlySelectedResource.getId())
-                .removeSelectionStyling();
-        computeResourceState.getSelectedResources()
-                .clear();
-        computeResourceState.getSelectedResources()
-                .add(computeResource);
-        statusBarState.getSelectedHostPanelList()
-                .clear();
-        statusBarState.getSelectedHostPanelList()
-                .add(hostPanel);
+        var currentlySelectedHostPanel = computeResourceState.getComputeResourceHostPanelMap()
+                .get(currentlySelectedResource.getId());
+        hostPanelService.clearSelectedStyling(currentlySelectedHostPanel);
+        computeResourceState.setResourceOfHostPanelAsOnlySelection(newlySelectedHostPanel);
+        statusBarState.setHostPanelAsOnlySelection(newlySelectedHostPanel);
     }
 
     public boolean isComputeResourceSelected() {
@@ -383,46 +363,26 @@ public class HostManagementService implements SpringInitializableNode {
                 .set(SshStatus.ONLINE);
         computeResourceState.getComputeResourceOnlineStatusMap()
                 .put(resource.getId(), SshStatus.ONLINE);
-        int value = computeResourceState.getHostsOnline();
-        computeResourceState.hostsOnlineProperty()
+        int value = computeResourceState.getHostsOnlineCount();
+        computeResourceState.hostsOnlineCountProperty()
                 .setValue(value + 1);
     }
 
     public void setResourceStateOffline(ComputeResource resource) {
-        computeResourceState.getComputeResourceHostPanelLargeMap()
-                .get(resource.getId())
-                .getStatusIndicator()
-                .hostSshStatusProperty()
-                .set(SshStatus.OFFLINE);
+        HostPanelLarge panel = computeResourceState.getComputeResourceHostPanelLargeMap()
+                .get(resource.getId());
+        if (panel != null) {
+            panel.getStatusIndicator()
+                    .hostSshStatusProperty()
+                    .set(SshStatus.OFFLINE);
+        }
         computeResourceState.getComputeResourceOnlineStatusMap()
                 .put(resource.getId(), SshStatus.OFFLINE);
-        int value = computeResourceState.getHostsOnline();
+        int value = computeResourceState.getHostsOnlineCount();
         if (value > 0) {
-            computeResourceState.hostsOnlineProperty()
+            computeResourceState.hostsOnlineCountProperty()
                     .setValue(value - 1);
         }
-    }
-
-    public boolean removeConfigurationPathFromSelectedResource(ConfigurationPath configurationPath) {
-        boolean success = false;
-        if (computeResourceState.getSelectedResources()
-                .size() == 1) {
-            computeResourceState.getSelectedResources()
-                    .getFirst()
-                    .getConfigurationPaths()
-                    .remove(configurationPath);
-            ComputeResource resource = computeResourceRepository.save(computeResourceState.getSelectedResources()
-                                                                              .getFirst());
-            computeResourceState.getSelectedResources()
-                    .clear();
-            computeResourceState.getSelectedResources()
-                    .add(resource);
-            computeResourceState.getComputeResourceHostPanelMap().get(resource.getId()).setComputeResource(resource);
-            computeResourceState.getComputeResourcesMap()
-                    .put(resource.getId(), resource);
-            success = true;
-        }
-        return success;
     }
 
     public List<ConfigurationPath> getConfigurationPathsForSelectedResource() {
@@ -436,41 +396,4 @@ public class HostManagementService implements SpringInitializableNode {
         return hostPaths;
     }
 
-    public boolean addPathToSelectedResource(ConfigurationPath configurationPath) {
-        boolean success = false;
-        AtomicBoolean isDuplicate = new AtomicBoolean(false);
-        if (computeResourceState.isSingleSourceSelected()) {
-            Long resourceId = computeResourceState.getSelectedResources()
-                    .getFirst()
-                    .getId();
-            ComputeResource resource = computeResourceState.getComputeResourcesMap()
-                    .get(resourceId);
-            List<ConfigurationPath> resourcePaths = resource.getConfigurationPaths();
-            if (resourcePaths.isEmpty()) {
-                resourcePaths.add(configurationPath);
-            } else {
-                resourcePaths.forEach(path -> {
-                    if (path.getConfigurationPath()
-                            .equals(configurationPath.getConfigurationPath())) {
-                        isDuplicate.set(true);
-                    }
-                });
-                if (!isDuplicate.get()) {
-                    resourcePaths.add(configurationPath);
-                }
-            }
-
-            if (!isDuplicate.get()) {
-                configurationPath.setComputeResource(resource);
-                resource = computeResourceRepository.save(resource);
-                computeResourceState.getComputeResourceHostPanelMap().get(resource.getId()).setComputeResource(resource);
-                computeResourceState.getSelectedResources().clear();
-                computeResourceState.getSelectedResources().add(resource);
-                computeResourceState.getComputeResourcesMap()
-                        .put(resource.getId(), resource);
-                success = true;
-            }
-        }
-        return success;
-    }
 }

@@ -43,11 +43,15 @@ public class SshStatusForSingleHostTask extends Task<Void> {
                         hostManagementService.setResourceStateOnline(resource);
                     });
                 } else {
-                    hostManagementService.setResourceStateOffline(resource);
+                    Platform.runLater(() -> {
+                        hostManagementService.setResourceStateOffline(resource);
+                    });
                 }
             } catch (Exception e) {
                 LOGGER.error("Error executing command: {}", e.getMessage());
-                hostManagementService.setResourceStateOffline(resource);
+                Platform.runLater(() -> {
+                    hostManagementService.setResourceStateOffline(resource);
+                });
             }
         }
         return null;

@@ -1,9 +1,11 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
+import com.snjdigitalsolutions.lablensfx.application.ChangeListenerRegistry;
+import com.snjdigitalsolutions.lablensfx.application.ChangeListenerRegistry;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
+import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import com.snjdigitalsolutions.lablensfx.state.ShowIpAddressState;
-import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.utility.IpComparator;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
@@ -33,12 +35,21 @@ public class HostPane extends AnchorPane implements SpringInitializableNode {
 
     private final BooleanProperty performRefresh = new SimpleBooleanProperty(false);
 
+    private final ChangeListenerRegistry changeListenerRegistry;
     private final ComputeResourceState computeResourceState;
     private final HostManagementService hostManagementService;
     private final IpComparator ipComparator;
     private final ShowIpAddressState showIpAddressState;
 
-    public HostPane(@Value("classpath:/fxml/HostPane.fxml") Resource fxml, ComputeResourceState computeResourceState, HostManagementService hostManagementService, IpComparator ipComparator, ShowIpAddressState showIpAddressState) {
+    public HostPane(@Value("classpath:/fxml/HostPane.fxml") Resource fxml,
+                    ChangeListenerRegistry changeListenerRegistry,
+                    ComputeResourceState computeResourceState,
+                    HostManagementService hostManagementService,
+                    IpComparator ipComparator,
+                    ShowIpAddressState showIpAddressState
+    )
+    {
+        this.changeListenerRegistry = changeListenerRegistry;
         this.computeResourceState = computeResourceState;
         this.hostManagementService = hostManagementService;
         this.ipComparator = ipComparator;
@@ -48,29 +59,26 @@ public class HostPane extends AnchorPane implements SpringInitializableNode {
 
     @Override
     public void performIntialization() {
+        panelVBox.setAlignment(Pos.CENTER_LEFT);
         performRefresh.bind(computeResourceState.computeResourcesLoadedProperty());
-        performRefresh.addListener((obj, oldVal, newVal) -> {
+        changeListenerRegistry.add(this, performRefresh, (obj, oldVal, newVal) -> {
             if (newVal) {
                 refresh();
             }
         });
-        panelVBox.setAlignment(Pos.CENTER_LEFT);
-        computeResourceState.computeResourcesMapProperty()
-                .addListener((MapChangeListener<Long, ComputeResource>) change -> {
-                    if (change.wasAdded() && !change.wasRemoved()) {
-                        if (performRefresh.getValue()) {
-                            refresh();
-                        }
-                    } else if (!change.wasAdded() && change.wasRemoved()) {
-                        if (performRefresh.getValue()) {
-                            refresh();
-                        }
-                    }
-                });
-        showIpAddressState.showIpPropertyProperty()
-                .addListener((obj, oldVal, newVal) -> {
+        changeListenerRegistry.add(this, showIpAddressState.showIpPropertyProperty(),(obj, oldVal, newVal) -> {
+            refresh();
+        } );
+
+        MapChangeListener<Long, ComputeResource> onComputeResourceChange = change -> {
+            if (change.wasAdded() != change.wasRemoved()) {
+                if (performRefresh.getValue()) {
                     refresh();
-                });
+                }
+            }
+        };
+        computeResourceState.computeResourcesMapProperty()
+                .addListener(onComputeResourceChange);
     }
 
     private void refresh() {

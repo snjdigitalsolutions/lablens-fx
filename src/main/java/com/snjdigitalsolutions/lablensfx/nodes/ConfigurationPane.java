@@ -1,23 +1,21 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
-import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
-import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import com.snjdigitalsolutions.lablensfx.utility.FilePathValidator;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
-import javafx.collections.FXCollections;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -32,7 +30,8 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
     @FXML
     private Button deleteButton;
     @FXML
-    private TableView<ConfigurationPath> selectedPathsTable;
+    private VBox leftVBox;
+    private final ConfigurationPathTableView configurationPathTableView;
 
     private final double splitPaneDividerPosition = 0.5;
     private final FilePathValidator filePathValidator;
@@ -40,11 +39,13 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
     private final HostManagementService hostManagementService;
 
     public ConfigurationPane(@Value("classpath:/fxml/ConfigurationPane.fxml") Resource fxml,
+                             ConfigurationPathTableView configurationPathTableView,
                              FilePathValidator filePathValidator,
                              AlertUtility alertUtility,
                              HostManagementService hostManagementService
     )
     {
+        this.configurationPathTableView = configurationPathTableView;
         this.filePathValidator = filePathValidator;
         this.alertUtility = alertUtility;
         this.hostManagementService = hostManagementService;
@@ -61,24 +62,16 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
 
     private void initializeDeleteButton() {
         deleteButton.setOnAction(event -> {
-            hostManagementService.removeConfigurationPathFromSelectedResource(selectedPathsTable.getSelectionModel()
-                                                                                      .getSelectedItem());
-            selectedPathsTable.getItems()
-                    .remove(selectedPathsTable.getSelectionModel()
-                                    .getSelectedItem());
-            selectedPathsTable.getSelectionModel()
-                    .clearSelection();
+            hostManagementService.removeConfigurationPathFromSelectedResource(configurationPathTableView.getSelectedItem());
+            configurationPathTableView.removeCurrentlySelectedItem();
+            configurationPathTableView.clearSelection();
         });
     }
 
     public void loadExistingPaths() {
-        selectedPathsTable.getItems()
-                .clear();
+        configurationPathTableView.clearItems();
         hostManagementService.getConfigurationPathsForSelectedResource()
-                .forEach(path -> {
-                    selectedPathsTable.getItems()
-                            .add(path);
-                });
+                .forEach(configurationPathTableView::addItem);
     }
 
     private void initializeDivider() {
@@ -112,73 +105,12 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
     }
 
     private void initializePathTable() {
-        selectedPathsTable.setFocusTraversable(false);
-        TableColumn<ConfigurationPath, String> pathColumn = getConfigurationPathStringTableColumn();
-        pathColumn.prefWidthProperty()
-                .bind(selectedPathsTable.widthProperty()
-                              .multiply(.6));
-        TableColumn<ConfigurationPath, Boolean> elevateColumn = getConfigurationPathElevationrequiredTableColumn();
-        elevateColumn.prefWidthProperty()
-                .bind(selectedPathsTable.widthProperty()
-                              .multiply(.4)
-                              .subtract(3));
-        selectedPathsTable.getColumns()
-                .add(pathColumn);
-        selectedPathsTable.getColumns()
-                .add(elevateColumn);
-        selectedPathsTable.setItems(FXCollections.observableArrayList());
-        selectedPathsTable.getSelectionModel()
-                .selectedItemProperty()
-                .addListener((obj, oldVal, newVal) -> {
-                    if (newVal != null) {
-                        deleteButton.setDisable(false);
-                    } else {
-                        deleteButton.setDisable(true);
-                    }
-                });
+        leftVBox.getChildren()
+                .add(configurationPathTableView);
+        VBox.setVgrow(configurationPathTableView, Priority.ALWAYS);
+        ChangeListener<ConfigurationPath> changeListener = (obj, oldVal, newVal) -> {
+            deleteButton.setDisable(newVal == null);
+        };
+        configurationPathTableView.addSelectedItemChangeListener(configurationPathTableView.selectedItemProperty(), changeListener);
     }
-
-    @NonNull
-    private TableColumn<ConfigurationPath, String> getConfigurationPathStringTableColumn() {
-        TableColumn<ConfigurationPath, String> pathColumn = new TableColumn<>("Path");
-        pathColumn.setCellValueFactory(path -> path.getValue()
-                .configurationPath());
-        return pathColumn;
-    }
-
-    @NonNull
-    private TableColumn<ConfigurationPath, Boolean> getConfigurationPathElevationrequiredTableColumn() {
-        TableColumn<ConfigurationPath, Boolean> privilegeColumn = new TableColumn<>("Privilege");
-        privilegeColumn.setCellValueFactory(path -> path.getValue()
-                .requiresElevation());
-        privilegeColumn.setCellFactory(column -> new TableCell<>() {
-            private final FontAwesomeIconView privilegeIcon = new FontAwesomeIconView(FontAwesomeIcon.UNLOCK);
-            private final Label label = new Label();
-
-            {
-                label.setMaxWidth(Double.MAX_VALUE);
-                label.setAlignment(Pos.CENTER);
-                label.setGraphic(privilegeIcon);
-            }
-
-            @Override
-            protected void updateItem(Boolean item,
-                                      boolean empty
-            )
-            {
-                super.updateItem(item, empty);
-                setGraphic(null);
-                if (item != null) {
-                    if (item) {
-                        privilegeIcon.setIcon(FontAwesomeIcon.LOCK);
-                    } else {
-                        privilegeIcon.setIcon(FontAwesomeIcon.UNLOCK);
-                    }
-                    setGraphic(label);
-                }
-            }
-        });
-        return privilegeColumn;
-    }
-
 }

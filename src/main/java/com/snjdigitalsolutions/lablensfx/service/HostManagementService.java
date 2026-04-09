@@ -359,8 +359,7 @@ public class HostManagementService implements SpringInitializableNode {
                 .getFirst();
         computeResourceState.getComputeResourceHostPanelMap()
                 .get(currentlySelectedResource.getId())
-                .getStyleClass()
-                .remove("host-panel-selected");
+                .removeSelectionStyling();
         computeResourceState.getSelectedResources()
                 .clear();
         computeResourceState.getSelectedResources()

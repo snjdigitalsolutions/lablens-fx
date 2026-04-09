@@ -54,12 +54,9 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
     private ComputeResource computeResource;
 
 
-    private final StatusBarState statusBarState;
     private final HostManagementService hostManagementService;
     private final ShowIpAddressState showIpAddressState;
     private final AlertUtility alertUtility;
-    private final ComputeResourceState computeResourceState;
-    private final SelectedViewState selectedViewState;
     private final ConfigurationPane configurationPane;
     private final MenuItemSelectionState menuItemSelectionState;
     private final ViewService viewService;
@@ -68,25 +65,18 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
     private boolean selected = false;
 
     public HostPanel(@Value("classpath:/fxml/HostPanel.fxml") Resource fxml,
-                     StatusBarState statusBarState,
-                     HostPane hostPane,
                      HostManagementService hostManagementService,
                      ShowIpAddressState showIpAddressState,
                      AlertUtility alertUtility,
-                     ComputeResourceState computeResourceState,
-                     SelectedViewState selectedViewState,
                      ConfigurationPane configurationPane,
                      MenuItemSelectionState menuItemSelectionState,
                      ViewService viewService,
                      HostPanelStylingService hostPanelStylingService
     )
     {
-        this.statusBarState = statusBarState;
         this.hostManagementService = hostManagementService;
         this.showIpAddressState = showIpAddressState;
         this.alertUtility = alertUtility;
-        this.computeResourceState = computeResourceState;
-        this.selectedViewState = selectedViewState;
         this.configurationPane = configurationPane;
         this.menuItemSelectionState = menuItemSelectionState;
         this.viewService = viewService;
@@ -143,13 +133,14 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
 
     private void initializeMouseClickAction() {
         this.setOnMouseClicked(event -> {
-            // When HostPanel is previously selected
+            // HostPanel currently selected
             if (selected) {
                 selected = false;
                 hostPanelStylingService.removeSelectionStyle(this);
                 hostManagementService.removeComputeResourceFromSelectedSources(this, this.computeResource);
             } else {
-                //When multiple hosts will be selected and user not on dashboard view
+                //When multiple hosts selected and user not on dashboard view
+                LOGGER.debug("Multiple hosts being selected: " + hostManagementService.multipleHostsBeingSelected());
                 if (hostManagementService.multipleHostsBeingSelected() && !viewService.dashboardSelected()) {
                     AtomicBoolean yesResponse = new AtomicBoolean(false);
                     if (menuItemSelectionState.isConfirmConfigurationChangeSelection()) {
@@ -163,6 +154,7 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
                     } else {
                         //TODO map host panel to resource
                         hostPanelStylingService.addSelectionStyle(this);
+                        selected = true;
                         hostManagementService.clearCurrentlySelectedHostAndAddNewlySelectedHost(this, this.computeResource);
                         configurationPane.loadExistingPaths();
                     }
@@ -177,6 +169,11 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
         selected = true;
         hostPanelStylingService.addSelectionStyle(this);
         hostManagementService.addComputeResourceToSelectedSources(this, this.computeResource);
+    }
+
+    public void removeSelectionStyling() {
+        selected = false;
+        hostPanelStylingService.removeSelectionStyle(this);
     }
 
     @Override

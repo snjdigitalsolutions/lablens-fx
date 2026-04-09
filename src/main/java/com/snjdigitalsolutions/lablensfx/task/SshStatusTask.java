@@ -2,9 +2,9 @@ package com.snjdigitalsolutions.lablensfx.task;
 
 import com.snjdigitalsolutions.lablensfx.nodes.ProgressDialog;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
-import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
+import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.service.SshService;
-import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
+import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
@@ -19,11 +19,18 @@ public class SshStatusTask extends Task<Void> {
     private final ComputeResourceState computeResourceState;
     private final ProgressDialog progressDialog;
     private final SshService sshService;
+    private final HostManagementService hostManagementService;
 
-    public SshStatusTask(ComputeResourceState computeResourceState, ProgressDialog progressDialog, SshService sshService) {
+    public SshStatusTask(ComputeResourceState computeResourceState,
+                         ProgressDialog progressDialog,
+                         SshService sshService,
+                         HostManagementService hostManagementService
+    )
+    {
         this.computeResourceState = computeResourceState;
         this.progressDialog = progressDialog;
         this.sshService = sshService;
+        this.hostManagementService = hostManagementService;
     }
 
     @Override
@@ -42,45 +49,17 @@ public class SshStatusTask extends Task<Void> {
                 LOGGER.debug("ssh command response: {}", response);
                 if (!response.isEmpty()) {
                     Platform.runLater(() -> {
-                        resource.getHostPanelLarge()
-                                .getStatusIndicator()
-                                .hostSshStatusProperty()
-                                .set(SshStatus.ONLINE);
-                        computeResourceState.getComputeResourceOnlineStatusMap()
-                                .put(resource.getId(), SshStatus.ONLINE);
-                        int value = computeResourceState.getHostsOnline();
-                        computeResourceState.hostsOnlineProperty()
-                                .setValue(value + 1);
+                        hostManagementService.setResourceStateOnline(resource);
                     });
                 } else {
                     Platform.runLater(() -> {
-                        resource.getHostPanelLarge()
-                                .getStatusIndicator()
-                                .hostSshStatusProperty()
-                                .set(SshStatus.OFFLINE);
-                        computeResourceState.getComputeResourceOnlineStatusMap()
-                                .put(resource.getId(), SshStatus.OFFLINE);
-                        int value = computeResourceState.getHostsOnline();
-                        if (value > 0) {
-                            computeResourceState.hostsOnlineProperty()
-                                    .setValue(value - 1);
-                        }
+                        hostManagementService.setResourceStateOffline(resource);
                     });
                 }
             } catch (Exception e) {
                 LOGGER.error("Exception thrown when executing command", e);
                 Platform.runLater(() -> {
-                    resource.getHostPanelLarge()
-                            .getStatusIndicator()
-                            .hostSshStatusProperty()
-                            .set(SshStatus.OFFLINE);
-                    computeResourceState.getComputeResourceOnlineStatusMap()
-                            .put(resource.getId(), SshStatus.OFFLINE);
-                    int value = computeResourceState.getHostsOnline();
-                    if (value > 0) {
-                        computeResourceState.hostsOnlineProperty()
-                                .setValue(value - 1);
-                    }
+                    hostManagementService.setResourceStateOffline(resource);
                 });
             }
             LOGGER.debug("Updating {} of {}", resourceCheckIndex.get(), numberOfResources);

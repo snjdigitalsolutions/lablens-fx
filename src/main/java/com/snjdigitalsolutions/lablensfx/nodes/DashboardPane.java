@@ -48,7 +48,9 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                          ObjectProvider<HostPanelLarge> hostPanelLargeProvider,
                          ComputeResourceState computeResourceState,
                          ShowIpAddressState showIpAddressState,
-                         StatusBarState statusBarProperties) {
+                         StatusBarState statusBarProperties
+    )
+    {
         this.summaryPanelProvider = summaryPanelProvider;
         this.hostPanelLargeProvider = hostPanelLargeProvider;
         this.computeResourceState = computeResourceState;
@@ -76,7 +78,11 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                 .add(createSummaryPanel(SummaryPanelType.NUM_LOG_ERROR));
         computeResourceState.getComputeResourcesMap()
                 .addListener((MapChangeListener<Long, ComputeResource>) change -> {
-                    if (change.wasAdded() || change.wasRemoved()) {
+                    if (change.wasAdded() && !change.wasRemoved()) {
+                        if (performRefresh.getValue()) {
+                            refresh();
+                        }
+                    } else if (!change.wasAdded() && change.wasRemoved()) {
                         if (performRefresh.getValue()) {
                             refresh();
                         }
@@ -106,17 +112,20 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         return panel;
     }
 
-    private void addListenerForLabel(SummaryPanel panel, SummaryPanelType type) {
+    private void addListenerForLabel(SummaryPanel panel,
+                                     SummaryPanelType type
+    )
+    {
         switch (type) {
             case NUM_HOSTS -> {
                 computeResourceState.computeResourcesMapProperty()
                         .addListener((MapChangeListener<Long, ComputeResource>) change -> {
                             panel.setCountLabel(Integer.toString(computeResourceState.getComputeResourcesMap()
-                                    .size()));
+                                                                         .size()));
                         });
             }
             case NUM_ONLINE -> {
-                computeResourceState.hostsOnlineProperty()
+                computeResourceState.hostsOnlineCountProperty()
                         .addListener((obj, oldVal, newVal) -> {
                             panel.setCountLabel(newVal.toString());
                         });
@@ -157,9 +166,10 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                         panel.getStatusIndicator()
                                 .hostSshStatusProperty()
                                 .setValue(computeResourceState.getComputeResourceOnlineStatusMap()
-                                        .get(resource.getId()));
+                                                  .get(resource.getId()));
                     }
-                    resource.setHostPanelLarge(panel);
+                    computeResourceState.getComputeResourceHostPanelLargeMap()
+                            .put(resource.getId(), panel);
                     ipAddressToPanelMap.put(resource.getIpAddress(), panel);
                 });
 
@@ -174,6 +184,7 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
     private void clearHostPanel() {
         hostFlowPane.getChildren()
                 .clear();
-        statusBarProperties.numberOfSelectedHostsProperty().setValue(0);
+        statusBarProperties.numberOfSelectedHostsProperty()
+                .setValue(0);
     }
 }

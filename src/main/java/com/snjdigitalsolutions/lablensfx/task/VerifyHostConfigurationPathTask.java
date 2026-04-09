@@ -5,6 +5,8 @@ import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.service.command.CheckElevatedPrivilegesRequiredCommand;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import javafx.concurrent.Task;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 public class VerifyHostConfigurationPathTask extends Task<Void> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(VerifyHostConfigurationPathTask.class);
 
     private final ComputeResourceState computeResourceState;
     private final CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand;
@@ -33,34 +37,38 @@ public class VerifyHostConfigurationPathTask extends Task<Void> {
 
     @Override
     protected Void call() throws Exception {
-        long numberOfUncheckedPaths = computeResourceState.getSelectedResources()
-                .getFirst()
-                .getConfigurationPaths()
-                .stream()
-                .filter(p -> p.getElevationCheckComplete() == false)
-                .count();
-        AtomicInteger checkIndex = new AtomicInteger(1);
-        computeResourceState.getSelectedResources()
-                .forEach(resource -> {
-                    AtomicBoolean changed = new AtomicBoolean(false);
-                    resource.getConfigurationPaths()
-                            .forEach(path -> {
-                                if (!path.getElevationCheckComplete()) {
-                                    //Perform check and update
-                                    try {
-                                        path.requiresElevation().setValue(checkElevatedPrivilegesRequiredCommand.checkFilePath(resource, path.getConfigurationPath()));
-                                        path.setElevationCheckComplete(true);
-                                        changed.set(true);
-                                    } catch (Exception e) {
-                                        throw new RuntimeException(e);
+        try {
+            long numberOfUncheckedPaths = computeResourceState.getSelectedResources()
+                    .getFirst()
+                    .getConfigurationPaths()
+                    .stream()
+                    .filter(p -> p.getElevationCheckComplete() == false)
+                    .count();
+            AtomicInteger checkIndex = new AtomicInteger(1);
+            computeResourceState.getSelectedResources()
+                    .forEach(resource -> {
+                        AtomicBoolean changed = new AtomicBoolean(false);
+                        resource.getConfigurationPaths()
+                                .forEach(path -> {
+                                    if (!path.getElevationCheckComplete()) {
+                                        //Perform check and update
+                                        try {
+                                            path.requiresElevation().setValue(checkElevatedPrivilegesRequiredCommand.checkFilePath(resource, path.getConfigurationPath()));
+                                            path.setElevationCheckComplete(true);
+                                            changed.set(true);
+                                        } catch (Exception e) {
+                                            throw new RuntimeException(e);
+                                        }
                                     }
-                                }
-                                updateProgress(checkIndex.getAndIncrement(), numberOfUncheckedPaths);
-                            });
-                    if (changed.get()){
-                        changedComputeResources.add(resource);
-                    }
-                });
+                                    updateProgress(checkIndex.getAndIncrement(), numberOfUncheckedPaths);
+                                });
+                        if (changed.get()){
+                            changedComputeResources.add(resource);
+                        }
+                    });
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage());
+        }
         return null;
     }
 

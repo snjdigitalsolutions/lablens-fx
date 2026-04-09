@@ -31,7 +31,12 @@
                   <items>
                     <MenuItem fx:id="deleteSelectedHostsMenuItem" mnemonicParsing="false" text="Delete Selected Hosts" />
                         <MenuItem fx:id="verifyPathPrivilegeMenuItem" mnemonicParsing="false" text="Verify Host Path Privileges" />
-                        <MenuItem fx:id="showHideIpMenuItem" mnemonicParsing="false" text="Unspecified Action">
+                        <MenuItem fx:id="confirmConfigurationSelectionChangesMenuItem" mnemonicParsing="false" text="Confirm Configuration Selection Change">
+                           <graphic>
+                              <FontAwesomeIconView fx:id="confirmChangeIconView" glyphName="TIMES" />
+                           </graphic>
+                        </MenuItem>
+                        <MenuItem fx:id="showHideIpMenuItem" mnemonicParsing="false" text="Show IP Addresses">
                            <graphic>
                               <FontAwesomeIconView fx:id="showHideIpIconView" />
                            </graphic>
@@ -48,10 +53,10 @@
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                <children>
                   <Label style="-fx-font-weight: bold; -fx-font-size: 24px;" text="LabLens" />
-                  <Button fx:id="dashboardButton" mnemonicParsing="false" text="Dashboard" />
-                  <Button fx:id="configButton" mnemonicParsing="false" text="Configs" />
-                  <Button fx:id="logButton" mnemonicParsing="false" text="Logs" />
-                  <Button fx:id="timelineButton" mnemonicParsing="false" text="Timeline" />
+                  <Button fx:id="dashboardButton" focusTraversable="false" mnemonicParsing="false" text="Dashboard" />
+                  <Button fx:id="configButton" focusTraversable="false" mnemonicParsing="false" text="Configs" />
+                  <Button fx:id="logButton" focusTraversable="false" mnemonicParsing="false" text="Logs" />
+                  <Button fx:id="timelineButton" focusTraversable="false" mnemonicParsing="false" text="Timeline" />
                   <Region HBox.hgrow="ALWAYS">
                      <HBox.margin>
                         <Insets top="10.0" />

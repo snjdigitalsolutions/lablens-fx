@@ -2,6 +2,7 @@ package com.snjdigitalsolutions.lablensfx.orm;
 
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanelLarge;
+import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,25 +34,5 @@ public class ComputeResource {
     @OneToMany(mappedBy = "computeResource", fetch = FetchType.EAGER,
             cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ConfigurationPath> configurationPaths = new ArrayList<>();
-
-    @Transient
-    private HostPanel hostPanel;
-    @Transient
-    private HostPanelLarge hostPanelLarge;
-
-    public void updateHostPanels() {
-        hostPanel.hostnameProperty()
-                .setValue(hostName);
-        hostPanel.ipAddressProperty()
-                .setValue(ipAddress);
-        hostPanelLarge.hostnameProperty()
-                .setValue(hostName);
-        hostPanelLarge.ipAddressProperty()
-                .setValue(ipAddress);
-        hostPanelLarge.descriptionProperty()
-                .setValue(description);
-        hostPanelLarge.sshPortProperty()
-                .setValue(sshPort);
-    }
 
 }

@@ -141,7 +141,7 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                 .values()
                 .forEach(resource -> {
                     HostPanelLarge panel = hostPanelLargeProvider.getObject();
-                    panel.performInitialization();
+                    panel.performInitialization(resource.getId());
                     panel.hostnameProperty()
                             .setValue(resource.getHostName());
                     if (showIpAddressState.isShowIpProperty()) {
@@ -157,7 +157,6 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                             .setValue(resource.getSshPort());
                     panel.sshToggleValueProperty()
                             .setValue(resource.getSshCommunicate() == 1);
-                    panel.setComputeResourceId(resource.getId());
                     panel.addToggleListener();
                     panel.getStyleClass()
                             .add("host-panel");
@@ -171,6 +170,7 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                     computeResourceState.getComputeResourceHostPanelLargeMap()
                             .put(resource.getId(), panel);
                     ipAddressToPanelMap.put(resource.getIpAddress(), panel);
+
                 });
 
         List<String> ipAddresses = new ArrayList<>(ipAddressToPanelMap.keySet());

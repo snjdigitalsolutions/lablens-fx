@@ -9,10 +9,14 @@ import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ComputeResourceState {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ComputeResourceState.class);
 
     private final MapProperty<Long, ComputeResource> computeResourcesMap = new SimpleMapProperty<>(FXCollections.observableHashMap());
     private final MapProperty<Long, SshStatus> computeResourceOnlineStatusMap = new SimpleMapProperty<>(FXCollections.observableHashMap());
@@ -123,6 +127,7 @@ public class ComputeResourceState {
         computeResourcesMap.put(savedResource.getId(), savedResource);
         HostPanel mappedPanel = computeResourceHostPanelMap.get(savedResource.getId());
         hostPanelToComputeResourceMap.put(mappedPanel, savedResource);
+        LOGGER.debug("Updated compute resource: {}", savedResource.getIpAddress());
     }
 
     public void addNewComputeResource(ComputeResource computeResource) {

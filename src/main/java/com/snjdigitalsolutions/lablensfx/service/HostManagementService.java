@@ -196,7 +196,7 @@ public class HostManagementService implements SpringInitializableNode {
                 progressDialog.getProgressBar()
                         .progressProperty()
                         .bind(statusTask.progressProperty());
-                TaskStarter.startTask(statusTask);
+                Thread.ofVirtual().start(statusTask);
                 StageNodeBuilder.builder()
                         .setModality(Modality.APPLICATION_MODAL)
                         .setResizable(false)
@@ -211,7 +211,7 @@ public class HostManagementService implements SpringInitializableNode {
 
     public void verifyHostSshStatus(Long resourceID) {
         SshStatusForSingleHostTask task = new SshStatusForSingleHostTask(resourceID, computeResourceState, sshService, this);
-        TaskStarter.startTask(task);
+        Thread.ofVirtual().start(task);
     }
 
     public void changeHostSshStatusToUnknown(HostPanelLarge panel,

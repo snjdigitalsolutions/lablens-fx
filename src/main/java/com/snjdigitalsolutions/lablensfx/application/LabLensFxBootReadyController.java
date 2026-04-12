@@ -27,7 +27,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 public class LabLensFxBootReadyController implements SpringInitializableNode {
@@ -226,7 +225,8 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                     initializeConfirmConfigurationSelectionChangeAfterSettingsLoaded();
                 });
 
-        settingState.settingsLoadedProperty().setValue(true);
+        settingState.settingsLoadedProperty()
+                .setValue(true);
     }
 
     private void initializePrivilegeMenuItem() {
@@ -304,7 +304,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     }
 
     private void initializeShowHideIpMenuItemAfterSettingsLoaded() {
-        if (settingState.isShowIPs()){
+        if (settingState.isShowIPs()) {
             showHideIpIconView.setIcon(FontAwesomeIcon.CHECK);
             showIpAddressState.showIpPropertyProperty()
                     .setValue(true);
@@ -331,24 +331,28 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     }
 
     private void initializeConfirmConfigurationSelectionChangeAfterSettingsLoaded() {
-        if (settingState.isPromptWhenConfigSelectionChanges()){
+        if (settingState.isPromptWhenConfigSelectionChanges()) {
             confirmChangeIconView.setIcon(FontAwesomeIcon.CHECK);
-            menuItemSelectionState.confirmConfigurationChangeSelectionProperty().setValue(true);
+            menuItemSelectionState.confirmConfigurationChangeSelectionProperty()
+                    .setValue(true);
         } else {
             confirmChangeIconView.setIcon(FontAwesomeIcon.TIMES);
-            menuItemSelectionState.confirmConfigurationChangeSelectionProperty().setValue(false);
+            menuItemSelectionState.confirmConfigurationChangeSelectionProperty()
+                    .setValue(false);
         }
         confirmConfigurationSelectionChangesMenuItem.setOnAction(event -> {
             if (menuItemSelectionState.isConfirmConfigurationChangeSelection()) {
                 confirmChangeIconView.setIcon(FontAwesomeIcon.TIMES);
                 menuItemSelectionState.confirmConfigurationChangeSelectionProperty()
                         .setValue(false);
-                settingState.promptWhenConfigSelectionChangesProperty().setValue(false);
+                settingState.promptWhenConfigSelectionChangesProperty()
+                        .setValue(false);
             } else {
                 confirmChangeIconView.setIcon(FontAwesomeIcon.CHECK);
                 menuItemSelectionState.confirmConfigurationChangeSelectionProperty()
                         .setValue(true);
-                settingState.promptWhenConfigSelectionChangesProperty().setValue(true);
+                settingState.promptWhenConfigSelectionChangesProperty()
+                        .setValue(true);
             }
         });
     }

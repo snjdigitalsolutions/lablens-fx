@@ -5,9 +5,12 @@ import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
+import com.snjdigitalsolutions.lablensfx.service.command.CheckElevatedPrivilegesRequiredCommand;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
+import com.snjdigitalsolutions.lablensfx.task.VerifySingleHostConfigurationPathTask;
 import com.snjdigitalsolutions.lablensfx.utility.FilePathValidator;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
+import com.snjdigitalsolutions.springbootutilityfx.node.utility.TaskStarter;
 import javafx.scene.control.TextField;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -24,12 +27,14 @@ public class ConfigurationPaneService {
     private final FilePathValidator filePathValidator;
     private final AlertUtility alertUtility;
     private final ConfigurationPathTableView configurationPathTableView;
+    private final CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand;
 
     public ConfigurationPaneService(ComputeResourceState computeResourceState,
                                     ComputeResourceRepository computeResourceRepository,
                                     FilePathValidator filePathValidator,
                                     AlertUtility alertUtility,
-                                    ConfigurationPathTableView configurationPathTableView
+                                    ConfigurationPathTableView configurationPathTableView,
+                                    CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand
     )
     {
         this.computeResourceState = computeResourceState;
@@ -37,6 +42,7 @@ public class ConfigurationPaneService {
         this.filePathValidator = filePathValidator;
         this.alertUtility = alertUtility;
         this.configurationPathTableView = configurationPathTableView;
+        this.checkElevatedPrivilegesRequiredCommand = checkElevatedPrivilegesRequiredCommand;
     }
 
     public void removeConfigurationPathFromSelectedResource(ConfigurationPath configurationPath) {
@@ -102,6 +108,10 @@ public class ConfigurationPaneService {
             } else {
                 filePathTextField.clear();
                 loadExistingPaths();
+
+                //Start task for verifying privilege
+                VerifySingleHostConfigurationPathTask singleHostConfigurationPathTask = new VerifySingleHostConfigurationPathTask(checkElevatedPrivilegesRequiredCommand, computeResourceState);
+                Thread.ofVirtual().start(singleHostConfigurationPathTask);
             }
         } else {
             alertUtility.warningAlert("Invalid Path", "The path entered is not a valid system path.");

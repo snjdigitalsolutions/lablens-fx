@@ -46,6 +46,35 @@ class SshServiceTest extends AbstractTest {
 
     @Test
     @Order(3)
+    void executeSudoCommand() throws Exception {
+        //Arrange
+
+        //Act
+        String response = sshService.executeSudoCommand(testhost, 22, "ls -al /root");
+
+        //Assert
+        assertNotNull(response);
+        assertFalse(response.isEmpty());
+        System.out.println(response);
+    }
+
+    @Test
+    @Order(4)
+    void testSessionReuse() throws Exception {
+        //Arrange
+
+        //Act
+        String response1 = sshService.executeCommand(testhost, 22, "whoami");
+        String response = sshService.executeSudoCommand(testhost, 22, "ls -al /root");
+
+        //Assert
+        assertNotNull(response);
+        assertFalse(response.isEmpty());
+        System.out.println(response);
+    }
+
+    @Test
+    @Order(5)
     void shutdown() throws IOException {
         //Arrange
 

@@ -85,20 +85,7 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
 
     private void initializeAddButton() {
         addButton.setOnAction(event -> {
-            if (filePathValidator.isValid(filePathTextField.getText())) {
-                ConfigurationPath path = new ConfigurationPath();
-                path.setConfigurationPath(filePathTextField.getText());
-                path.setRequiresElevation(false);
-                path.setElevationCheckComplete(false);
-                if (!configurationPaneService.addPathToSelectedResource(path)) {
-                    alertUtility.warningAlert("Not Added", "Unable to add configuration path to host. Check for duplicate entry");
-                } else {
-                    filePathTextField.clear();
-                    configurationPaneService.loadExistingPaths();
-                }
-            } else {
-                alertUtility.warningAlert("Invalid Path", "The path entered is not a valid system path.");
-            }
+            configurationPaneService.addButtonAction(filePathTextField);
         });
     }
 

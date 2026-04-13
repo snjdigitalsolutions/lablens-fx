@@ -2,6 +2,8 @@ package com.snjdigitalsolutions.lablensfx.state;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.service.command.CheckElevatedPrivilegesRequiredCommand;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -9,6 +11,8 @@ import java.util.Map;
 
 @Component
 public class ElevatedPrivilegedPathState {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ElevatedPrivilegedPathState.class);
 
     private final Map<ComputeResource, Map<String, Boolean>> computerToPathMap = new HashMap<>();
     private final CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand;
@@ -38,6 +42,7 @@ public class ElevatedPrivilegedPathState {
     public boolean checkElevationRequired(ComputeResource computeResource, String path) throws Exception {
         boolean elevationRequired = false;
         try {
+            LOGGER.debug("Hostname: {}", computeResource.getHostName());
             elevationRequired = checkElevatedPrivilegesRequiredCommand.checkFilePath(computeResource, path);
             computerToPathMap.get(computeResource)
                     .put(path, elevationRequired);

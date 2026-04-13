@@ -14,6 +14,7 @@ import com.snjdigitalsolutions.lablensfx.utility.SshKeyLoader;
 import com.snjdigitalsolutions.springbootutilityfx.configuration.SpringBootUtilityConfiguration;
 import javafx.application.Platform;
 import org.junit.jupiter.api.BeforeAll;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,12 +26,16 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 public class AbstractTest {
 
+    private static final AtomicBoolean platformStarted = new AtomicBoolean(false);
+
     @Value("${application.ssh.username}")
     protected String username;
     @Value("${application.ssh.passphrase}")
     protected String passPhrase;
     @Value("${application.ssh.testhost}")
     protected String testhost;
+    @Value("${application.ssh.testip}")
+    protected String ipAddress;
 
     @Autowired
     protected KeyDirectoryProvider keyDirectoryProvider;
@@ -59,13 +64,9 @@ public class AbstractTest {
 
     @BeforeAll
     static void initToolkit() {
-            try {
-                Platform.startup(() -> {
-
-                });
-            } catch (Exception e) {
-                System.out.println("Platform already started");
-            }
+        if (platformStarted.compareAndSet(false, true)) {
+            Platform.startup(() -> {});
+        }
     }
 
     public void setSshProperties(){

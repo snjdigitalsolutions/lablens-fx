@@ -20,10 +20,11 @@ class CheckElevatedPrivilegesRequiredCommandTest extends AbstractTest {
     void executeCommand() {
         //Arrange
         when(computeResource.getHostName()).thenReturn(testhost);
+        when(computeResource.getIpAddress()).thenReturn(ipAddress);
         when(computeResource.getSshPort()).thenReturn(22);
 
         //Act
-        Exception ex = assertThrows(Exception.class, () -> checkElevatedPrivilegesRequiredCommand.executeCommand(computeResource));
+        Exception ex = assertThrows(Exception.class, () -> checkElevatedPrivilegesRequiredCommand.executeCommand(computeResource, ""));
 
         //Assert
         assertThat(ex.getMessage()).contains("File path cannot be blank");
@@ -36,6 +37,7 @@ class CheckElevatedPrivilegesRequiredCommandTest extends AbstractTest {
         setSshProperties();
         sshService.init();
         when(computeResource.getHostName()).thenReturn(testhost);
+        when(computeResource.getIpAddress()).thenReturn(ipAddress);
         when(computeResource.getSshPort()).thenReturn(22);
 
         //Act
@@ -48,7 +50,10 @@ class CheckElevatedPrivilegesRequiredCommandTest extends AbstractTest {
     @Test
     void checkFilePathElevationRequired() throws Exception {
         //Arrange
+        setSshProperties();
+        sshService.init();
         when(computeResource.getHostName()).thenReturn(testhost);
+        when(computeResource.getIpAddress()).thenReturn(ipAddress);
         when(computeResource.getSshPort()).thenReturn(22);
 
         //Act

@@ -22,10 +22,8 @@ public class ListFileCommand extends AbstractCommand {
     }
 
     @Override
-    public String executeCommand(ComputeResource computeResource) throws Exception {
+    public String executeCommand(ComputeResource computeResource, String command) throws Exception {
         if (!filePath.isEmpty()){
-
-            String command = "find " + filePath + " -type f -printf \"%T+ %m %y %f %s\n\"";
             return sshService.executeCommand(computeResource.getHostName(), computeResource.getSshPort(), command);
         } else {
             throw new RuntimeException("File path cannot be blank. Use listFiles() to set file path and resource.");
@@ -35,7 +33,8 @@ public class ListFileCommand extends AbstractCommand {
     public List<String> listFiles(ComputeResource resource, String filePath) throws Exception {
         this.filePath = filePath;
         List<String> fieList = new ArrayList<>();
-        String listingContent = executeCommand(resource);
+        String command = "find " + filePath + " -type f -printf \"%T+ %m %y %f %s\n\"";
+        String listingContent = executeCommand(resource, command);
         if (!listingContent.isEmpty()) {
             fieList.addAll(Arrays.asList(listingContent.split("\n")));
         }

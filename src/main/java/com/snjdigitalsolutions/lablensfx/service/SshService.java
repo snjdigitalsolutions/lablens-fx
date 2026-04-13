@@ -90,7 +90,12 @@ public class SshService {
                                                        int port
     )
     {
-        Optional<ClientSession> optionalSession = Optional.ofNullable(activeSessions.get(host));
+        Optional<ClientSession> optionalSession;
+        if (host == null){
+            optionalSession = Optional.empty();
+        } else {
+            optionalSession = Optional.ofNullable(activeSessions.get(host));
+        }
         try {
             if (optionalSession.isPresent() && optionalSession.get()
                     .isClosed()) {
@@ -111,15 +116,6 @@ public class SshService {
             LOGGER.error("Exception creating session for host: {}", host);
         }
         return optionalSession;
-    }
-
-    public String executeCommandWithConsumer(String host,
-                                             int port,
-                                             String command,
-                                             Consumer<String> consumer
-    ) throws Exception
-    {
-        return "";
     }
 
     /**

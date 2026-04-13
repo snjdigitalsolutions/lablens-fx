@@ -4,14 +4,7 @@ import javafx.application.Platform;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-class LablensFxBootTests {
-
-    @BeforeAll
-    static void initToolkit() {
-        Platform.startup(() -> {
-
-        });
-    }
+class LablensFxBootTests extends AbstractTest{
 
     @Test
     void contextLoads() {

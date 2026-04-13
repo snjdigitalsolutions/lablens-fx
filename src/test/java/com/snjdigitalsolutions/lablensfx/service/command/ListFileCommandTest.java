@@ -28,7 +28,7 @@ class ListFileCommandTest extends AbstractTest {
         when(computeResource.getSshPort()).thenReturn(22);
 
         //Act
-        Exception ex = assertThrows(Exception.class, () -> listFileCommand.executeCommand(computeResource));
+        Exception ex = assertThrows(Exception.class, () -> listFileCommand.executeCommand(computeResource, ""));
 
         //Assert
         assertThat(ex.getMessage()).contains("File path cannot be blank");

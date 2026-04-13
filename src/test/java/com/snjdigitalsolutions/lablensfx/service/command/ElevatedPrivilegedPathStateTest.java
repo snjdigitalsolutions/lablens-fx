@@ -24,6 +24,7 @@ class ElevatedPrivilegedPathStateTest extends AbstractTest {
         setSshProperties();
         sshService.init();
         when(computeResource.getHostName()).thenReturn(testhost);
+        when(computeResource.getIpAddress()).thenReturn(ipAddress);
         when(computeResource.getSshPort()).thenReturn(22);
 
         //Act
@@ -40,6 +41,7 @@ class ElevatedPrivilegedPathStateTest extends AbstractTest {
         setSshProperties();
         sshService.init();
         when(computeResource.getHostName()).thenReturn(testhost);
+        when(computeResource.getIpAddress()).thenReturn(ipAddress);
         when(computeResource.getSshPort()).thenReturn(22);
 
         //Act
@@ -59,6 +61,7 @@ class ElevatedPrivilegedPathStateTest extends AbstractTest {
         setSshProperties();
         sshService.init();
         when(computeResource.getHostName()).thenReturn(testhost);
+        when(computeResource.getIpAddress()).thenReturn(ipAddress);
         when(computeResource.getSshPort()).thenReturn(22);
 
         //Act

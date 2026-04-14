@@ -10,28 +10,42 @@ import org.apache.sshd.client.keyverifier.AcceptAllServerKeyVerifier;
 import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.config.keys.FilePasswordProvider;
 import org.apache.sshd.common.keyprovider.FileKeyPairProvider;
+import org.apache.sshd.common.session.SessionHeartbeatController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 @Service
 public class SshService {
 
+    @Value("${application.ssh.sudokey}")
+    private String sudoKey;
     private static final Logger LOGGER = LoggerFactory.getLogger(SshService.class);
     private final SshState sshState;
     private final SshKeyLoader sshKeyLoader;
     private SshClient client;
     private boolean clientInitialized = false;
+    private final Map<String, ClientSession> activeSessions = new ConcurrentHashMap<>();
 
-    public SshService(SshState sshState, SshKeyLoader sshKeyLoader) {
+    public SshService(SshState sshState,
+                      SshKeyLoader sshKeyLoader
+    )
+    {
         this.sshState = sshState;
         this.sshKeyLoader = sshKeyLoader;
     }
@@ -40,6 +54,7 @@ public class SshService {
         if (!clientInitialized) {
             client = SshClient.setUpDefaultClient();
             client.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
+            client.setSessionHeartbeat(SessionHeartbeatController.HeartbeatType.IGNORE, Duration.ofSeconds(30));
             List<Path> availableKeyPaths = sshKeyLoader.getAvailableKeyFilePaths();
             if (availableKeyPaths.isEmpty()) {
                 LOGGER.error("No key files available");
@@ -71,39 +86,99 @@ public class SshService {
         return success;
     }
 
+    private Optional<ClientSession> getOrCreateSession(String host,
+                                                       int port
+    )
+    {
+        Optional<ClientSession> optionalSession;
+        if (host == null){
+            optionalSession = Optional.empty();
+        } else {
+            optionalSession = Optional.ofNullable(activeSessions.get(host));
+        }
+        try {
+            if (optionalSession.isPresent() && optionalSession.get()
+                    .isClosed()) {
+                activeSessions.remove(host);
+                LOGGER.debug("Removed active session for: {}", host);
+            }
+
+
+            optionalSession = Optional.ofNullable(client.connect(sshState.getSshUsername(), host, port)
+                                                          .verify(10, TimeUnit.SECONDS)
+                                                          .getSession());
+            if (optionalSession.isPresent()) {
+                optionalSession.get()
+                        .auth()
+                        .verify(10, TimeUnit.SECONDS);
+            }
+        } catch (Exception ex) {
+            LOGGER.error("Exception creating session for host: {}", host);
+        }
+        return optionalSession;
+    }
+
     /**
      * Opens a session to the given host and runs a command, returning its output.
      * Closes the session when done — call this per-command for simple use cases.
      */
-    public String executeCommand(String host, int port, String command) throws Exception {
+    public String executeCommand(String host,
+                                 int port,
+                                 String command
+    ) throws Exception
+    {
         String response = "";
-        if (clientInitialized){
-            try (ClientSession session = client.connect(sshState.getSshUsername(), host, port)
-                    .verify(10, TimeUnit.SECONDS)
-                    .getSession()) {
-
-                session.auth()
+        Optional<ClientSession> optionalSession = getOrCreateSession(host, port);
+        if (clientInitialized && optionalSession.isPresent()) {
+            ClientSession session = optionalSession.get();
+            try (ByteArrayOutputStream stdout = new ByteArrayOutputStream(); ByteArrayOutputStream stderr = new ByteArrayOutputStream(); ChannelExec channel = session.createExecChannel(command)) {
+                channel.setOut(stdout);
+                channel.setErr(stderr);
+                channel.open()
                         .verify(10, TimeUnit.SECONDS);
-
-                try (ByteArrayOutputStream stdout = new ByteArrayOutputStream(); ByteArrayOutputStream stderr = new ByteArrayOutputStream(); ChannelExec channel = session.createExecChannel(command)) {
-                    channel.setOut(stdout);
-                    channel.setErr(stderr);
-                    channel.open()
-                            .verify(10, TimeUnit.SECONDS);
-
-                    // Wait for the command to finish (or timeout after 30 s)
-                    channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED), TimeUnit.SECONDS.toMillis(30));
-
-                    if (stderr.size() > 0) {
-                        LOGGER.warn("stderr from [{}]: {}", command, stderr);
-                    }
-
-                    response = stdout.toString(StandardCharsets.UTF_8);
+                // Wait for the command to finish (or timeout after 30 s)
+                channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED), TimeUnit.SECONDS.toMillis(30));
+                if (stderr.size() > 0) {
+                    LOGGER.warn("stderr from [{}]: {}", command, stderr);
                 }
+                response = stdout.toString(StandardCharsets.UTF_8);
             }
         } else {
             throw new RuntimeException("SSH client not initialized");
         }
-       return response;
+        return response;
+    }
+
+    public String executeSudoCommand(String host,
+                                     int port,
+                                     String command
+    ) throws Exception
+    {
+        String response = "";
+        Optional<ClientSession> optionalSession = getOrCreateSession(host, port);
+        if (clientInitialized && optionalSession.isPresent()) {
+            ClientSession session = optionalSession.get();
+            command = "sudo -S -p '' " + command;
+            try (ByteArrayOutputStream stdout = new ByteArrayOutputStream(); ByteArrayOutputStream stderr = new ByteArrayOutputStream(); ChannelExec channel = session.createExecChannel(command)) {
+                channel.setOut(stdout);
+                channel.setErr(stderr);
+
+                // Write password to stdin before opening so it's ready immediately
+                byte[] passwordBytes = (sudoKey + "\n").getBytes(StandardCharsets.UTF_8);
+                channel.setIn(new ByteArrayInputStream(passwordBytes));
+
+                channel.open()
+                        .verify(10, TimeUnit.SECONDS);
+                // Wait for the command to finish (or timeout after 30 s)
+                channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED), TimeUnit.SECONDS.toMillis(30));
+                if (stderr.size() > 0) {
+                    LOGGER.warn("stderr from [{}]: {}", command, stderr);
+                }
+                response = stdout.toString(StandardCharsets.UTF_8);
+            }
+        } else {
+            throw new RuntimeException("SSH client not initialized");
+        }
+        return response;
     }
 }

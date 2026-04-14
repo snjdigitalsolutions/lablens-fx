@@ -10,33 +10,26 @@ import org.springframework.stereotype.Component;
 public class CheckElevatedPrivilegesRequiredCommand extends AbstractCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CheckElevatedPrivilegesRequiredCommand.class);
-    private String filePath = "";
 
     public CheckElevatedPrivilegesRequiredCommand(SshService sshService) {
         super(sshService);
     }
 
-    @Override
-    public String executeCommand(ComputeResource computeResource) throws Exception {
-        if (!filePath.isEmpty()) {
-            String command = "test -r " + filePath + " || echo \"ELEVATION_REQUIRED\"";
-            return sshService.executeCommand(computeResource.getIpAddress(), computeResource.getSshPort(), command);
-        } else {
-            throw new RuntimeException("File path cannot be blank. Use checkFilePath() to set file path and resource.");
-        }
-    }
-
-    public boolean checkFilePath(ComputeResource computeResource, String path) throws Exception {
+    public boolean checkFilePath(ComputeResource computeResource, String filePath) throws Exception {
         boolean elevationRequired = false;
-        this.filePath = path;
-        String response = null;
-        try {
-            response = executeCommand(computeResource);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        if (response.contains("ELEVATION_REQUIRED")) {
-            elevationRequired = true;
+        if (!filePath.isEmpty()) {
+            LOGGER.debug("Hostname: {}", computeResource.getHostName());
+            String response = null;
+            try {
+                response = executeCommand(computeResource, "test -r " + filePath + " || echo \"ELEVATION_REQUIRED\"");
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            if (response.contains("ELEVATION_REQUIRED")) {
+                elevationRequired = true;
+            }
+        } else {
+            throw new RuntimeException("File path cannot be blank");
         }
         return elevationRequired;
     }

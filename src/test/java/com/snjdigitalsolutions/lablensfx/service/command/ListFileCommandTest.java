@@ -25,10 +25,11 @@ class ListFileCommandTest extends AbstractTest {
     void executeCommand() {
         //Arrange
         when(computeResource.getHostName()).thenReturn(testhost);
+        when(computeResource.getIpAddress()).thenReturn(ipAddress);
         when(computeResource.getSshPort()).thenReturn(22);
 
         //Act
-        Exception ex = assertThrows(Exception.class, () -> listFileCommand.executeCommand(computeResource));
+        Exception ex = assertThrows(Exception.class, () -> listFileCommand.executeCommand(computeResource, ""));
 
         //Assert
         assertThat(ex.getMessage()).contains("File path cannot be blank");
@@ -41,10 +42,11 @@ class ListFileCommandTest extends AbstractTest {
         setSshProperties();
         sshService.init();
         when(computeResource.getHostName()).thenReturn(testhost);
+        when(computeResource.getIpAddress()).thenReturn(ipAddress);
         when(computeResource.getSshPort()).thenReturn(22);
 
         //Act
-        List<String> files = listFileCommand.listFiles(computeResource, "/etc/nginx/conf.d");
+        List<String> files = listFileCommand.listFiles(computeResource, "/etc/nginx/conf.d", false);
 
         //Assert
         assertFalse(files.isEmpty());

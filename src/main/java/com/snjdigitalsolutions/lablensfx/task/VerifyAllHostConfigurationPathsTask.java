@@ -14,9 +14,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-public class VerifyHostConfigurationPathTask extends Task<Void> {
+public class VerifyAllHostConfigurationPathsTask extends Task<Void> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(VerifyHostConfigurationPathTask.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(VerifyAllHostConfigurationPathsTask.class);
 
     private final ComputeResourceState computeResourceState;
     private final CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand;
@@ -24,10 +24,10 @@ public class VerifyHostConfigurationPathTask extends Task<Void> {
     private final Consumer<List<ComputeResource>> onSuccess;
     private final List<ComputeResource> changedComputeResources;
 
-    public VerifyHostConfigurationPathTask(ComputeResourceState computeResourceState,
-                                           CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand,
-                                           ProgressDialog progressDialog,
-                                           Consumer<List<ComputeResource>> onSuccess) {
+    public VerifyAllHostConfigurationPathsTask(ComputeResourceState computeResourceState,
+                                               CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand,
+                                               ProgressDialog progressDialog,
+                                               Consumer<List<ComputeResource>> onSuccess) {
         this.computeResourceState = computeResourceState;
         this.checkElevatedPrivilegesRequiredCommand = checkElevatedPrivilegesRequiredCommand;
         this.progressDialog = progressDialog;

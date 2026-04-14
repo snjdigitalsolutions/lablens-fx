@@ -4,7 +4,7 @@ import com.snjdigitalsolutions.lablensfx.nodes.ProgressDialog;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
 import com.snjdigitalsolutions.lablensfx.service.command.CheckElevatedPrivilegesRequiredCommand;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
-import com.snjdigitalsolutions.lablensfx.task.VerifyHostConfigurationPathTask;
+import com.snjdigitalsolutions.lablensfx.task.VerifyAllHostConfigurationPathsTask;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.StageNodeBuilder;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.TaskStarter;
 import javafx.concurrent.Task;
@@ -39,9 +39,9 @@ public class VerifyHostConfigurationService implements TaskStartingService {
                 .setTitle("Unchecked Paths")
                 .setNode(progressDialog)
                 .buildAndShow();
-        Task<Void> task = new VerifyHostConfigurationPathTask(computeResourceState,
-                checkElevatedPrivilegesRequiredCommand,
-                progressDialog, list -> {
+        Task<Void> task = new VerifyAllHostConfigurationPathsTask(computeResourceState,
+                                                                  checkElevatedPrivilegesRequiredCommand,
+                                                                  progressDialog, list -> {
                     list.forEach(computeResource -> {
                         computeResourceState.updateComputeResource(computeResource);
                     });
@@ -55,6 +55,6 @@ public class VerifyHostConfigurationService implements TaskStartingService {
                 task.cancel();
             }
         });
-        TaskStarter.startTask(task);
+        Thread.ofVirtual().start(task);
     }
 }

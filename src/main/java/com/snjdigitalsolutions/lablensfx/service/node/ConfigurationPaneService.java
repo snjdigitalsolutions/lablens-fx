@@ -2,11 +2,16 @@ package com.snjdigitalsolutions.lablensfx.service.node;
 
 import com.snjdigitalsolutions.lablensfx.nodes.ConfigurationPathTableView;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
+import com.snjdigitalsolutions.lablensfx.nodes.PathFilesTableView;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
+import com.snjdigitalsolutions.lablensfx.orm.model.FileSystemObjectModel;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
 import com.snjdigitalsolutions.lablensfx.service.command.CheckElevatedPrivilegesRequiredCommand;
+import com.snjdigitalsolutions.lablensfx.service.command.ListFileCommand;
+import com.snjdigitalsolutions.lablensfx.service.command.commandparser.ListFileParser;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
+import com.snjdigitalsolutions.lablensfx.task.ListFilesTask;
 import com.snjdigitalsolutions.lablensfx.task.VerifySingleHostConfigurationPathTask;
 import com.snjdigitalsolutions.lablensfx.utility.FilePathValidator;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
@@ -28,13 +33,17 @@ public class ConfigurationPaneService {
     private final AlertUtility alertUtility;
     private final ConfigurationPathTableView configurationPathTableView;
     private final CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand;
+    private final ListFileCommand listFileCommand;
+    private final ListFileParser listFileParser;
 
     public ConfigurationPaneService(ComputeResourceState computeResourceState,
                                     ComputeResourceRepository computeResourceRepository,
                                     FilePathValidator filePathValidator,
                                     AlertUtility alertUtility,
                                     ConfigurationPathTableView configurationPathTableView,
-                                    CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand
+                                    CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand,
+                                    ListFileCommand listFileCommand,
+                                    ListFileParser listFileParser
     )
     {
         this.computeResourceState = computeResourceState;
@@ -43,6 +52,8 @@ public class ConfigurationPaneService {
         this.alertUtility = alertUtility;
         this.configurationPathTableView = configurationPathTableView;
         this.checkElevatedPrivilegesRequiredCommand = checkElevatedPrivilegesRequiredCommand;
+        this.listFileCommand = listFileCommand;
+        this.listFileParser = listFileParser;
     }
 
     public void removeConfigurationPathFromSelectedResource(ConfigurationPath configurationPath) {
@@ -130,6 +141,22 @@ public class ConfigurationPaneService {
     public void loadExistingPaths() {
         configurationPathTableView.clearItems();
         getConfigurationPathsForSelectedResource().forEach(configurationPathTableView::addItem);
+    }
+
+    public void listFilesForConfigurationPath(PathFilesTableView pathFilesTableView, ConfigurationPath configurationPath) {
+        try {
+            ListFilesTask listTask = new ListFilesTask(listFileCommand, listFileParser, computeResourceState, configurationPath, response -> {
+                List<FileSystemObjectModel> models = new ArrayList<>();
+                response.forEach(file -> {
+                   models.add(new FileSystemObjectModel(file));
+                   pathFilesTableView.getItems().clear();
+                   pathFilesTableView.getItems().addAll(models);
+               });
+            });
+            Thread.ofVirtual().start(listTask);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

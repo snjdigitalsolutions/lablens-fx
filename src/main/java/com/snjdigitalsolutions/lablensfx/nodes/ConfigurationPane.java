@@ -2,6 +2,7 @@ package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.application.ChangeListenerRegistry;
 import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
+import com.snjdigitalsolutions.lablensfx.orm.model.FileSystemObjectModel;
 import com.snjdigitalsolutions.lablensfx.service.node.ConfigurationPaneService;
 import com.snjdigitalsolutions.lablensfx.utility.FilePathValidator;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
@@ -9,6 +10,7 @@ import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
@@ -32,25 +34,24 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
     private Button deleteButton;
     @FXML
     private VBox leftVBox;
+    @FXML
+    private AnchorPane filesAnchorPane;
     private final ConfigurationPathTableView configurationPathTableView;
+    private final PathFilesTableView pathFilesTableView;
 
     private final double splitPaneDividerPosition = 0.5;
-    private final FilePathValidator filePathValidator;
-    private final AlertUtility alertUtility;
     private final ChangeListenerRegistry changeListenerRegistry;
     private final ConfigurationPaneService configurationPaneService;
 
     public ConfigurationPane(@Value("classpath:/fxml/ConfigurationPane.fxml") Resource fxml,
                              ConfigurationPathTableView configurationPathTableView,
-                             FilePathValidator filePathValidator,
-                             AlertUtility alertUtility,
+                             PathFilesTableView pathFilesTableView,
                              ChangeListenerRegistry changeListenerRegistry,
                              ConfigurationPaneService configurationPaneService
     )
     {
         this.configurationPathTableView = configurationPathTableView;
-        this.filePathValidator = filePathValidator;
-        this.alertUtility = alertUtility;
+        this.pathFilesTableView = pathFilesTableView;
         this.changeListenerRegistry = changeListenerRegistry;
         this.configurationPaneService = configurationPaneService;
         NodeLoader.load(fxml, this);
@@ -62,6 +63,18 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
         initializeAddButton();
         initializeDeleteButton();
         initializePathTable();
+
+        VBox tableContainer = new VBox();
+        filesAnchorPane.getChildren().add(tableContainer);
+        AnchorPane.setLeftAnchor(tableContainer, 0D);
+        AnchorPane.setTopAnchor(tableContainer, 0D);
+        AnchorPane.setRightAnchor(tableContainer, 0D);
+        AnchorPane.setBottomAnchor(tableContainer, 0D);
+        tableContainer.setPadding(new Insets(5));
+
+        tableContainer.getChildren().add(pathFilesTableView);
+        VBox.setVgrow(pathFilesTableView, Priority.ALWAYS);
+
     }
 
     private void initializeDeleteButton() {
@@ -95,10 +108,10 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
         VBox.setVgrow(configurationPathTableView, Priority.ALWAYS);
         ChangeListener<ConfigurationPath> changeListener = (obj, oldVal, newVal) -> {
             deleteButton.setDisable(newVal == null);
-            if (newVal != null && newVal.getRequiresElevation()) {
-
+            if (newVal != null){
+                configurationPaneService.listFilesForConfigurationPath(pathFilesTableView, newVal);
             }
         };
-        changeListenerRegistry.add(this, configurationPathTableView.selectedItemProperty(), changeListener);
+        configurationPathTableView.addSelectedItemChangeListener(configurationPathTableView.selectedItemProperty(), changeListener);
     }
 }

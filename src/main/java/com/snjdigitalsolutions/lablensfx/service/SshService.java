@@ -158,9 +158,7 @@ public class SshService {
         Optional<ClientSession> optionalSession = getOrCreateSession(host, port);
         if (clientInitialized && optionalSession.isPresent()) {
             ClientSession session = optionalSession.get();
-
             command = "sudo -S -p '' " + command;
-
             try (ByteArrayOutputStream stdout = new ByteArrayOutputStream(); ByteArrayOutputStream stderr = new ByteArrayOutputStream(); ChannelExec channel = session.createExecChannel(command)) {
                 channel.setOut(stdout);
                 channel.setErr(stderr);
@@ -183,6 +181,4 @@ public class SshService {
         }
         return response;
     }
-
-
 }

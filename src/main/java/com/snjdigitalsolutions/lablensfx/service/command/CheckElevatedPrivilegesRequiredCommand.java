@@ -29,7 +29,7 @@ public class CheckElevatedPrivilegesRequiredCommand extends AbstractCommand {
                 elevationRequired = true;
             }
         } else {
-            throw new RuntimeException("File path cannot be blank. Use checkFilePath() to set file path and resource.");
+            throw new RuntimeException("File path cannot be blank");
         }
         return elevationRequired;
     }

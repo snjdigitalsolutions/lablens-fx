@@ -95,7 +95,10 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
         VBox.setVgrow(configurationPathTableView, Priority.ALWAYS);
         ChangeListener<ConfigurationPath> changeListener = (obj, oldVal, newVal) -> {
             deleteButton.setDisable(newVal == null);
+            if (newVal != null && newVal.getRequiresElevation()) {
+
+            }
         };
-        configurationPathTableView.addSelectedItemChangeListener(configurationPathTableView.selectedItemProperty(), changeListener);
+        changeListenerRegistry.add(this, configurationPathTableView.selectedItemProperty(), changeListener);
     }
 }

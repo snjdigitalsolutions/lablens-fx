@@ -13,8 +13,7 @@ public class HostPanelService {
 
     public HostPanelService(HostPanelStylingService hostPanelStylingService,
                             ConfigurationPaneService configurationPaneService
-    )
-    {
+    ) {
         this.hostPanelStylingService = hostPanelStylingService;
         this.configurationPaneService = configurationPaneService;
     }

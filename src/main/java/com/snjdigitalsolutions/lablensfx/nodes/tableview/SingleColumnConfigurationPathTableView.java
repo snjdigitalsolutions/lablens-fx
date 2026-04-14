@@ -1,4 +1,4 @@
-package com.snjdigitalsolutions.lablensfx.nodes;
+package com.snjdigitalsolutions.lablensfx.nodes.tableview;
 
 import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
@@ -14,7 +14,7 @@ import java.util.List;
 
 @Component
 @Scope("prototype")
-public class SingleColumnConfigurationPathTable extends TableView<ConfigurationPath> implements SpringInitializableNode {
+public class SingleColumnConfigurationPathTableView extends TableView<ConfigurationPath> implements SpringInitializableNode {
 
     private final ObservableList<ConfigurationPath> paths = FXCollections.observableArrayList();
 

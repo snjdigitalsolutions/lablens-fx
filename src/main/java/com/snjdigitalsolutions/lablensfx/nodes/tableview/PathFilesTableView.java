@@ -1,4 +1,4 @@
-package com.snjdigitalsolutions.lablensfx.nodes;
+package com.snjdigitalsolutions.lablensfx.nodes.tableview;
 
 import com.snjdigitalsolutions.lablensfx.application.ChangeListenerRegistry;
 import com.snjdigitalsolutions.lablensfx.orm.model.FileSystemObjectModel;

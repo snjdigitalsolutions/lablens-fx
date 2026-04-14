@@ -1,8 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.service.node;
 
-import com.snjdigitalsolutions.lablensfx.nodes.ConfigurationPathTableView;
-import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
-import com.snjdigitalsolutions.lablensfx.nodes.PathFilesTableView;
+import com.snjdigitalsolutions.lablensfx.nodes.tableview.ConfigurationPathTableView;
+import com.snjdigitalsolutions.lablensfx.nodes.tableview.PathFilesTableView;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
 import com.snjdigitalsolutions.lablensfx.orm.model.FileSystemObjectModel;
@@ -15,7 +14,6 @@ import com.snjdigitalsolutions.lablensfx.task.ListFilesTask;
 import com.snjdigitalsolutions.lablensfx.task.VerifySingleHostConfigurationPathTask;
 import com.snjdigitalsolutions.lablensfx.utility.FilePathValidator;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
-import com.snjdigitalsolutions.springbootutilityfx.node.utility.TaskStarter;
 import javafx.scene.control.TextField;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -28,10 +26,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ConfigurationPaneService {
 
     private final ComputeResourceState computeResourceState;
-    private final ComputeResourceRepository computeResourceRepository;
     private final FilePathValidator filePathValidator;
     private final AlertUtility alertUtility;
     private final ConfigurationPathTableView configurationPathTableView;
+    private final PathFilesTableView pathFilesTableView;
     private final CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand;
     private final ListFileCommand listFileCommand;
     private final ListFileParser listFileParser;
@@ -40,17 +38,16 @@ public class ConfigurationPaneService {
                                     ComputeResourceRepository computeResourceRepository,
                                     FilePathValidator filePathValidator,
                                     AlertUtility alertUtility,
-                                    ConfigurationPathTableView configurationPathTableView,
+                                    ConfigurationPathTableView configurationPathTableView, PathFilesTableView pathFilesTableView,
                                     CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand,
                                     ListFileCommand listFileCommand,
                                     ListFileParser listFileParser
-    )
-    {
+    ) {
         this.computeResourceState = computeResourceState;
-        this.computeResourceRepository = computeResourceRepository;
         this.filePathValidator = filePathValidator;
         this.alertUtility = alertUtility;
         this.configurationPathTableView = configurationPathTableView;
+        this.pathFilesTableView = pathFilesTableView;
         this.checkElevatedPrivilegesRequiredCommand = checkElevatedPrivilegesRequiredCommand;
         this.listFileCommand = listFileCommand;
         this.listFileParser = listFileParser;
@@ -72,8 +69,8 @@ public class ConfigurationPaneService {
         if (computeResourceState.getSelectedResources()
                 .size() == 1) {
             hostPaths.addAll(computeResourceState.getSelectedResources()
-                                     .getFirst()
-                                     .getConfigurationPaths());
+                    .getFirst()
+                    .getConfigurationPaths());
         }
         return hostPaths;
     }
@@ -140,6 +137,7 @@ public class ConfigurationPaneService {
 
     public void loadExistingPaths() {
         configurationPathTableView.clearItems();
+        pathFilesTableView.clearItems();
         getConfigurationPathsForSelectedResource().forEach(configurationPathTableView::addItem);
     }
 
@@ -148,10 +146,10 @@ public class ConfigurationPaneService {
             ListFilesTask listTask = new ListFilesTask(listFileCommand, listFileParser, computeResourceState, configurationPath, response -> {
                 List<FileSystemObjectModel> models = new ArrayList<>();
                 response.forEach(file -> {
-                   models.add(new FileSystemObjectModel(file));
-                   pathFilesTableView.getItems().clear();
-                   pathFilesTableView.getItems().addAll(models);
-               });
+                    models.add(new FileSystemObjectModel(file));
+                    pathFilesTableView.getItems().clear();
+                    pathFilesTableView.getItems().addAll(models);
+                });
             });
             Thread.ofVirtual().start(listTask);
         } catch (Exception e) {

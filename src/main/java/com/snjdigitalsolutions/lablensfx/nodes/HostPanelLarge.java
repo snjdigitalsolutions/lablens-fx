@@ -1,8 +1,8 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.application.ChangeListenerRegistry;
+import com.snjdigitalsolutions.lablensfx.nodes.tableview.SingleColumnConfigurationPathTableView;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
-import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import com.snjdigitalsolutions.lablensfx.state.ShowIpAddressState;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
@@ -17,7 +17,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import lombok.Getter;
-import lombok.Setter;
 import org.controlsfx.control.ToggleSwitch;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,16 +54,16 @@ public class HostPanelLarge extends GridPane implements IpSortable {
     @Getter
     private Long computeResourceId;
     private final HostManagementService hostManagementService;
-    private final ObjectProvider<SingleColumnConfigurationPathTable> singleColumnConfigurationPathTableObjectProvider;
+    private final ObjectProvider<SingleColumnConfigurationPathTableView> singleColumnConfigurationPathTableObjectProvider;
     private final ChangeListenerRegistry changeListenerRegistry;
     private final ComputeResourceState computeResourceState;
-    private SingleColumnConfigurationPathTable table;
+    private SingleColumnConfigurationPathTableView table;
 
     public HostPanelLarge(@Value("classpath:/fxml/HostPanelLarge.fxml") Resource fxml,
                           SshStatusIndicator statusIndicator,
                           HostManagementService hostManagementService,
                           ShowIpAddressState showIpAddressState,
-                          ObjectProvider<SingleColumnConfigurationPathTable> singleColumnConfigurationPathTableObjectProvider,
+                          ObjectProvider<SingleColumnConfigurationPathTableView> singleColumnConfigurationPathTableObjectProvider,
                           ChangeListenerRegistry changeListenerRegistry,
                           ComputeResourceState computeResourceState
     ) {

@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public class StatusBarState implements SpringInitializableNode {
+public class StatusBarState {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StatusBarState.class);
 
@@ -41,20 +41,12 @@ public class StatusBarState implements SpringInitializableNode {
         return selectedHostPanelList;
     }
 
-    @Override
-    public void performIntialization() {
-        numberOfSelectedHosts.addListener((obj, oldVal, newVal) -> {
-            if (selectedApplicationView.get()
-                    .equals(ApplicationView.DASHBOARD) && newVal.intValue() > 0) {
-                LOGGER.debug("{} Hosts Selected", newVal);
-                statusMessage.setValue("Hosts Selected: " + newVal);
-                disableDeleteHostMenuItem.setValue(false);
-            } else if (selectedApplicationView.get()
-                    .equals(ApplicationView.DASHBOARD) && newVal.intValue() == 0) {
-                statusMessage.setValue("");
-                disableDeleteHostMenuItem.setValue(true);
-            }
-        });
+    public ApplicationView getSelectedApplicationView() {
+        return selectedApplicationView.get();
+    }
+
+    public ObjectProperty<ApplicationView> selectedApplicationViewProperty() {
+        return selectedApplicationView;
     }
 
     public void setHostPanelAsOnlySelection(HostPanel panel) {

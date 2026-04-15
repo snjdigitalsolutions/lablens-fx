@@ -7,6 +7,7 @@ import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import com.snjdigitalsolutions.lablensfx.service.VerifyHostConfigurationService;
 import com.snjdigitalsolutions.lablensfx.service.node.ConfigurationPaneService;
+import com.snjdigitalsolutions.lablensfx.service.node.StatusBarService;
 import com.snjdigitalsolutions.lablensfx.setting.SettingType;
 import com.snjdigitalsolutions.lablensfx.shapes.SshPassphraseIndicator;
 import com.snjdigitalsolutions.lablensfx.state.*;
@@ -16,6 +17,7 @@ import com.snjdigitalsolutions.springbootutilityfx.node.utility.TooltipGenerator
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import javafx.fxml.FXML;
+import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
@@ -82,6 +84,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     private final SettingState settingState;
     private final SettingRepository settingRepository;
     private final AlertUtility alertUtility;
+    private final StatusBarService statusBarService;
 
     private SshPassphraseIndicator indicator;
 
@@ -102,7 +105,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                                         MenuItemSelectionState menuItemSelectionState,
                                         SettingState settingState,
                                         SettingRepository settingRepository,
-                                        AlertUtility alertUtility
+                                        AlertUtility alertUtility, StatusBarService statusBarService
     )
     {
         this.statusIndicatorProvider = statusIndicatorProvider;
@@ -123,6 +126,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         this.settingState = settingState;
         this.settingRepository = settingRepository;
         this.alertUtility = alertUtility;
+        this.statusBarService = statusBarService;
     }
 
     @Override
@@ -147,8 +151,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     }
 
     private void initializeStatusBar() {
-        statusBar.textProperty()
-                .bind(statusBarState.statusProperty());
+        statusBarService.setStatusbar(statusBar);
     }
 
     private void initializeDashboardButton() {

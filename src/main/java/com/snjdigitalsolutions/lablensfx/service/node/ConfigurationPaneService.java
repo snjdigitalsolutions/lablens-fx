@@ -33,6 +33,7 @@ public class ConfigurationPaneService {
     private final CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand;
     private final ListFileCommand listFileCommand;
     private final ListFileParser listFileParser;
+    private final StatusBarService statusBarService;
 
     public ConfigurationPaneService(ComputeResourceState computeResourceState,
                                     ComputeResourceRepository computeResourceRepository,
@@ -41,7 +42,7 @@ public class ConfigurationPaneService {
                                     ConfigurationPathTableView configurationPathTableView, PathFilesTableView pathFilesTableView,
                                     CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand,
                                     ListFileCommand listFileCommand,
-                                    ListFileParser listFileParser
+                                    ListFileParser listFileParser, StatusBarService statusBarService
     ) {
         this.computeResourceState = computeResourceState;
         this.filePathValidator = filePathValidator;
@@ -51,6 +52,7 @@ public class ConfigurationPaneService {
         this.checkElevatedPrivilegesRequiredCommand = checkElevatedPrivilegesRequiredCommand;
         this.listFileCommand = listFileCommand;
         this.listFileParser = listFileParser;
+        this.statusBarService = statusBarService;
     }
 
     public void removeConfigurationPathFromSelectedResource(ConfigurationPath configurationPath) {
@@ -143,13 +145,15 @@ public class ConfigurationPaneService {
 
     public void listFilesForConfigurationPath(PathFilesTableView pathFilesTableView, ConfigurationPath configurationPath) {
         try {
+            statusBarService.addLoadingFilesMessage();
             ListFilesTask listTask = new ListFilesTask(listFileCommand, listFileParser, computeResourceState, configurationPath, response -> {
                 List<FileSystemObjectModel> models = new ArrayList<>();
                 response.forEach(file -> {
                     models.add(new FileSystemObjectModel(file));
-                    pathFilesTableView.getItems().clear();
-                    pathFilesTableView.getItems().addAll(models);
                 });
+                pathFilesTableView.getItems().clear();
+                pathFilesTableView.getItems().addAll(models);
+                statusBarService.removeLoadingFilesMessage();
             });
             Thread.ofVirtual().start(listTask);
         } catch (Exception e) {

@@ -29,6 +29,11 @@
     -fx-background-color: #ffffed;
 }
 
+.loading-text {
+     -fx-font-size: 36px;
+     -fx-text-fill: black;
+ }
+
 .summary-panel-count-black {
     -fx-font-size: 36px;
     -fx-text-fill: black;

@@ -1,5 +1,6 @@
 package com.snjdigitalsolutions.lablensfx.service.node;
 
+import com.snjdigitalsolutions.lablensfx.state.ApplicationState;
 import com.snjdigitalsolutions.lablensfx.state.ApplicationView;
 import com.snjdigitalsolutions.lablensfx.state.StatusBarState;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
@@ -13,9 +14,13 @@ public class StatusBarService implements SpringInitializableNode {
 
     private StatusBar statusBar;
     private final StatusBarState statusBarState;
+    private final ApplicationState applicationState;
 
-    public StatusBarService(StatusBarState statusBarState) {
+    public StatusBarService(StatusBarState statusBarState,
+                            ApplicationState applicationState
+    ) {
         this.statusBarState = statusBarState;
+        this.applicationState = applicationState;
     }
 
     @Override
@@ -43,21 +48,13 @@ public class StatusBarService implements SpringInitializableNode {
     }
 
     public void addLoadingFilesMessage() {
-        Platform.runLater(() -> {
-            statusBar.setText(statusBar.getText() + " -- Loading files");
-            if (statusBar.getScene() != null) {
-                statusBar.getScene().getRoot().setCursor(Cursor.WAIT);
-            }
-        });
+        applicationState.loadingDataProperty().setValue(true);
+        statusBar.setText(statusBar.getText() + " -- Loading files");
     }
 
     public void removeLoadingFilesMessage() {
-        Platform.runLater(() -> {
-            statusBar.setText(statusBar.getText().replace(" -- Loading files", ""));
-            if (statusBar.getScene() != null) {
-                statusBar.getScene().getRoot().setCursor(Cursor.DEFAULT);
-            }
-        });
+        applicationState.loadingDataProperty().setValue(false);
+        statusBar.setText(statusBar.getText().replace(" -- Loading files", ""));
     }
 
     public void setSelectedHostCount(int numberOfSelectedHosts) {

@@ -1,12 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.orm.model;
 
 import com.snjdigitalsolutions.lablensfx.orm.FileSystemObject;
-import javafx.beans.property.LongProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleLongProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 
 import java.time.Instant;
 
@@ -18,6 +13,7 @@ public class FileSystemObjectModel {
     private final StringProperty parentPath = new SimpleStringProperty();
     private final StringProperty fileName = new SimpleStringProperty();
     private final LongProperty fileSize = new SimpleLongProperty();
+    private final BooleanProperty trackFile = new SimpleBooleanProperty(false);
 
     public FileSystemObjectModel() {}
 
@@ -32,6 +28,7 @@ public class FileSystemObjectModel {
         parentPath.set(fileSystemObject.getParentPath());
         fileName.set(fileSystemObject.getFileName());
         fileSize.set(fileSystemObject.getFileSize());
+        trackFile.set(fileSystemObject.isTrackFile());
     }
 
     public FileSystemObject toFileSystemObject() {
@@ -46,6 +43,7 @@ public class FileSystemObjectModel {
         fileSystemObject.setParentPath(parentPath.get());
         fileSystemObject.setFileName(fileName.get());
         fileSystemObject.setFileSize(fileSize.get());
+        fileSystemObject.setTrackFile(trackFile.get());
         return fileSystemObject;
     }
 
@@ -72,4 +70,18 @@ public class FileSystemObjectModel {
     public long getFileSize() { return fileSize.get(); }
     public void setFileSize(long fileSize) { this.fileSize.set(fileSize); }
     public LongProperty fileSizeProperty() { return fileSize; }
+
+    public boolean isTrackFile() {
+        return trackFile.get();
+    }
+
+    public void setTrackFile(boolean trackFile) {
+        this.trackFile.set(trackFile);
+    }
+
+    public BooleanProperty trackFileProperty() {
+        return trackFile;
+    }
+
+
 }

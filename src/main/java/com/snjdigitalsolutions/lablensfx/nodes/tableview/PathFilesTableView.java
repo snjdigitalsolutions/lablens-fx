@@ -1,13 +1,15 @@
 package com.snjdigitalsolutions.lablensfx.nodes.tableview;
 
 import com.snjdigitalsolutions.lablensfx.application.ChangeListenerRegistry;
+import com.snjdigitalsolutions.lablensfx.orm.FileSystemObject;
 import com.snjdigitalsolutions.lablensfx.orm.model.FileSystemObjectModel;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
@@ -23,10 +25,13 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
     @Override
     public void performIntialization() {
         setFocusTraversable(false);
+        TableColumn<FileSystemObjectModel, Boolean> trackColumn = getTrackFileTableColumn();
+        trackColumn.prefWidthProperty().bind(widthProperty().multiply(.2));
         TableColumn<FileSystemObjectModel, String> pathColumn = getFileNameTableColumn();
         pathColumn.prefWidthProperty()
-                .bind(widthProperty().multiply(1)
+                .bind(widthProperty().multiply(.8)
                               .subtract(3));
+        getColumns().add(trackColumn);
         getColumns().add(pathColumn);
         setItems(FXCollections.observableArrayList());
         setPlaceholder(new Label("No file path selected"));
@@ -62,6 +67,38 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
         filenameColumn.setCellValueFactory(object -> object.getValue()
                 .fileNameProperty());
         return filenameColumn;
+    }
+
+    @NonNull
+    private TableColumn<FileSystemObjectModel, Boolean> getTrackFileTableColumn() {
+        TableColumn<FileSystemObjectModel, Boolean> trackFileColumn = new TableColumn<>("Track");
+        trackFileColumn.setCellValueFactory(trackFile -> trackFile.getValue()
+                .trackFileProperty());
+        trackFileColumn.setCellFactory( column -> new TableCell<>() {
+            private final CheckBox trackCheckBox = new CheckBox();
+            private final HBox cellBox = new HBox();
+
+            {
+                trackCheckBox.setFocusTraversable(false);
+                cellBox.setMaxWidth(Double.MAX_VALUE);
+                cellBox.setAlignment(Pos.CENTER);
+                cellBox.getChildren().add(trackCheckBox);
+            }
+
+            @Override
+            protected void updateItem(Boolean item,
+                                      boolean empty
+            )
+            {
+                super.updateItem(item, empty);
+                setGraphic(null);
+                if (item != null) {
+                    trackCheckBox.setSelected(item);
+                    setGraphic(cellBox);
+                }
+            }
+        });
+        return trackFileColumn;
     }
 
 }

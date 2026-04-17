@@ -10,6 +10,7 @@ public class FileSystemObject {
     private String parentPath;
     private String fileName;
     private long fileSize;
+    private boolean trackFile;
 
     public Instant getModifiedTime() {
         return modifiedTime;
@@ -59,4 +60,11 @@ public class FileSystemObject {
         this.fileSize = fileSize;
     }
 
+    public boolean isTrackFile() {
+        return trackFile;
+    }
+
+    public void setTrackFile(boolean trackFile) {
+        this.trackFile = trackFile;
+    }
 }

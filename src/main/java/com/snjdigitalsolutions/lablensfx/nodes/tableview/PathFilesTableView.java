@@ -4,18 +4,20 @@ import com.snjdigitalsolutions.lablensfx.application.ChangeListenerRegistry;
 import com.snjdigitalsolutions.lablensfx.orm.FileSystemObject;
 import com.snjdigitalsolutions.lablensfx.orm.model.FileSystemObjectModel;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PathFilesTableView extends TableView<FileSystemObjectModel> implements SpringInitializableNode {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(PathFilesTableView.class);
     private final ChangeListenerRegistry changeListenerRegistry;
 
     public PathFilesTableView(ChangeListenerRegistry changeListenerRegistry) {
@@ -83,6 +85,9 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
                 cellBox.setMaxWidth(Double.MAX_VALUE);
                 cellBox.setAlignment(Pos.CENTER);
                 cellBox.getChildren().add(trackCheckBox);
+                trackCheckBox.selectedProperty().addListener((obj, oldVal, newVal) -> {
+                    LOGGER.debug("CheckBox is selected: {}", newVal);
+                });
             }
 
             @Override

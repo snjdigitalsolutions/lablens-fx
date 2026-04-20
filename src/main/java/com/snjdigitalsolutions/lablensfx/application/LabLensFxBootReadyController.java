@@ -36,7 +36,6 @@ import java.util.Optional;
 public class LabLensFxBootReadyController implements SpringInitializableNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LabLensFxBootReadyController.class);
-    private final TooltipGenerator tooltipGenerator;
 
     @FXML
     private StackPane stackPane;
@@ -92,6 +91,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     private final ApplicationState applicationState;
     private final ChangeListenerRegistry changeListenerRegistry;
     private final LoadingOverlay loadingOverlay;
+    private final TooltipGenerator tooltipGenerator;
 
     private SshPassphraseIndicator indicator;
 
@@ -145,7 +145,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     @Override
     public void performIntialization() {
         borderPane.setLeft(hostPane);
-        stackPane.getChildren().add(loadingOverlay);
+        initializeLoadingOverlay();
         setDashboardVisible();
         initializeStatusBar();
         initializeViewButtons();
@@ -162,13 +162,17 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                     indicator.passPhraseMode()
                             .setValue(newVal);
                 });
+    }
+
+    private void initializeLoadingOverlay() {
+        stackPane.getChildren().add(loadingOverlay);
         ChangeListener<Boolean> loadingListener = (obj, oldVal, newVal) -> {
-          if (newVal) {
-              BoxBlur blur = new BoxBlur(5,5,3);
-              borderPane.setEffect(blur);
-          } else {
-              borderPane.setEffect(null);
-          }
+            if (newVal) {
+                BoxBlur blur = new BoxBlur(5,5,3);
+                borderPane.setEffect(blur);
+            } else {
+                borderPane.setEffect(null);
+            }
         };
         changeListenerRegistry.add(this, applicationState.loadingDataProperty(), loadingListener);
     }

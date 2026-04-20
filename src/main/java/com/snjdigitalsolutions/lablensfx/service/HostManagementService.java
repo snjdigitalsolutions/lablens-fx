@@ -6,6 +6,7 @@ import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
 import com.snjdigitalsolutions.lablensfx.nodes.ProgressDialog;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
+import com.snjdigitalsolutions.lablensfx.orm.model.ComputeResourceModel;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
 import com.snjdigitalsolutions.lablensfx.service.node.HostPanelService;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
@@ -247,10 +248,7 @@ public class HostManagementService implements SpringInitializableNode {
         HostPanel panel = hostPanelProvider.getObject();
         panel.getStyleClass()
                 .add("host-panel");
-        panel.hostnameProperty()
-                .setValue(resource.getHostName());
-        panel.ipAddressProperty()
-                .setValue(resource.getIpAddress());
+        panel.setResourceModel(new ComputeResourceModel(resource));
         computeResourceState.getComputeResourceHostPanelMap()
                 .put(resource.getId(), panel);
         computeResourceState.getHostPanelToComputeResourceMap()
@@ -259,22 +257,14 @@ public class HostManagementService implements SpringInitializableNode {
     }
 
     public void updateComputeResource(ComputeResource resource) {
+        ComputeResourceModel resourceModel = new ComputeResourceModel(resource);
         HostPanel smallPanel = computeResourceState.getComputeResourceHostPanelMap()
                 .get(resource.getId());
+        smallPanel.setResourceModel(resourceModel);
+
         HostPanelLarge largePanel = computeResourceState.getComputeResourceHostPanelLargeMap()
                 .get(resource.getId());
-        smallPanel.hostnameProperty()
-                .setValue(resource.getHostName());
-        smallPanel.ipAddressProperty()
-                .setValue(resource.getIpAddress());
-        largePanel.hostnameProperty()
-                .setValue(resource.getHostName());
-        largePanel.ipAddressProperty()
-                .setValue(resource.getIpAddress());
-        largePanel.descriptionProperty()
-                .setValue(resource.getDescription());
-        largePanel.sshPortProperty()
-                .setValue(resource.getSshPort());
+        largePanel.setResourceModel(resourceModel);
         computeResourceState.updateComputeResource(resource);
         computeResourceState.computerResourceBeingEditedProperty()
                 .setValue(null);

@@ -1,6 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
+import com.snjdigitalsolutions.lablensfx.orm.model.ComputeResourceModel;
 import com.snjdigitalsolutions.lablensfx.service.node.StatusBarService;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import com.snjdigitalsolutions.lablensfx.state.ShowIpAddressState;
@@ -143,21 +144,24 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                 .forEach(resource -> {
                     HostPanelLarge panel = hostPanelLargeProvider.getObject();
                     panel.performInitialization(resource.getId());
-                    panel.hostnameProperty()
-                            .setValue(resource.getHostName());
-                    if (showIpAddressState.isShowIpProperty()) {
-                        panel.ipAddressProperty()
-                                .setValue(resource.getIpAddress());
-                    } else {
-                        panel.ipAddressProperty()
-                                .setValue("xxx.xxx.xxx.xxx");
-                    }
-                    panel.descriptionProperty()
-                            .setValue(resource.getDescription());
-                    panel.sshPortProperty()
-                            .setValue(resource.getSshPort());
-                    panel.sshToggleValueProperty()
-                            .setValue(resource.getSshCommunicate() == 1);
+                    panel.setResourceModel(new ComputeResourceModel(resource));
+
+//                    panel.hostnameProperty()
+//                            .setValue(resource.getHostName());
+//                    if (showIpAddressState.isShowIpProperty()) {
+//                        panel.ipAddressProperty()
+//                                .setValue(resource.getIpAddress());
+//                    } else {
+//                        panel.ipAddressProperty()
+//                                .setValue("xxx.xxx.xxx.xxx");
+//                    }
+//                    panel.descriptionProperty()
+//                            .setValue(resource.getDescription());
+//                    panel.sshPortProperty()
+//                            .setValue(resource.getSshPort());
+//                    panel.sshToggleValueProperty()
+//                            .setValue(resource.getSshCommunicate() == 1);
+
                     panel.addToggleListener();
                     panel.getStyleClass()
                             .add("host-panel");

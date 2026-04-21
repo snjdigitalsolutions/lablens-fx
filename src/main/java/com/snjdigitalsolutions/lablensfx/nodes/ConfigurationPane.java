@@ -108,7 +108,7 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
         ChangeListener<ConfigurationPath> changeListener = (obj, oldVal, newVal) -> {
             deleteButton.setDisable(newVal == null);
             if (newVal != null){
-                configurationPaneService.listFilesForConfigurationPath(pathFilesTableView, newVal);
+                configurationPaneService.listFilesForConfigurationPath(newVal);
             }
         };
         configurationPathTableView.addSelectedItemChangeListener(configurationPathTableView.selectedItemProperty(), changeListener);

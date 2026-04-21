@@ -149,7 +149,7 @@ public class ConfigurationPaneService {
         getConfigurationPathsForSelectedResource().forEach(configurationPathTableView::addItem);
     }
 
-    public void listFilesForConfigurationPath(PathFilesTableView pathFilesTableView, ConfigurationPath configurationPath) {
+    public void listFilesForConfigurationPath(ConfigurationPath configurationPath) {
         try {
             statusBarService.addLoadingFilesMessage();
             Consumer<List<FileSystemObjectModel>> fileSystemObjectConsumer = response -> {

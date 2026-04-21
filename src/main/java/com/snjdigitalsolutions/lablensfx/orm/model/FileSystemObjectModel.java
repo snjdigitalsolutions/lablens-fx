@@ -13,6 +13,7 @@ public class FileSystemObjectModel {
     private final StringProperty parentPath = new SimpleStringProperty();
     private final StringProperty fileName = new SimpleStringProperty();
     private final LongProperty fileSize = new SimpleLongProperty();
+    private final LongProperty computeResourceID = new SimpleLongProperty();
     private final BooleanProperty trackFile = new SimpleBooleanProperty(false);
     private final BooleanProperty dbIsSource = new SimpleBooleanProperty(false);
 
@@ -31,6 +32,7 @@ public class FileSystemObjectModel {
         fileSize.set(fileSystemObject.getFileSize());
         trackFile.set(fileSystemObject.isTrackFile());
         dbIsSource.setValue(true);
+        computeResourceID.setValue(fileSystemObject.getComputeResource().getId());
     }
 
     public FileSystemObject toFileSystemObject() {
@@ -91,5 +93,13 @@ public class FileSystemObjectModel {
 
     public BooleanProperty dbIsSourceProperty() {
         return dbIsSource;
+    }
+
+    public long getComputeResourceID() {
+        return computeResourceID.get();
+    }
+
+    public LongProperty computeResourceIDProperty() {
+        return computeResourceID;
     }
 }

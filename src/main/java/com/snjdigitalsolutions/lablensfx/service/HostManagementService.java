@@ -4,6 +4,7 @@ import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanelLarge;
 import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
 import com.snjdigitalsolutions.lablensfx.nodes.ProgressDialog;
+import com.snjdigitalsolutions.lablensfx.nodes.tableview.PathFilesTableView;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
 import com.snjdigitalsolutions.lablensfx.orm.model.ComputeResourceModel;
@@ -50,6 +51,7 @@ public class HostManagementService implements SpringInitializableNode {
     private final StatusBarState statusBarState;
     private final HostPanelStylingService hostPanelStylingService;
     private final HostPanelService hostPanelService;
+    private final PathFilesTableView pathFilesTableView;
 
     @Value("${application.ssh.promptforpassphrase}")
     private boolean promptForPassPhrase;
@@ -66,7 +68,8 @@ public class HostManagementService implements SpringInitializableNode {
                                  AlertUtility alertUtility,
                                  StatusBarState statusBarState,
                                  HostPanelStylingService hostPanelStylingService,
-                                 HostPanelService hostPanelService
+                                 HostPanelService hostPanelService,
+                                 PathFilesTableView pathFilesTableView
     )
     {
         this.computeResourceState = computeResourceState;
@@ -82,6 +85,7 @@ public class HostManagementService implements SpringInitializableNode {
         this.statusBarState = statusBarState;
         this.hostPanelStylingService = hostPanelStylingService;
         this.hostPanelService = hostPanelService;
+        this.pathFilesTableView = pathFilesTableView;
     }
 
     @Override
@@ -98,6 +102,7 @@ public class HostManagementService implements SpringInitializableNode {
                         verifyHostSshStatus();
                     }
                 });
+        pathFilesTableView.setHostManagementService(this);
     }
 
     /**

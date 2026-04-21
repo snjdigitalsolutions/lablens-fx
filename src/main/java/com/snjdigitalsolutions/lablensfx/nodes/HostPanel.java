@@ -1,6 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
+import com.snjdigitalsolutions.lablensfx.orm.model.ComputeResourceModel;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.service.HostPanelStylingService;
 import com.snjdigitalsolutions.lablensfx.service.ViewService;
@@ -40,18 +41,17 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
 
     @FXML
     private Label hostNameLabel;
-    private final StringProperty hostname = new SimpleStringProperty();
     @FXML
     private Label ipAddressLabel;
-    private final StringProperty ipAddress = new SimpleStringProperty();
     @FXML
     private Label sshPortLabel;
-    private final IntegerProperty sshPort = new SimpleIntegerProperty(22);
     @FXML
     private FontAwesomeIconView deleteIcon;
     @FXML
     private FontAwesomeIconView pencilIcon;
 
+    @Getter
+    private ComputeResourceModel resourceModel;
 
     private final HostManagementService hostManagementService;
     private final ShowIpAddressState showIpAddressState;
@@ -87,19 +87,8 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
     @Override
     public void performIntialization() {
         initializeMouseClickAction();
-        bindProperties();
         initializePencilIconClick();
         initializeDeleteIconClick();
-
-        if (showIpAddressState.isShowIpProperty()) {
-            ipAddressLabel.textProperty()
-                    .bind(ipAddress);
-        } else {
-            ipAddressLabel.textProperty()
-                    .unbind();
-            ipAddressLabel.textProperty()
-                    .setValue("xxx.xxx.xxx.xxx");
-        }
     }
 
     private void initializeDeleteIconClick() {
@@ -124,10 +113,29 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
     }
 
     private void bindProperties() {
+        if (hostNameLabel.textProperty().isBound()){
+            hostNameLabel.textProperty().unbind();
+        }
         hostNameLabel.textProperty()
-                .bind(hostname);
+                .bind(resourceModel.hostNameProperty());
+        if (sshPortLabel.textProperty().isBound()){
+            hostNameLabel.textProperty().unbind();
+        }
         sshPortLabel.textProperty()
-                .bind(sshPort.asString());
+                .bind(resourceModel.sshPortProperty().asString());
+
+        if (ipAddressLabel.textProperty().isBound()){
+            ipAddressLabel.textProperty().unbind();
+        }
+        if (showIpAddressState.isShowIpProperty()) {
+            ipAddressLabel.textProperty()
+                    .bind(resourceModel.ipAddressProperty());
+        } else {
+            ipAddressLabel.textProperty()
+                    .unbind();
+            ipAddressLabel.textProperty()
+                    .setValue("xxx.xxx.xxx.xxx");
+        }
     }
 
     private void initializeMouseClickAction() {
@@ -168,18 +176,11 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
 
     @Override
     public String getIpAddress() {
-        return ipAddress.get();
+        return resourceModel.getIpAddress();
     }
 
-    public StringProperty ipAddressProperty() {
-        return ipAddress;
-    }
-
-    public String getHostname() {
-        return hostname.get();
-    }
-
-    public StringProperty hostnameProperty() {
-        return hostname;
+    public void setResourceModel(ComputeResourceModel resourceModel) {
+        this.resourceModel = resourceModel;
+        bindProperties();
     }
 }

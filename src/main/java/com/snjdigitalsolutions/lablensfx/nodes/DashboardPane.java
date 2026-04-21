@@ -1,6 +1,8 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
+import com.snjdigitalsolutions.lablensfx.orm.model.ComputeResourceModel;
+import com.snjdigitalsolutions.lablensfx.service.node.StatusBarService;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import com.snjdigitalsolutions.lablensfx.state.ShowIpAddressState;
 import com.snjdigitalsolutions.lablensfx.state.StatusBarState;
@@ -41,21 +43,21 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
     private final ObjectProvider<HostPanelLarge> hostPanelLargeProvider;
     private final ComputeResourceState computeResourceState;
     private final ShowIpAddressState showIpAddressState;
-    private final StatusBarState statusBarProperties;
+    private final StatusBarService statusBarService;
 
     public DashboardPane(@Value("classpath:/fxml/DashboardPane.fxml") Resource fxml,
                          ObjectProvider<SummaryPanel> summaryPanelProvider,
                          ObjectProvider<HostPanelLarge> hostPanelLargeProvider,
                          ComputeResourceState computeResourceState,
-                         ShowIpAddressState showIpAddressState,
-                         StatusBarState statusBarProperties
+                         ShowIpAddressState showIpAddressState, StatusBarService statusBarService
+
     )
     {
         this.summaryPanelProvider = summaryPanelProvider;
         this.hostPanelLargeProvider = hostPanelLargeProvider;
         this.computeResourceState = computeResourceState;
         this.showIpAddressState = showIpAddressState;
-        this.statusBarProperties = statusBarProperties;
+        this.statusBarService = statusBarService;
         NodeLoader.load(fxml, this);
     }
 
@@ -142,21 +144,24 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                 .forEach(resource -> {
                     HostPanelLarge panel = hostPanelLargeProvider.getObject();
                     panel.performInitialization(resource.getId());
-                    panel.hostnameProperty()
-                            .setValue(resource.getHostName());
-                    if (showIpAddressState.isShowIpProperty()) {
-                        panel.ipAddressProperty()
-                                .setValue(resource.getIpAddress());
-                    } else {
-                        panel.ipAddressProperty()
-                                .setValue("xxx.xxx.xxx.xxx");
-                    }
-                    panel.descriptionProperty()
-                            .setValue(resource.getDescription());
-                    panel.sshPortProperty()
-                            .setValue(resource.getSshPort());
-                    panel.sshToggleValueProperty()
-                            .setValue(resource.getSshCommunicate() == 1);
+                    panel.setResourceModel(new ComputeResourceModel(resource));
+
+//                    panel.hostnameProperty()
+//                            .setValue(resource.getHostName());
+//                    if (showIpAddressState.isShowIpProperty()) {
+//                        panel.ipAddressProperty()
+//                                .setValue(resource.getIpAddress());
+//                    } else {
+//                        panel.ipAddressProperty()
+//                                .setValue("xxx.xxx.xxx.xxx");
+//                    }
+//                    panel.descriptionProperty()
+//                            .setValue(resource.getDescription());
+//                    panel.sshPortProperty()
+//                            .setValue(resource.getSshPort());
+//                    panel.sshToggleValueProperty()
+//                            .setValue(resource.getSshCommunicate() == 1);
+
                     panel.addToggleListener();
                     panel.getStyleClass()
                             .add("host-panel");
@@ -184,7 +189,6 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
     private void clearHostPanel() {
         hostFlowPane.getChildren()
                 .clear();
-        statusBarProperties.numberOfSelectedHostsProperty()
-                .setValue(0);
+        statusBarService.setSelectedHostCount(0);
     }
 }

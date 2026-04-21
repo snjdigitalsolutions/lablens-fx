@@ -1,0 +1,127 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      https://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <servers>
+        <server>
+            <id>snjds-nexus-maven-public</id>
+            <username>${env.MAVEN_USER}</username>
+            <password>${env.MAVEN_PASSKEY}</password>
+        </server>
+        <server>
+            <id>snjds-nexus-private-releases</id>
+            <username>${env.MAVEN_USER}</username>
+            <password>${env.MAVEN_PASSKEY}</password>
+        </server>
+        <server>
+            <id>snjds-nexus-private-snapshots</id>
+            <username>${env.MAVEN_USER}</username>
+            <password>${env.MAVEN_PASSKEY}</password>
+        </server>
+        <server>
+            <id>snjds-nexus-public-releases</id>
+            <username>${env.MAVEN_USER}</username>
+            <password>${env.MAVEN_PASSKEY}</password>
+        </server>
+        <server>
+            <id>snjds-nexus-public-snapshots</id>
+            <username>${env.MAVEN_USER}</username>
+            <password>${env.MAVEN_PASSKEY}</password>
+        </server>
+    </servers>
+
+    <profiles>
+
+        <profile>
+            <id>nexus-profile</id>
+            <repositories>
+                <!-- Maven Central first — resolves most dependencies without hitting Nexus -->
+                <repository>
+                    <id>central</id>
+                    <url>https://repo1.maven.org/maven2</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+                <!-- Private Nexus repo group — only used for artifacts not found in Central -->
+                <repository>
+                    <id>snjds-nexus-maven-public</id>
+                    <url>http://nexus.snjdigitalsolutions.com/repository/maven-public/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>central</id>
+                    <url>https://repo1.maven.org/maven2</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </pluginRepository>
+                <pluginRepository>
+                    <id>snjds-nexus-maven-public</id>
+                    <url>http://nexus.snjdigitalsolutions.com/repository/maven-public/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+
+        <profile>
+            <id>private</id>
+            <properties>
+                <altReleaseDeploymentRepository>
+                    snjds-nexus-private-releases::default::https://nexus.snjdigitalsolutions.com/repository/maven-snjds-releases/
+                </altReleaseDeploymentRepository>
+                <altSnapshotDeploymentRepository>
+                    snjds-nexus-private-snapshots::default::https://nexus.snjdigitalsolutions.com/repository/maven-snjds-snapshots/
+                </altSnapshotDeploymentRepository>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>anonymous</id>
+            <properties>
+                <altReleaseDeploymentRepository>
+                    snjds-nexus-public-releases::default::https://nexus.snjdigitalsolutions.com/repository/snjds-releases/
+                </altReleaseDeploymentRepository>
+                <altSnapshotDeploymentRepository>
+                    snjds-nexus-public-snapshots::default::https://nexus.snjdigitalsolutions.com/repository/snjds-snapshots/
+                </altSnapshotDeploymentRepository>
+            </properties>
+        </profile>
+    </profiles>
+
+
+    <activeProfiles>
+        <activeProfile>nexus-profile</activeProfile>
+    </activeProfiles>
+
+
+</settings>
+
+        <!--
+
+        # Resolve deps from nexus-profile, deploy to public repo
+        mvn clean deploy -P public
+
+        # Resolve deps from nexus-profile, deploy to private repo
+        mvn clean deploy -P private
+
+        -->

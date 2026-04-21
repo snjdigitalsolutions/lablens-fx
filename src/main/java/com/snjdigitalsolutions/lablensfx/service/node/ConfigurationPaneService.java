@@ -4,6 +4,7 @@ import com.snjdigitalsolutions.lablensfx.nodes.tableview.ConfigurationPathTableV
 import com.snjdigitalsolutions.lablensfx.nodes.tableview.PathFilesTableView;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
+import com.snjdigitalsolutions.lablensfx.orm.FileSystemObject;
 import com.snjdigitalsolutions.lablensfx.orm.model.FileSystemObjectModel;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
 import com.snjdigitalsolutions.lablensfx.service.command.CheckElevatedPrivilegesRequiredCommand;
@@ -15,12 +16,14 @@ import com.snjdigitalsolutions.lablensfx.task.VerifySingleHostConfigurationPathT
 import com.snjdigitalsolutions.lablensfx.utility.FilePathValidator;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import javafx.scene.control.TextField;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 @Service
 public class ConfigurationPaneService {
@@ -33,6 +36,8 @@ public class ConfigurationPaneService {
     private final CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand;
     private final ListFileCommand listFileCommand;
     private final ListFileParser listFileParser;
+    private final StatusBarService statusBarService;
+    private final ObjectProvider<ListFilesTask> listFilesTaskObjectProvider;
 
     public ConfigurationPaneService(ComputeResourceState computeResourceState,
                                     ComputeResourceRepository computeResourceRepository,
@@ -41,7 +46,8 @@ public class ConfigurationPaneService {
                                     ConfigurationPathTableView configurationPathTableView, PathFilesTableView pathFilesTableView,
                                     CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand,
                                     ListFileCommand listFileCommand,
-                                    ListFileParser listFileParser
+                                    ListFileParser listFileParser, StatusBarService statusBarService,
+                                    ObjectProvider<ListFilesTask> listFilesTaskObjectProvider
     ) {
         this.computeResourceState = computeResourceState;
         this.filePathValidator = filePathValidator;
@@ -51,6 +57,8 @@ public class ConfigurationPaneService {
         this.checkElevatedPrivilegesRequiredCommand = checkElevatedPrivilegesRequiredCommand;
         this.listFileCommand = listFileCommand;
         this.listFileParser = listFileParser;
+        this.statusBarService = statusBarService;
+        this.listFilesTaskObjectProvider = listFilesTaskObjectProvider;
     }
 
     public void removeConfigurationPathFromSelectedResource(ConfigurationPath configurationPath) {
@@ -141,21 +149,22 @@ public class ConfigurationPaneService {
         getConfigurationPathsForSelectedResource().forEach(configurationPathTableView::addItem);
     }
 
-    public void listFilesForConfigurationPath(PathFilesTableView pathFilesTableView, ConfigurationPath configurationPath) {
+    public void listFilesForConfigurationPath(ConfigurationPath configurationPath) {
         try {
-            ListFilesTask listTask = new ListFilesTask(listFileCommand, listFileParser, computeResourceState, configurationPath, response -> {
-                List<FileSystemObjectModel> models = new ArrayList<>();
-                response.forEach(file -> {
-                    models.add(new FileSystemObjectModel(file));
-                    pathFilesTableView.getItems().clear();
-                    pathFilesTableView.getItems().addAll(models);
-                });
-            });
+            statusBarService.addLoadingFilesMessage();
+            Consumer<List<FileSystemObjectModel>> fileSystemObjectConsumer = response -> {
+                response.sort((o1,o2) -> o1.getFileName().compareToIgnoreCase(o2.getFileName()));
+                pathFilesTableView.getItems().clear();
+                pathFilesTableView.getItems().addAll(response);
+                statusBarService.removeLoadingFilesMessage();
+            };
+            ListFilesTask listTask = listFilesTaskObjectProvider.getObject();
+            listTask.setConfigurationPath(configurationPath);
+            listTask.setListConsumer(fileSystemObjectConsumer);
             Thread.ofVirtual().start(listTask);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-
 
 }

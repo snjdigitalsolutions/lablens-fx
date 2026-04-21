@@ -1,6 +1,6 @@
 package com.snjdigitalsolutions.lablensfx.service.command.commandparser;
 
-import com.snjdigitalsolutions.lablensfx.orm.FileSystemObject;
+import com.snjdigitalsolutions.lablensfx.orm.model.FileSystemObjectModel;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -13,13 +13,16 @@ import java.util.List;
 @Component
 public class ListFileParser {
 
-    public List<FileSystemObject> getFileSystemObjects(String parentPath, List<String> listFileResult){
-        List<FileSystemObject> fileSystemObjects = new ArrayList<>();
+    public List<FileSystemObjectModel> getFileSystemObjectModels(String parentPath,
+                                                                 List<String> listFileResult
+    )
+    {
+        List<FileSystemObjectModel> fileSystemObjects = new ArrayList<>();
         listFileResult.forEach(line -> {
             String[] elements = line.split(" ");
-            FileSystemObject fileObj = new FileSystemObject();
+            FileSystemObjectModel fileObj = new FileSystemObjectModel();
             fileObj.setModifiedTime(parseModifiedTime(elements[0]));
-            fileObj.setPermission(Integer.parseInt(elements[1]));
+            fileObj.setPermission(elements[1]);
             fileObj.setFileType(elements[2]);
             fileObj.setFileName(elements[3]);
             fileObj.setFileSize(Long.parseLong(elements[4]));

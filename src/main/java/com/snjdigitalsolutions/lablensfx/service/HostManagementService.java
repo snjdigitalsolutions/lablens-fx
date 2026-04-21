@@ -4,8 +4,10 @@ import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanelLarge;
 import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
 import com.snjdigitalsolutions.lablensfx.nodes.ProgressDialog;
+import com.snjdigitalsolutions.lablensfx.nodes.tableview.PathFilesTableView;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
+import com.snjdigitalsolutions.lablensfx.orm.model.ComputeResourceModel;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
 import com.snjdigitalsolutions.lablensfx.service.node.HostPanelService;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
@@ -49,6 +51,7 @@ public class HostManagementService implements SpringInitializableNode {
     private final StatusBarState statusBarState;
     private final HostPanelStylingService hostPanelStylingService;
     private final HostPanelService hostPanelService;
+    private final PathFilesTableView pathFilesTableView;
 
     @Value("${application.ssh.promptforpassphrase}")
     private boolean promptForPassPhrase;
@@ -65,7 +68,8 @@ public class HostManagementService implements SpringInitializableNode {
                                  AlertUtility alertUtility,
                                  StatusBarState statusBarState,
                                  HostPanelStylingService hostPanelStylingService,
-                                 HostPanelService hostPanelService
+                                 HostPanelService hostPanelService,
+                                 PathFilesTableView pathFilesTableView
     )
     {
         this.computeResourceState = computeResourceState;
@@ -81,6 +85,7 @@ public class HostManagementService implements SpringInitializableNode {
         this.statusBarState = statusBarState;
         this.hostPanelStylingService = hostPanelStylingService;
         this.hostPanelService = hostPanelService;
+        this.pathFilesTableView = pathFilesTableView;
     }
 
     @Override
@@ -97,6 +102,7 @@ public class HostManagementService implements SpringInitializableNode {
                         verifyHostSshStatus();
                     }
                 });
+        pathFilesTableView.setHostManagementService(this);
     }
 
     /**
@@ -247,10 +253,7 @@ public class HostManagementService implements SpringInitializableNode {
         HostPanel panel = hostPanelProvider.getObject();
         panel.getStyleClass()
                 .add("host-panel");
-        panel.hostnameProperty()
-                .setValue(resource.getHostName());
-        panel.ipAddressProperty()
-                .setValue(resource.getIpAddress());
+        panel.setResourceModel(new ComputeResourceModel(resource));
         computeResourceState.getComputeResourceHostPanelMap()
                 .put(resource.getId(), panel);
         computeResourceState.getHostPanelToComputeResourceMap()
@@ -259,22 +262,14 @@ public class HostManagementService implements SpringInitializableNode {
     }
 
     public void updateComputeResource(ComputeResource resource) {
+        ComputeResourceModel resourceModel = new ComputeResourceModel(resource);
         HostPanel smallPanel = computeResourceState.getComputeResourceHostPanelMap()
                 .get(resource.getId());
+        smallPanel.setResourceModel(resourceModel);
+
         HostPanelLarge largePanel = computeResourceState.getComputeResourceHostPanelLargeMap()
                 .get(resource.getId());
-        smallPanel.hostnameProperty()
-                .setValue(resource.getHostName());
-        smallPanel.ipAddressProperty()
-                .setValue(resource.getIpAddress());
-        largePanel.hostnameProperty()
-                .setValue(resource.getHostName());
-        largePanel.ipAddressProperty()
-                .setValue(resource.getIpAddress());
-        largePanel.descriptionProperty()
-                .setValue(resource.getDescription());
-        largePanel.sshPortProperty()
-                .setValue(resource.getSshPort());
+        largePanel.setResourceModel(resourceModel);
         computeResourceState.updateComputeResource(resource);
         computeResourceState.computerResourceBeingEditedProperty()
                 .setValue(null);

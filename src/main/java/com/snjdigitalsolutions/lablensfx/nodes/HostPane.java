@@ -1,6 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.lablensfx.application.ChangeListenerRegistry;
+import com.snjdigitalsolutions.lablensfx.nodes.tableview.PathFilesTableView;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;

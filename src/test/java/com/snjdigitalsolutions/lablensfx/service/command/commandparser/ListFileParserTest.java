@@ -2,6 +2,7 @@ package com.snjdigitalsolutions.lablensfx.service.command.commandparser;
 
 import com.snjdigitalsolutions.lablensfx.AbstractTest;
 import com.snjdigitalsolutions.lablensfx.orm.FileSystemObject;
+import com.snjdigitalsolutions.lablensfx.orm.model.FileSystemObjectModel;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
@@ -23,15 +24,15 @@ class ListFileParserTest extends AbstractTest {
         }
 
         //Act
-        List<FileSystemObject> objects = listFileParser.getFileSystemObjects("/var/test", lines);
+        List<FileSystemObjectModel> objects = listFileParser.getFileSystemObjectModels("/var/test", lines);
 
         //Assert
         assertFalse(objects.isEmpty());
         assertEquals(7, objects.size());
 
-        FileSystemObject twoExampleConf = objects.get(2);
+        FileSystemObjectModel twoExampleConf = objects.get(2);
         assertEquals(Instant.parse("2025-10-25T08:37:30.145187907Z"), twoExampleConf.getModifiedTime());
-        assertEquals(644, twoExampleConf.getPermission());
+        assertEquals(644, Integer.parseInt(twoExampleConf.getPermission()));
         assertEquals("f", twoExampleConf.getFileType());
         assertEquals("two.example.com.conf", twoExampleConf.getFileName());
         assertEquals(1069L, twoExampleConf.getFileSize());

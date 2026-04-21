@@ -7,6 +7,7 @@ import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import com.snjdigitalsolutions.lablensfx.service.VerifyHostConfigurationService;
 import com.snjdigitalsolutions.lablensfx.service.node.ConfigurationPaneService;
+import com.snjdigitalsolutions.lablensfx.service.node.StatusBarService;
 import com.snjdigitalsolutions.lablensfx.setting.SettingType;
 import com.snjdigitalsolutions.lablensfx.shapes.SshPassphraseIndicator;
 import com.snjdigitalsolutions.lablensfx.state.*;
@@ -15,10 +16,13 @@ import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.TooltipGenerator;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
+import javafx.scene.effect.BoxBlur;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import org.controlsfx.control.StatusBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,12 +36,13 @@ import java.util.Optional;
 public class LabLensFxBootReadyController implements SpringInitializableNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LabLensFxBootReadyController.class);
-    private final TooltipGenerator tooltipGenerator;
 
     @FXML
-    private StatusBar statusBar;
+    private StackPane stackPane;
     @FXML
-    private BorderPane rootPane;
+    private BorderPane borderPane;
+    @FXML
+    private StatusBar statusBar;
 
     @FXML
     private Button addHostButton;
@@ -82,6 +87,11 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     private final SettingState settingState;
     private final SettingRepository settingRepository;
     private final AlertUtility alertUtility;
+    private final StatusBarService statusBarService;
+    private final ApplicationState applicationState;
+    private final ChangeListenerRegistry changeListenerRegistry;
+    private final LoadingOverlay loadingOverlay;
+    private final TooltipGenerator tooltipGenerator;
 
     private SshPassphraseIndicator indicator;
 
@@ -102,7 +112,10 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                                         MenuItemSelectionState menuItemSelectionState,
                                         SettingState settingState,
                                         SettingRepository settingRepository,
-                                        AlertUtility alertUtility
+                                        AlertUtility alertUtility, StatusBarService statusBarService,
+                                        ApplicationState applicationState,
+                                        ChangeListenerRegistry changeListenerRegistry,
+                                        LoadingOverlay loadingOverlay
     )
     {
         this.statusIndicatorProvider = statusIndicatorProvider;
@@ -123,11 +136,16 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         this.settingState = settingState;
         this.settingRepository = settingRepository;
         this.alertUtility = alertUtility;
+        this.statusBarService = statusBarService;
+        this.applicationState = applicationState;
+        this.changeListenerRegistry = changeListenerRegistry;
+        this.loadingOverlay = loadingOverlay;
     }
 
     @Override
     public void performIntialization() {
-        rootPane.setLeft(hostPane);
+        borderPane.setLeft(hostPane);
+        initializeLoadingOverlay();
         setDashboardVisible();
         initializeStatusBar();
         initializeViewButtons();
@@ -146,9 +164,21 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                 });
     }
 
+    private void initializeLoadingOverlay() {
+        stackPane.getChildren().add(loadingOverlay);
+        ChangeListener<Boolean> loadingListener = (obj, oldVal, newVal) -> {
+            if (newVal) {
+                BoxBlur blur = new BoxBlur(5,5,3);
+                borderPane.setEffect(blur);
+            } else {
+                borderPane.setEffect(null);
+            }
+        };
+        changeListenerRegistry.add(this, applicationState.loadingDataProperty(), loadingListener);
+    }
+
     private void initializeStatusBar() {
-        statusBar.textProperty()
-                .bind(statusBarState.statusProperty());
+        statusBarService.setStatusbar(statusBar);
     }
 
     private void initializeDashboardButton() {
@@ -244,13 +274,13 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         selectedViewState.selectedViewProperty()
                 .setValue(ApplicationView.CONFIGURATIONS);
         configurationPaneService.loadExistingPaths();
-        rootPane.setCenter(configurationPane);
+        borderPane.setCenter(configurationPane);
     }
 
     private void setDashboardVisible() {
         selectedViewState.selectedViewProperty()
                 .setValue(ApplicationView.DASHBOARD);
-        rootPane.setCenter(dashboardPane);
+        borderPane.setCenter(dashboardPane);
     }
 
     private void initializeViewButtons() {

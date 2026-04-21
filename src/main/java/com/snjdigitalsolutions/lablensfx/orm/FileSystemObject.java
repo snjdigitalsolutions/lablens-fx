@@ -1,62 +1,35 @@
 package com.snjdigitalsolutions.lablensfx.orm;
 
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.Instant;
 
+@Entity
+@Table(name = "file_system_object")
+@Getter
+@Setter
 public class FileSystemObject {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(name = "modified_time")
     private Instant modifiedTime;
+    @Column(name = "permission")
     private int permission;
+    @Column(name = "file_type")
     private String fileType;
+    @Column(name = "parent_path")
     private String parentPath;
+    @Column(name = "file_name")
     private String fileName;
+    @Column(name = "file_size")
     private long fileSize;
-
-    public Instant getModifiedTime() {
-        return modifiedTime;
-    }
-
-    public void setModifiedTime(Instant modifiedTime) {
-        this.modifiedTime = modifiedTime;
-    }
-
-    public int getPermission() {
-        return permission;
-    }
-
-    public void setPermission(int permission) {
-        this.permission = permission;
-    }
-
-    public String getFileType() {
-        return fileType;
-    }
-
-    public void setFileType(String fileType) {
-        this.fileType = fileType;
-    }
-
-    public String getParentPath() {
-        return parentPath;
-    }
-
-    public void setParentPath(String parentPath) {
-        this.parentPath = parentPath;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public long getFileSize() {
-        return fileSize;
-    }
-
-    public void setFileSize(long fileSize) {
-        this.fileSize = fileSize;
-    }
-
+    @Column(name = "track_file")
+    private boolean trackFile;
+    @ManyToOne
+    @JoinColumn(name = "compute_resource_id")
+    private ComputeResource computeResource;
 }

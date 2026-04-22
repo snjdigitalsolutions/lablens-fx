@@ -16,11 +16,17 @@ public class FileSystemObjectModel {
     private final LongProperty computeResourceID = new SimpleLongProperty();
     private final BooleanProperty trackFile = new SimpleBooleanProperty(false);
     private final BooleanProperty dbIsSource = new SimpleBooleanProperty(false);
+    private final BooleanProperty nonExistantFile = new SimpleBooleanProperty(false);
 
     public FileSystemObjectModel() {}
 
     public FileSystemObjectModel(FileSystemObject fileSystemObject) {
         fromFileSystemObject(fileSystemObject);
+    }
+
+    public FileSystemObjectModel(FileSystemObject fileSystemObject, boolean nonExistantFile) {
+        fromFileSystemObject(fileSystemObject);
+        this.nonExistantFile.set(nonExistantFile);
     }
 
     public void fromFileSystemObject(FileSystemObject fileSystemObject) {
@@ -101,5 +107,13 @@ public class FileSystemObjectModel {
 
     public LongProperty computeResourceIDProperty() {
         return computeResourceID;
+    }
+
+    public boolean isNonExistantFile() {
+        return nonExistantFile.get();
+    }
+
+    public BooleanProperty nonExistantFileProperty() {
+        return nonExistantFile;
     }
 }

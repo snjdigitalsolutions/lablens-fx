@@ -71,6 +71,30 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
         TableColumn<FileSystemObjectModel, String> filenameColumn = new TableColumn<>("Filename");
         filenameColumn.setCellValueFactory(object -> object.getValue()
                 .fileNameProperty());
+        filenameColumn.setCellFactory(column -> new TableCell<>(){
+            private final Label fileNameLabel = new Label();
+
+            @Override
+            protected void updateItem(String item,
+                                      boolean empty
+            )
+            {
+                super.updateItem(item, empty);
+                setGraphic(null);
+                if (item != null) {
+                    FileSystemObjectModel model = getTableView().getItems()
+                            .get(getIndex());
+                    if (model.isNonExistantFile()){
+                        fileNameLabel.setStyle("-fx-text-fill: orange");
+                    } else {
+                        fileNameLabel.setStyle("-fx-text-fill: black");
+                    }
+                    fileNameLabel.setText(item);
+                    setGraphic(fileNameLabel);
+                }
+            }
+
+        });
         return filenameColumn;
     }
 

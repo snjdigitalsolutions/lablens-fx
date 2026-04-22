@@ -16,6 +16,8 @@ import com.snjdigitalsolutions.lablensfx.task.VerifySingleHostConfigurationPathT
 import com.snjdigitalsolutions.lablensfx.utility.FilePathValidator;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import javafx.scene.control.TextField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ import java.util.function.Consumer;
 
 @Service
 public class ConfigurationPaneService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationPaneService.class);
 
     private final ComputeResourceState computeResourceState;
     private final FilePathValidator filePathValidator;
@@ -156,6 +160,14 @@ public class ConfigurationPaneService {
                 response.sort((o1,o2) -> o1.getFileName().compareToIgnoreCase(o2.getFileName()));
                 pathFilesTableView.getItems().clear();
                 pathFilesTableView.getItems().addAll(response);
+                List<FileSystemObjectModel> nonExistantFileModels = response.stream().filter(FileSystemObjectModel::isNonExistantFile).toList();
+                if (!nonExistantFileModels.isEmpty()){
+                    alertUtility.confirmAlert("Files Not on File System", "One or more files have been identified as no longer on the file system. Do you want to remove them from the database?", () -> {
+                        nonExistantFileModels.forEach(model -> {
+                            LOGGER.debug("Remove file from database: {} {}", model.getFileName(), model.getComputeResourceID());
+                        });
+                    });
+                }
                 statusBarService.removeLoadingFilesMessage();
             };
             ListFilesTask listTask = listFilesTaskObjectProvider.getObject();

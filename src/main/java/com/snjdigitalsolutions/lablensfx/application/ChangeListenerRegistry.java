@@ -14,12 +14,20 @@ public class ChangeListenerRegistry {
 
     private final Map<Object, List<Runnable>> listenerRemovers = new HashMap<>();
 
-    public <T> void add(Object registrant, ObservableValue<T> prop, ChangeListener<T> listener) {
-        prop.addListener(listener);
+    /**
+     * Add a listener to a property and register it to the object containing it
+     * such that all listeners can be removed.
+     * @param registrant the object with the listener
+     * @param property the property being observed
+     * @param listener the listener
+     * @param <T> Observable Type
+     */
+    public <T> void add(Object registrant, ObservableValue<T> property, ChangeListener<T> listener) {
+        property.addListener(listener);
         if (!listenerRemovers.containsKey(registrant)){
             listenerRemovers.put(registrant, new ArrayList<>());
         }
-        listenerRemovers.get(registrant).add(() -> prop.removeListener(listener));
+        listenerRemovers.get(registrant).add(() -> property.removeListener(listener));
     }
 
     public void disposeAll(){
@@ -30,8 +38,10 @@ public class ChangeListenerRegistry {
     }
 
     public void disposeForRegistrant(Object registrant){
-        listenerRemovers.get(registrant).forEach(Runnable::run);
-        listenerRemovers.remove(registrant);
+        if (listenerRemovers.get(registrant) != null){
+            listenerRemovers.get(registrant).forEach(Runnable::run);
+            listenerRemovers.remove(registrant);
+        }
     }
 
 }

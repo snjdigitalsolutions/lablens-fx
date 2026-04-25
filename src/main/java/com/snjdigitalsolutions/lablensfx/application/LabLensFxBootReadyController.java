@@ -189,6 +189,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
 
     private void initializeConfigurationButton() {
         configButton.setOnAction(event -> {
+            LOGGER.debug("Configuration button clicked");
             setConfigurationVisible();
         });
     }

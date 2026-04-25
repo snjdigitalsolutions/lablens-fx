@@ -71,6 +71,30 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
         TableColumn<FileSystemObjectModel, String> filenameColumn = new TableColumn<>("Filename");
         filenameColumn.setCellValueFactory(object -> object.getValue()
                 .fileNameProperty());
+        filenameColumn.setCellFactory(column -> new TableCell<>(){
+            private final Label fileNameLabel = new Label();
+
+            @Override
+            protected void updateItem(String item,
+                                      boolean empty
+            )
+            {
+                super.updateItem(item, empty);
+                setGraphic(null);
+                if (item != null) {
+                    FileSystemObjectModel model = getTableView().getItems()
+                            .get(getIndex());
+                    if (model.isNonExistantFile()){
+                        fileNameLabel.setStyle("-fx-text-fill: orange");
+                    } else {
+                        fileNameLabel.setStyle("-fx-text-fill: black");
+                    }
+                    fileNameLabel.setText(item);
+                    setGraphic(fileNameLabel);
+                }
+            }
+
+        });
         return filenameColumn;
     }
 
@@ -89,26 +113,25 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
                 cellBox.setAlignment(Pos.CENTER);
                 cellBox.getChildren()
                         .add(trackCheckBox);
-                trackCheckBox.selectedProperty()
-                        .addListener((obj, oldVal, newVal) -> {
-                            FileSystemObjectModel model = getTableView().getItems()
-                                    .get(getIndex());
-                            Optional<ComputeResource> optComputeResource = hostManagementService.getComputerResourceById(model.getComputeResourceID());
-                            if (optComputeResource.isPresent()) {
-                                List<FileSystemObject> filesFromPath = optComputeResource.get()
-                                        .getFileSystemObjects()
-                                        .stream()
-                                        .filter(fso -> fso.getParentPath()
-                                                .equalsIgnoreCase(model.getParentPath()))
-                                        .toList();
-                                Optional<FileSystemObject> optFileObject = filesFromPath.stream()
-                                        .filter(file -> file.getFileName()
-                                                .equalsIgnoreCase(model.getFileName()))
-                                        .findFirst();
-                                optFileObject.ifPresent(fileSystemObject -> fileSystemObject.setTrackFile(newVal));
-                                hostManagementService.updateComputeResource(optComputeResource.get());
-                            }
-                        });
+                trackCheckBox.setOnAction(event -> {
+                    FileSystemObjectModel model = getTableView().getItems()
+                            .get(getIndex());
+                    Optional<ComputeResource> optComputeResource = hostManagementService.getComputerResourceById(model.getComputeResourceID());
+                    if (optComputeResource.isPresent()) {
+                        List<FileSystemObject> filesFromPath = optComputeResource.get()
+                                .getFileSystemObjects()
+                                .stream()
+                                .filter(fso -> fso.getParentPath()
+                                        .equalsIgnoreCase(model.getParentPath()))
+                                .toList();
+                        Optional<FileSystemObject> optFileObject = filesFromPath.stream()
+                                .filter(file -> file.getFileName()
+                                        .equalsIgnoreCase(model.getFileName()))
+                                .findFirst();
+                        optFileObject.ifPresent(fileSystemObject -> fileSystemObject.setTrackFile(trackCheckBox.isSelected()));
+                        hostManagementService.updateComputeResource(optComputeResource.get());
+                    }
+                });
             }
 
             @Override
@@ -126,5 +149,7 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
         });
         return trackFileColumn;
     }
+
+
 
 }

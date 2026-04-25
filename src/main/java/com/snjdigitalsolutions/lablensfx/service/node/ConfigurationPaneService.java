@@ -11,11 +11,14 @@ import com.snjdigitalsolutions.lablensfx.service.command.CheckElevatedPrivileges
 import com.snjdigitalsolutions.lablensfx.service.command.ListFileCommand;
 import com.snjdigitalsolutions.lablensfx.service.command.commandparser.ListFileParser;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
+import com.snjdigitalsolutions.lablensfx.task.FileSystemObjectModelCleanupTask;
 import com.snjdigitalsolutions.lablensfx.task.ListFilesTask;
 import com.snjdigitalsolutions.lablensfx.task.VerifySingleHostConfigurationPathTask;
 import com.snjdigitalsolutions.lablensfx.utility.FilePathValidator;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import javafx.scene.control.TextField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,8 @@ import java.util.function.Consumer;
 @Service
 public class ConfigurationPaneService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationPaneService.class);
+
     private final ComputeResourceState computeResourceState;
     private final FilePathValidator filePathValidator;
     private final AlertUtility alertUtility;
@@ -38,6 +43,7 @@ public class ConfigurationPaneService {
     private final ListFileParser listFileParser;
     private final StatusBarService statusBarService;
     private final ObjectProvider<ListFilesTask> listFilesTaskObjectProvider;
+    private final ObjectProvider<FileSystemObjectModelCleanupTask> fileSystemObjectModelCleanupTaskObjectProvider;
 
     public ConfigurationPaneService(ComputeResourceState computeResourceState,
                                     ComputeResourceRepository computeResourceRepository,
@@ -47,7 +53,8 @@ public class ConfigurationPaneService {
                                     CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand,
                                     ListFileCommand listFileCommand,
                                     ListFileParser listFileParser, StatusBarService statusBarService,
-                                    ObjectProvider<ListFilesTask> listFilesTaskObjectProvider
+                                    ObjectProvider<ListFilesTask> listFilesTaskObjectProvider,
+                                    ObjectProvider<FileSystemObjectModelCleanupTask> fileSystemObjectModelCleanupTaskObjectProvider
     ) {
         this.computeResourceState = computeResourceState;
         this.filePathValidator = filePathValidator;
@@ -59,6 +66,7 @@ public class ConfigurationPaneService {
         this.listFileParser = listFileParser;
         this.statusBarService = statusBarService;
         this.listFilesTaskObjectProvider = listFilesTaskObjectProvider;
+        this.fileSystemObjectModelCleanupTaskObjectProvider = fileSystemObjectModelCleanupTaskObjectProvider;
     }
 
     public void removeConfigurationPathFromSelectedResource(ConfigurationPath configurationPath) {
@@ -156,6 +164,15 @@ public class ConfigurationPaneService {
                 response.sort((o1,o2) -> o1.getFileName().compareToIgnoreCase(o2.getFileName()));
                 pathFilesTableView.getItems().clear();
                 pathFilesTableView.getItems().addAll(response);
+                List<FileSystemObjectModel> nonExistantFileModels = response.stream().filter(FileSystemObjectModel::isNonExistantFile).toList();
+                if (!nonExistantFileModels.isEmpty()){
+                    alertUtility.confirmAlert("Files Not on File System", "One or more files have been identified as no longer on the file system. Do you want to remove them from the database?", () -> {
+                        FileSystemObjectModelCleanupTask task = fileSystemObjectModelCleanupTaskObjectProvider.getObject();
+                        task.setFileSystemObjectModelList(nonExistantFileModels);
+                        task.setSuccessRunnable(this::loadExistingPaths);
+                        Thread.ofVirtual().start(task);
+                    });
+                }
                 statusBarService.removeLoadingFilesMessage();
             };
             ListFilesTask listTask = listFilesTaskObjectProvider.getObject();

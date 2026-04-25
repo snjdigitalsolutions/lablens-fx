@@ -32,7 +32,6 @@ public class ListFilesTask extends Task<Void> {
     private final ListFileParser listFileParser;
     private final ComputeResourceState computeResourceState;
     private final HostManagementService hostManagementService;
-    private final FileSystemObjectRepository fileSystemObjectRepository;
     @Setter
     private ConfigurationPath configurationPath;
     @Setter
@@ -51,7 +50,6 @@ public class ListFilesTask extends Task<Void> {
         this.listFileParser = listFileParser;
         this.computeResourceState = computeResourceState;
         this.hostManagementService = hostManagementService;
-        this.fileSystemObjectRepository = fileSystemObjectRepository;
     }
 
     @Override
@@ -125,6 +123,7 @@ public class ListFilesTask extends Task<Void> {
                 LOGGER.debug("Model replaced in map for path: {}", file.getFileName());
             } else if (file.getParentPath()
                     .equalsIgnoreCase(configurationPath.getConfigurationPath())) {
+                fileNameToModelMap.put(file.getFileName(), new FileSystemObjectModel(file, true));
                 LOGGER.debug("Persistent file no longer on filesystem: {}", file.getFileName());
             }
         });

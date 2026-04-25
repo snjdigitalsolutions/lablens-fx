@@ -5,6 +5,7 @@ import com.snjdigitalsolutions.lablensfx.nodes.HostPanelLarge;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
+import com.snjdigitalsolutions.lablensfx.utility.DebugUtility;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -82,6 +83,7 @@ public class ComputeResourceState {
     }
 
     public ObservableList<ComputeResource> getSelectedResources() {
+        LOGGER.debug("Size of selected resource list: {}", selectedResources.size());
         return selectedResources.get();
     }
 
@@ -121,9 +123,12 @@ public class ComputeResourceState {
      * @param computeResource the modified ComputeResource
      */
     public void updateComputeResource(ComputeResource computeResource) {
-        selectedResources.remove(computeResource);
+        LOGGER.debug(DebugUtility.getCallerInfo());
+        boolean wasSelected = selectedResources.removeIf(r -> r.getId().equals(computeResource.getId()));
         ComputeResource savedResource = computeResourceRepository.save(computeResource);
-        selectedResources.add(savedResource);
+        if (wasSelected) {
+            selectedResources.add(savedResource);
+        }
         computeResourcesMap.put(savedResource.getId(), savedResource);
         HostPanel mappedPanel = computeResourceHostPanelMap.get(savedResource.getId());
         hostPanelToComputeResourceMap.put(mappedPanel, savedResource);

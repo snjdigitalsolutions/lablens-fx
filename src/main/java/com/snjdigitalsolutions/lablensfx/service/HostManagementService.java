@@ -16,6 +16,7 @@ import com.snjdigitalsolutions.lablensfx.state.SshState;
 import com.snjdigitalsolutions.lablensfx.state.StatusBarState;
 import com.snjdigitalsolutions.lablensfx.task.SshStatusForSingleHostTask;
 import com.snjdigitalsolutions.lablensfx.task.SshStatusTask;
+import com.snjdigitalsolutions.lablensfx.utility.DebugUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.StageNodeBuilder;
@@ -262,6 +263,7 @@ public class HostManagementService implements SpringInitializableNode {
     }
 
     public void updateComputeResource(ComputeResource resource) {
+        LOGGER.debug(DebugUtility.getCallerInfo());
         ComputeResourceModel resourceModel = new ComputeResourceModel(resource);
         HostPanel smallPanel = computeResourceState.getComputeResourceHostPanelMap()
                 .get(resource.getId());

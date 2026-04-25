@@ -11,6 +11,7 @@ import com.snjdigitalsolutions.lablensfx.service.command.CheckElevatedPrivileges
 import com.snjdigitalsolutions.lablensfx.service.command.ListFileCommand;
 import com.snjdigitalsolutions.lablensfx.service.command.commandparser.ListFileParser;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
+import com.snjdigitalsolutions.lablensfx.task.FileSystemObjectModelCleanupTask;
 import com.snjdigitalsolutions.lablensfx.task.ListFilesTask;
 import com.snjdigitalsolutions.lablensfx.task.VerifySingleHostConfigurationPathTask;
 import com.snjdigitalsolutions.lablensfx.utility.FilePathValidator;
@@ -42,6 +43,7 @@ public class ConfigurationPaneService {
     private final ListFileParser listFileParser;
     private final StatusBarService statusBarService;
     private final ObjectProvider<ListFilesTask> listFilesTaskObjectProvider;
+    private final ObjectProvider<FileSystemObjectModelCleanupTask> fileSystemObjectModelCleanupTaskObjectProvider;
 
     public ConfigurationPaneService(ComputeResourceState computeResourceState,
                                     ComputeResourceRepository computeResourceRepository,
@@ -51,7 +53,8 @@ public class ConfigurationPaneService {
                                     CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand,
                                     ListFileCommand listFileCommand,
                                     ListFileParser listFileParser, StatusBarService statusBarService,
-                                    ObjectProvider<ListFilesTask> listFilesTaskObjectProvider
+                                    ObjectProvider<ListFilesTask> listFilesTaskObjectProvider,
+                                    ObjectProvider<FileSystemObjectModelCleanupTask> fileSystemObjectModelCleanupTaskObjectProvider
     ) {
         this.computeResourceState = computeResourceState;
         this.filePathValidator = filePathValidator;
@@ -63,6 +66,7 @@ public class ConfigurationPaneService {
         this.listFileParser = listFileParser;
         this.statusBarService = statusBarService;
         this.listFilesTaskObjectProvider = listFilesTaskObjectProvider;
+        this.fileSystemObjectModelCleanupTaskObjectProvider = fileSystemObjectModelCleanupTaskObjectProvider;
     }
 
     public void removeConfigurationPathFromSelectedResource(ConfigurationPath configurationPath) {
@@ -163,9 +167,10 @@ public class ConfigurationPaneService {
                 List<FileSystemObjectModel> nonExistantFileModels = response.stream().filter(FileSystemObjectModel::isNonExistantFile).toList();
                 if (!nonExistantFileModels.isEmpty()){
                     alertUtility.confirmAlert("Files Not on File System", "One or more files have been identified as no longer on the file system. Do you want to remove them from the database?", () -> {
-                        nonExistantFileModels.forEach(model -> {
-                            LOGGER.debug("Remove file from database: {} {}", model.getFileName(), model.getComputeResourceID());
-                        });
+                        FileSystemObjectModelCleanupTask task = fileSystemObjectModelCleanupTaskObjectProvider.getObject();
+                        task.setFileSystemObjectModelList(nonExistantFileModels);
+                        task.setSuccessRunnable(this::loadExistingPaths);
+                        Thread.ofVirtual().start(task);
                     });
                 }
                 statusBarService.removeLoadingFilesMessage();

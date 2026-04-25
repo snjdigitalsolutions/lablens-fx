@@ -113,26 +113,25 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
                 cellBox.setAlignment(Pos.CENTER);
                 cellBox.getChildren()
                         .add(trackCheckBox);
-                trackCheckBox.selectedProperty()
-                        .addListener((obj, oldVal, newVal) -> {
-                            FileSystemObjectModel model = getTableView().getItems()
-                                    .get(getIndex());
-                            Optional<ComputeResource> optComputeResource = hostManagementService.getComputerResourceById(model.getComputeResourceID());
-                            if (optComputeResource.isPresent()) {
-                                List<FileSystemObject> filesFromPath = optComputeResource.get()
-                                        .getFileSystemObjects()
-                                        .stream()
-                                        .filter(fso -> fso.getParentPath()
-                                                .equalsIgnoreCase(model.getParentPath()))
-                                        .toList();
-                                Optional<FileSystemObject> optFileObject = filesFromPath.stream()
-                                        .filter(file -> file.getFileName()
-                                                .equalsIgnoreCase(model.getFileName()))
-                                        .findFirst();
-                                optFileObject.ifPresent(fileSystemObject -> fileSystemObject.setTrackFile(newVal));
-                                hostManagementService.updateComputeResource(optComputeResource.get());
-                            }
-                        });
+                trackCheckBox.setOnAction(event -> {
+                    FileSystemObjectModel model = getTableView().getItems()
+                            .get(getIndex());
+                    Optional<ComputeResource> optComputeResource = hostManagementService.getComputerResourceById(model.getComputeResourceID());
+                    if (optComputeResource.isPresent()) {
+                        List<FileSystemObject> filesFromPath = optComputeResource.get()
+                                .getFileSystemObjects()
+                                .stream()
+                                .filter(fso -> fso.getParentPath()
+                                        .equalsIgnoreCase(model.getParentPath()))
+                                .toList();
+                        Optional<FileSystemObject> optFileObject = filesFromPath.stream()
+                                .filter(file -> file.getFileName()
+                                        .equalsIgnoreCase(model.getFileName()))
+                                .findFirst();
+                        optFileObject.ifPresent(fileSystemObject -> fileSystemObject.setTrackFile(trackCheckBox.isSelected()));
+                        hostManagementService.updateComputeResource(optComputeResource.get());
+                    }
+                });
             }
 
             @Override
@@ -150,5 +149,7 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
         });
         return trackFileColumn;
     }
+
+
 
 }

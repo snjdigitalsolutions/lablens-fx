@@ -288,6 +288,10 @@ public class HostManagementService implements SpringInitializableNode {
         });
     }
 
+    public Iterable<ComputeResource> getAllComputeResources() {
+        return computeResourceRepository.findAll();
+    }
+
     public boolean sshNeededOnStartup() {
         return computeResourceRepository.countComputeResourceBySshCommunicateIsGreaterThan(0L) > 0;
     }

@@ -2,6 +2,9 @@ package com.snjdigitalsolutions.lablensfx.utility;
 
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Component
@@ -36,6 +39,12 @@ public class FilePathValidator {
 
     public boolean isValid(String path) {
         return detect(path) != PathType.UNKNOWN;
+    }
+
+    public Optional<String> allValid(String... segments) {
+        if (segments == null || segments.length == 0) return Optional.empty();
+        String joined = Paths.get(segments[0], Arrays.copyOfRange(segments, 1, segments.length)).toString();
+        return isValid(joined) ? Optional.of(joined) : Optional.empty();
     }
 
 }

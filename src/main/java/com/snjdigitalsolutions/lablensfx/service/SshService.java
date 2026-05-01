@@ -11,6 +11,8 @@ import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.config.keys.FilePasswordProvider;
 import org.apache.sshd.common.keyprovider.FileKeyPairProvider;
 import org.apache.sshd.common.session.SessionHeartbeatController;
+import org.apache.sshd.scp.client.ScpClient;
+import org.apache.sshd.scp.client.ScpClientCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.EnumSet;
 import java.util.List;
@@ -102,8 +105,6 @@ public class SshService {
                 activeSessions.remove(host);
                 LOGGER.debug("Removed active session for: {}", host);
             }
-
-
             optionalSession = Optional.ofNullable(client.connect(sshState.getSshUsername(), host, port)
                                                           .verify(10, TimeUnit.SECONDS)
                                                           .getSession());
@@ -120,7 +121,7 @@ public class SshService {
 
     /**
      * Opens a session to the given host and runs a command, returning its output.
-     * Closes the session when done — call this per-command for simple use cases.
+     * Call this per-command for simple use cases.
      */
     public String executeCommand(String host,
                                  int port,
@@ -149,6 +150,10 @@ public class SshService {
         return response;
     }
 
+    /**
+     * Opens a session to the given host and runs a command, returning its output.
+     * Call this per-command for simple use cases.
+     */
     public String executeSudoCommand(String host,
                                      int port,
                                      String command
@@ -180,5 +185,21 @@ public class SshService {
             throw new RuntimeException("SSH client not initialized");
         }
         return response;
+    }
+
+    public boolean secureCopyFileFromHost(String host,
+                                          int port,
+                                          String srcAbsolutePath,
+                                          String destPath) throws Exception
+    {
+        boolean fileTransferSuccess = false;
+        Optional<ClientSession> optionalSession = getOrCreateSession(host, port);
+        if (clientInitialized && optionalSession.isPresent()) {
+            ScpClientCreator creator = ScpClientCreator.instance();
+            ScpClient scpClient = creator.createScpClient(optionalSession.get());
+            scpClient.download(srcAbsolutePath, destPath, ScpClient.Option.Recursive);
+            fileTransferSuccess = true;
+        }
+        return fileTransferSuccess;
     }
 }

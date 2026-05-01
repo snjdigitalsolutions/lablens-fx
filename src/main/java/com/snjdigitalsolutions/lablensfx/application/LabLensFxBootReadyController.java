@@ -19,11 +19,12 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import org.controlsfx.control.SegmentedButton;
 import org.controlsfx.control.StatusBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,6 +97,12 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
 
     private SshPassphraseIndicator indicator;
 
+
+    private ToggleButton dashboardToggleButton;
+    private ToggleButton configToggleButton;
+    private ToggleButton logToggleButton;
+    private ToggleButton timelineToggleButton;
+
     public LabLensFxBootReadyController(ObjectProvider<SshPassphraseIndicator> statusIndicatorProvider,
                                         HostPane hostPane,
                                         HostFormPane hostFormPane,
@@ -146,6 +153,16 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     @Override
     public void performIntialization() {
         borderPane.setLeft(hostPane);
+
+        dashboardToggleButton = new ToggleButton("Dashboard");
+        dashboardToggleButton.setFocusTraversable(false);
+        configToggleButton = new ToggleButton("Configurations");
+        configToggleButton.setFocusTraversable(false);
+        logToggleButton = new ToggleButton("Logs");
+        logToggleButton.setFocusTraversable(false);
+        timelineToggleButton = new ToggleButton("Timeline");
+        timelineToggleButton.setFocusTraversable(false);
+
         initializeLoadingOverlay();
         setDashboardVisible();
         initializeStatusBar();
@@ -163,6 +180,33 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                     indicator.passPhraseMode()
                             .setValue(newVal);
                 });
+
+
+        HBox buttonBox = (HBox)sshButton.getParent();
+        buttonBox.getChildren().remove(configButton);
+        buttonBox.getChildren().remove(dashboardButton);
+        buttonBox.getChildren().remove(logButton);
+        buttonBox.getChildren().remove(timelineButton);
+        configButton.visibleProperty().setValue(false);
+        dashboardButton.visibleProperty().setValue(false);
+        logButton.visibleProperty().setValue(false);
+        timelineButton.visibleProperty().setValue(false);
+
+        SegmentedButton segmentedButton = new SegmentedButton();
+        segmentedButton.getButtons().addAll(dashboardToggleButton, configToggleButton, logToggleButton, timelineToggleButton);
+        // Apply the listener to each button
+        dashboardToggleButton.setSelected(true);
+        ToggleGroup group = segmentedButton.getToggleGroup();
+        group.getToggles().addAll(dashboardToggleButton, configToggleButton, logToggleButton, timelineToggleButton);
+        for (Toggle toggle : group.getToggles()) {
+            toggle.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
+                if (!isNowSelected && group.getSelectedToggle() == null) {
+                    LOGGER.debug(("Toggle selection changed"));
+                    toggle.setSelected(true);
+                }
+            });
+        }
+        buttonBox.getChildren().add(1, segmentedButton);
     }
 
     private void initializeLoadingOverlay() {
@@ -183,12 +227,19 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     }
 
     private void initializeDashboardButton() {
+        dashboardToggleButton.setOnAction(event -> {
+           setDashboardVisible();
+        });
         dashboardButton.setOnAction(event -> {
             setDashboardVisible();
         });
     }
 
     private void initializeConfigurationButton() {
+        configToggleButton.setOnAction(event -> {
+            LOGGER.debug("Configuration button clicked");
+            setConfigurationVisible();
+        });
         configButton.setOnAction(event -> {
             LOGGER.debug("Configuration button clicked");
             setConfigurationVisible();
@@ -295,9 +346,12 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
 
     private void disableNonDashboardButtons(boolean value) {
         configButton.setDisable(value);
+        configToggleButton.setDisable(value);
         addHostButton.setDisable(!value);
         logButton.setDisable(value);
+        logToggleButton.setDisable(value);
         timelineButton.setDisable(value);
+        timelineToggleButton.setDisable(value);
         if (value) {
             setDashboardVisible();
         }

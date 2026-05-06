@@ -35,7 +35,6 @@ public class PersistConfigurationFileTask extends Task<Void> {
     private final SshService sshService;
     private final FilePathValidator filePathValidator;
     private final MD5Utility md5Utility;
-    private final FileStorageRepository fileStorageRepository;
     private final HostManagementService hostManagementService;
     @Setter
     private Map<ComputeResource, List<FileSystemObject>> unpersistedFiles;
@@ -43,13 +42,11 @@ public class PersistConfigurationFileTask extends Task<Void> {
     public PersistConfigurationFileTask(SshService sshService,
                                         FilePathValidator filePathValidator,
                                         MD5Utility md5Utility,
-                                        FileStorageRepository fileStorageRepository,
                                         HostManagementService hostManagementService
     ) {
         this.sshService = sshService;
         this.filePathValidator = filePathValidator;
         this.md5Utility = md5Utility;
-        this.fileStorageRepository = fileStorageRepository;
         this.hostManagementService = hostManagementService;
     }
 

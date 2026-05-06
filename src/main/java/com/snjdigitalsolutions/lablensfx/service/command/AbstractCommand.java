@@ -3,7 +3,9 @@ package com.snjdigitalsolutions.lablensfx.service.command;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.service.SshService;
 
-public abstract class AbstractCommand implements Command {
+import java.util.List;
+
+public abstract class AbstractCommand<T> implements Command<T> {
 
     protected final SshService sshService;
 
@@ -14,7 +16,8 @@ public abstract class AbstractCommand implements Command {
     @Override
     public String executeCommand(ComputeResource computeResource,
                                  String command
-    ) throws Exception {
+    ) throws Exception
+    {
         if (!sshService.init()) {
             throw new RuntimeException("SSH client not initialized");
         } else if (command != null && !command.isEmpty()) {
@@ -26,7 +29,10 @@ public abstract class AbstractCommand implements Command {
     }
 
     @Override
-    public String executeSudoCommand(ComputeResource computeResource, String command) throws Exception {
+    public String executeSudoCommand(ComputeResource computeResource,
+                                     String command
+    ) throws Exception
+    {
         if (!sshService.init()) {
             throw new RuntimeException("SSH client not initialized");
         } else if (command != null && !command.isEmpty()) {
@@ -34,6 +40,14 @@ public abstract class AbstractCommand implements Command {
         } else {
             throw new RuntimeException("File path cannot be blank");
         }
+    }
+
+    @Override
+    public T performCommand(ComputeResource resource,
+                                       String filePath
+    ) throws Exception
+    {
+        return performCommand(resource, filePath, false);
     }
 
 

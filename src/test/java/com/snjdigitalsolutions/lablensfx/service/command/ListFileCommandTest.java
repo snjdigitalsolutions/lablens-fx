@@ -1,38 +1,40 @@
 package com.snjdigitalsolutions.lablensfx.service.command;
 
-import com.snjdigitalsolutions.lablensfx.AbstractTest;
+import com.snjdigitalsolutions.lablensfx.AbstractCommandTest;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.mockito.Mock;
 
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class ListFileCommandTest extends AbstractTest {
+class ListFileCommandTest extends AbstractCommandTest {
 
     @Mock
     private ComputeResource computeResource;
 
-    @Test
-    @Order(1)
-    void executeCommand() {
-        //Arrange
-        when(computeResource.getHostName()).thenReturn(testhost);
-        when(computeResource.getIpAddress()).thenReturn(ipAddress);
-        when(computeResource.getSshPort()).thenReturn(22);
+    @Nested
+    class WhenSshNotInitialized {
 
-        //Act
-        Exception ex = assertThrows(Exception.class, () -> listFileCommand.executeCommand(computeResource, ""));
+        @Test
+        @Order(1)
+        void executeCommand() {
+            //Arrange
+            when(computeResource.getHostName()).thenReturn(testhost);
+            when(computeResource.getIpAddress()).thenReturn(ipAddress);
+            when(computeResource.getSshPort()).thenReturn(22);
 
-        //Assert
-        assertThat(ex.getMessage()).contains("File path cannot be blank");
+            //Act
+            Exception ex = assertThrows(Exception.class, () -> listFileCommand.executeCommand(computeResource, ""));
+
+            //Assert
+            assertThat(ex.getMessage()).contains("File path cannot be blank");
+        }
     }
 
     @Test
@@ -46,7 +48,7 @@ class ListFileCommandTest extends AbstractTest {
         when(computeResource.getSshPort()).thenReturn(22);
 
         //Act
-        List<String> files = listFileCommand.listFiles(computeResource, "/etc/nginx/conf.d", false);
+        List<String> files = listFileCommand.performCommand(computeResource, "/etc/nginx/conf.d", false);
 
         //Assert
         assertFalse(files.isEmpty());

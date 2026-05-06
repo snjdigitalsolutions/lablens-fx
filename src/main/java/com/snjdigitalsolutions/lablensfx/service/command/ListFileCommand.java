@@ -11,22 +11,32 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
-public class ListFileCommand extends AbstractCommand {
+public class ListFileCommand extends AbstractCommand<List<String>> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ListFileCommand.class);
-
-    private String filePath = "";
 
     public ListFileCommand(SshService sshService) {
         super(sshService);
     }
 
-    public List<String> listFiles(ComputeResource resource, String filePath, boolean elevationNeeded) throws Exception {
-        this.filePath = filePath;
+    @Override
+    public List<String> performCommand(ComputeResource resource,
+                                       String filePath,
+                                       boolean elevationNeeded
+    ) throws Exception
+    {
+        return listFiles(resource, filePath, elevationNeeded);
+    }
+
+    private List<String> listFiles(ComputeResource resource,
+                                   String filePath,
+                                   boolean elevationNeeded
+    ) throws Exception
+    {
         List<String> fieList = new ArrayList<>();
         String command = "find " + filePath + " -type f -printf \"%T+ %m %y %f %s\n\"";
         String listingContent = "";
-        if (elevationNeeded){
+        if (elevationNeeded) {
             listingContent = executeSudoCommand(resource, command);
         } else {
             listingContent = executeCommand(resource, command);

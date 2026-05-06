@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CheckElevatedPrivilegesRequiredCommand extends AbstractCommand {
+public class CheckElevatedPrivilegesRequiredCommand extends AbstractCommand<Boolean> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CheckElevatedPrivilegesRequiredCommand.class);
 
@@ -15,7 +15,16 @@ public class CheckElevatedPrivilegesRequiredCommand extends AbstractCommand {
         super(sshService);
     }
 
-    public boolean checkFilePath(ComputeResource computeResource, String filePath) throws Exception {
+    @Override
+    public Boolean performCommand(ComputeResource resource,
+                                  String filePath,
+                                  boolean elevationNeeded
+    ) throws Exception
+    {
+        return checkFilePath(resource, filePath);
+    }
+
+    private Boolean checkFilePath(ComputeResource computeResource, String filePath) throws Exception {
         boolean elevationRequired = false;
         if (!filePath.isEmpty()) {
             LOGGER.debug("Hostname: {}", computeResource.getHostName());
@@ -33,4 +42,5 @@ public class CheckElevatedPrivilegesRequiredCommand extends AbstractCommand {
         }
         return elevationRequired;
     }
+
 }

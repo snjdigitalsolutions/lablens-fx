@@ -55,7 +55,7 @@ public class ListFilesTask extends Task<Void> {
     @Override
     protected Void call() throws Exception {
         //Get list of filenames at selected configuration path
-        List<String> listCommandResponse = listFileCommand.listFiles(computeResourceState.getSelectedResources()
+        List<String> listCommandResponse = listFileCommand.performCommand(computeResourceState.getSelectedResources()
                                                                              .getFirst(), configurationPath.getConfigurationPath(), configurationPath.getRequiresElevation());
 
         //Populate hostFileList with models generated from listing files on the remote host
@@ -139,6 +139,5 @@ public class ListFilesTask extends Task<Void> {
     public void cancelled() {
 
     }
-
 
 }

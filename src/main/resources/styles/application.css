@@ -78,3 +78,7 @@
     -fx-min-height: 0;
     visibility: hidden;
 }
+
+.hyper-click-blue {
+    -fx-text-fill: blue;
+}

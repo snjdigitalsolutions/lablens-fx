@@ -5,6 +5,7 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.layout.VBox?>
 
@@ -25,9 +26,20 @@
                   <HBox minHeight="30.0">
                      <children>
                         <Label text="Summary" />
+                        <Region HBox.hgrow="ALWAYS" />
                      </children>
                   </HBox>
                   <HBox fx:id="summaryPanelHBox" maxWidth="1.7976931348623157E308" />
+                  <HBox alignment="BOTTOM_LEFT" minHeight="30.0">
+                     <padding>
+                        <Insets left="12.0" />
+                     </padding>
+                     <children>
+                        <Label fx:id="allOnLabel" text="All On" underline="true" />
+                        <Label alignment="CENTER" minWidth="15.0" text="|" />
+                        <Label fx:id="allOffLabel" text="All Off" underline="true" />
+                     </children>
+                  </HBox>
                </children>
             </VBox>
             <ScrollPane hbarPolicy="NEVER" VBox.vgrow="ALWAYS">

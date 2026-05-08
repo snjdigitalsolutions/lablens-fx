@@ -121,6 +121,10 @@ public class HostPanelLarge extends GridPane implements IpSortable {
         changeListenerRegistry.add(this, sshCommToggle.selectedProperty(), listener);
     }
 
+    public void changeToggleState(boolean toggleOn) {
+        sshCommToggle.setSelected(toggleOn);
+    }
+
     @Override
     public String getIpAddress() {
         return resourceModel.getIpAddress();

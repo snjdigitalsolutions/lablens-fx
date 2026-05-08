@@ -40,7 +40,7 @@ public class FilePersistenceService {
         this.computeResourceState = computeResourceState;
     }
 
-    @Scheduled(fixedDelay = 60000)
+    @Scheduled(fixedRate = 60000)
     public void updateConfigurationFilePersistence(){
         if (computeResourceState.isComputeResourcesLoaded()){
             Map<ComputeResource, List<FileSystemObject>> mapOfUnpersistedFiles = findUnpersistedTrackedFiles();

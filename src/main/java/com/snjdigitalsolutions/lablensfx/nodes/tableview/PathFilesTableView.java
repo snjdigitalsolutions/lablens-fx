@@ -1,6 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.nodes.tableview;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
+import com.snjdigitalsolutions.lablensfx.orm.FileStorage;
 import com.snjdigitalsolutions.lablensfx.orm.FileSystemObject;
 import com.snjdigitalsolutions.lablensfx.orm.model.FileSystemObjectModel;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
@@ -71,7 +72,7 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
         TableColumn<FileSystemObjectModel, String> filenameColumn = new TableColumn<>("Filename");
         filenameColumn.setCellValueFactory(object -> object.getValue()
                 .fileNameProperty());
-        filenameColumn.setCellFactory(column -> new TableCell<>(){
+        filenameColumn.setCellFactory(column -> new TableCell<>() {
             private final Label fileNameLabel = new Label();
 
             @Override
@@ -84,7 +85,7 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
                 if (item != null) {
                     FileSystemObjectModel model = getTableView().getItems()
                             .get(getIndex());
-                    if (model.isNonExistantFile()){
+                    if (model.isNonExistantFile()) {
                         fileNameLabel.setStyle("-fx-text-fill: orange");
                     } else {
                         fileNameLabel.setStyle("-fx-text-fill: black");
@@ -118,19 +119,37 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
                             .get(getIndex());
                     Optional<ComputeResource> optComputeResource = hostManagementService.getComputerResourceById(model.getComputeResourceID());
                     if (optComputeResource.isPresent()) {
+                        // Get all file system object with same parent path
                         List<FileSystemObject> filesFromPath = optComputeResource.get()
                                 .getFileSystemObjects()
                                 .stream()
                                 .filter(fso -> fso.getParentPath()
                                         .equalsIgnoreCase(model.getParentPath()))
                                 .toList();
+                        // Get file object by iterating all files in parent path and mathing name
                         Optional<FileSystemObject> optFileObject = filesFromPath.stream()
                                 .filter(file -> file.getFileName()
                                         .equalsIgnoreCase(model.getFileName()))
                                 .findFirst();
-                        optFileObject.ifPresent(fileSystemObject -> fileSystemObject.setTrackFile(trackCheckBox.isSelected()));
+                        // Change selected status
+                        optFileObject.ifPresent(fileSystemObject -> {
+                            fileSystemObject.setTrackFile(trackCheckBox.isSelected());
+                            if (!trackCheckBox.isSelected()) {
+                                String absoluteFilePath = fileSystemObject.getParentPath() + "/" + fileSystemObject.getFileName();
+                                List<FileStorage> fileStorageList = optComputeResource.get()
+                                        .getFileStorages()
+                                        .stream()
+                                        .filter(fso -> fso.getAbsolutePath()
+                                                .equals(absoluteFilePath))
+                                        .toList();
+                                optComputeResource.get().getFileStorages().remove(fileStorageList.getFirst());
+                            }
+                        });
                         hostManagementService.updateComputeResource(optComputeResource.get());
                     }
+
+                    // Start a cleanup thread
+
                 });
             }
 
@@ -149,7 +168,6 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
         });
         return trackFileColumn;
     }
-
 
 
 }

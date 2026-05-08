@@ -8,14 +8,15 @@ import com.snjdigitalsolutions.lablensfx.state.ShowIpAddressState;
 import com.snjdigitalsolutions.lablensfx.state.StatusBarState;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
+import impl.org.controlsfx.skin.ToggleSwitchSkin;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.MapChangeListener;
 import javafx.fxml.FXML;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.TilePane;
+import javafx.geometry.Insets;
+import javafx.scene.control.Label;
+import javafx.scene.layout.*;
+import org.controlsfx.control.ToggleSwitch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -36,6 +37,10 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
     private HBox summaryPanelHBox;
     @FXML
     private TilePane hostFlowPane;
+    @FXML
+    private Label allOnLabel;
+    @FXML
+    private Label allOffLabel;
 
     private BooleanProperty performRefresh = new SimpleBooleanProperty(false);
 
@@ -98,6 +103,18 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                 .addListener((obj, oldVal, newVal) -> {
                     refresh();
                 });
+        allOnLabel.getStyleClass().add("hyper-click-blue");
+        allOnLabel.setOnMouseClicked(event -> {
+            computeResourceState.getComputeResourceHostPanelLargeMap().values().forEach(hostPanelLarge -> {
+                hostPanelLarge.changeToggleState(true);
+            });
+        });
+        allOffLabel.getStyleClass().add("hyper-click-blue");
+        allOffLabel.setOnMouseClicked(event -> {
+            computeResourceState.getComputeResourceHostPanelLargeMap().values().forEach(hostPanelLarge -> {
+                hostPanelLarge.changeToggleState(false);
+            });
+        });
     }
 
     private SummaryPanel createSummaryPanel(SummaryPanelType type) {
@@ -145,23 +162,6 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                     HostPanelLarge panel = hostPanelLargeProvider.getObject();
                     panel.performInitialization(resource.getId());
                     panel.setResourceModel(new ComputeResourceModel(resource));
-
-//                    panel.hostnameProperty()
-//                            .setValue(resource.getHostName());
-//                    if (showIpAddressState.isShowIpProperty()) {
-//                        panel.ipAddressProperty()
-//                                .setValue(resource.getIpAddress());
-//                    } else {
-//                        panel.ipAddressProperty()
-//                                .setValue("xxx.xxx.xxx.xxx");
-//                    }
-//                    panel.descriptionProperty()
-//                            .setValue(resource.getDescription());
-//                    panel.sshPortProperty()
-//                            .setValue(resource.getSshPort());
-//                    panel.sshToggleValueProperty()
-//                            .setValue(resource.getSshCommunicate() == 1);
-
                     panel.addToggleListener();
                     panel.getStyleClass()
                             .add("host-panel");

@@ -4,6 +4,7 @@ import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.orm.FileStorage;
 import com.snjdigitalsolutions.lablensfx.orm.FileSystemObject;
 import com.snjdigitalsolutions.lablensfx.orm.model.FileSystemObjectModel;
+import com.snjdigitalsolutions.lablensfx.service.FilePersistenceService;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import javafx.beans.value.ObservableValue;
@@ -18,6 +19,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -26,6 +28,12 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
     private static final Logger LOGGER = LoggerFactory.getLogger(PathFilesTableView.class);
     @Setter
     private HostManagementService hostManagementService;
+    @Setter
+    private FilePersistenceService filePersistenceService;
+
+    public PathFilesTableView(FilePersistenceService filePersistenceService) {
+        this.filePersistenceService = filePersistenceService;
+    }
 
     @Override
     public void performIntialization() {
@@ -126,7 +134,7 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
                                 .filter(fso -> fso.getParentPath()
                                         .equalsIgnoreCase(model.getParentPath()))
                                 .toList();
-                        // Get file object by iterating all files in parent path and mathing name
+                        // Get file object by iterating all files in parent path and matching name
                         Optional<FileSystemObject> optFileObject = filesFromPath.stream()
                                 .filter(file -> file.getFileName()
                                         .equalsIgnoreCase(model.getFileName()))
@@ -146,10 +154,12 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
                             }
                         });
                         hostManagementService.updateComputeResource(optComputeResource.get());
+                        filePersistenceService.updateConfigurationFilePersistence();
                     }
 
-                    // Start a cleanup thread
-
+                    //TODO Start a cleanup thread
+                    Map<ComputeResource, List<FileSystemObject>> unpersistedFiles = filePersistenceService.findUnpersistedTrackedFiles();
+                    LOGGER.debug("Found unpersisted files...");
                 });
             }
 

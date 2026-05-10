@@ -149,6 +149,12 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                             panel.setCountLabel(newVal.toString());
                         });
             }
+            case NUM_LOG_ERROR -> {
+                computeResourceState.configurationChangeCountProperty()
+                        .addListener((obj, oldVal, newVal) -> {
+                            panel.setCountLabel(newVal.toString());
+                        });
+            }
         }
     }
 

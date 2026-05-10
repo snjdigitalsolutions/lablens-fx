@@ -28,4 +28,6 @@ public class FileStorage {
     private Instant createdTime;
     @Column(name = "file_date")
     private byte[] fileDate;
+    @Column(name = "changed_on_disk")
+    private Boolean changedOnDisk;
 }

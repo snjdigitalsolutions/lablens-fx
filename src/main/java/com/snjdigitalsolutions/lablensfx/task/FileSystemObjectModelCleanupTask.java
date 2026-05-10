@@ -13,6 +13,11 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * When files are removed from a remote system the database
+ * needs to be cleaned up so no orphan files exist in the
+ * database.
+ */
 @Component
 @Scope("prototype")
 public class FileSystemObjectModelCleanupTask extends Task<Void> {

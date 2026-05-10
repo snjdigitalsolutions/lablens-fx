@@ -22,6 +22,10 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+/**
+ * List files from a remote host when the configuration
+ * path is selected.
+ */
 @Component
 @Scope("prototype")
 public class ListFilesTask extends Task<Void> {

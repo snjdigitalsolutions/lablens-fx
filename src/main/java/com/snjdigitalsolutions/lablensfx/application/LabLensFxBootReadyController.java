@@ -12,6 +12,7 @@ import com.snjdigitalsolutions.lablensfx.service.node.StatusBarService;
 import com.snjdigitalsolutions.lablensfx.setting.SettingType;
 import com.snjdigitalsolutions.lablensfx.shapes.SshPassphraseIndicator;
 import com.snjdigitalsolutions.lablensfx.state.*;
+import com.snjdigitalsolutions.lablensfx.task.ConfigurationChangeCheckTask;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.TooltipGenerator;
@@ -29,6 +30,7 @@ import org.controlsfx.control.StatusBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -38,6 +40,9 @@ import java.util.Optional;
 public class LabLensFxBootReadyController implements SpringInitializableNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LabLensFxBootReadyController.class);
+
+    @Value("${application.testbutton.enabled}")
+    private Boolean testButtonEnabled;
 
     @FXML
     private StackPane stackPane;
@@ -68,6 +73,8 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     @FXML
     private MenuItem verifyPathPrivilegeMenuItem;
     @FXML
+    private MenuItem testFunctionMenuItem;
+    @FXML
     private FontAwesomeIconView showHideIpIconView;
     @FXML
     private FontAwesomeIconView confirmChangeIconView;
@@ -97,11 +104,12 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
 
     private SshPassphraseIndicator indicator;
 
-
     private ToggleButton dashboardToggleButton;
     private ToggleButton configToggleButton;
     private ToggleButton logToggleButton;
     private ToggleButton timelineToggleButton;
+
+    private final ObjectProvider<ConfigurationChangeCheckTask> configurationChangeCheckTaskObjectProvider;
 
     public LabLensFxBootReadyController(ObjectProvider<SshPassphraseIndicator> statusIndicatorProvider,
                                         HostPane hostPane,
@@ -123,7 +131,8 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                                         AlertUtility alertUtility, StatusBarService statusBarService,
                                         ApplicationState applicationState,
                                         ChangeListenerRegistry changeListenerRegistry,
-                                        LoadingOverlay loadingOverlay
+                                        LoadingOverlay loadingOverlay,
+                                        ObjectProvider<ConfigurationChangeCheckTask> configurationChangeCheckTaskObjectProvider
     )
     {
         this.statusIndicatorProvider = statusIndicatorProvider;
@@ -148,6 +157,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         this.applicationState = applicationState;
         this.changeListenerRegistry = changeListenerRegistry;
         this.loadingOverlay = loadingOverlay;
+        this.configurationChangeCheckTaskObjectProvider = configurationChangeCheckTaskObjectProvider;
     }
 
     @Override
@@ -207,6 +217,12 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
             });
         }
         buttonBox.getChildren().add(1, segmentedButton);
+        if (!testButtonEnabled){
+            testFunctionMenuItem.setVisible(false);
+        }
+        testFunctionMenuItem.setOnAction(event -> {
+           Thread.ofVirtual().start(configurationChangeCheckTaskObjectProvider.getObject());
+        });
     }
 
     private void initializeLoadingOverlay() {
@@ -354,6 +370,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         timelineToggleButton.setDisable(value);
         if (value) {
             setDashboardVisible();
+            dashboardToggleButton.setSelected(true);
         }
     }
 

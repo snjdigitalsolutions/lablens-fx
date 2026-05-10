@@ -14,6 +14,7 @@ import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import com.snjdigitalsolutions.lablensfx.state.SshState;
 import com.snjdigitalsolutions.lablensfx.state.StatusBarState;
+import com.snjdigitalsolutions.lablensfx.task.ConfigurationChangeCheckTask;
 import com.snjdigitalsolutions.lablensfx.task.SshStatusForSingleHostTask;
 import com.snjdigitalsolutions.lablensfx.task.SshStatusTask;
 import com.snjdigitalsolutions.lablensfx.utility.DebugUtility;
@@ -39,7 +40,6 @@ import java.util.Optional;
 public class HostManagementService implements SpringInitializableNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HostManagementService.class);
-    private final Environment environment;
     private final ComputeResourceState computeResourceState;
     private final StatusBarState statusBarProperties;
     private final ComputeResourceRepository computeResourceRepository;
@@ -47,12 +47,12 @@ public class HostManagementService implements SpringInitializableNode {
     private final ProgressDialog progressDialog;
     private final SshService sshService;
     private final SshState sshState;
-    private final PassphraseDialog passphraseDialog;
     private final AlertUtility alertUtility;
     private final StatusBarState statusBarState;
-    private final HostPanelStylingService hostPanelStylingService;
     private final HostPanelService hostPanelService;
     private final PathFilesTableView pathFilesTableView;
+    private final FilePersistenceService filePersistenceService;
+    private final ObjectProvider<ConfigurationChangeCheckTask> configurationChangeCheckTaskObjectProvider;
 
     @Value("${application.ssh.promptforpassphrase}")
     private boolean promptForPassPhrase;
@@ -61,32 +61,30 @@ public class HostManagementService implements SpringInitializableNode {
                                  StatusBarState statusBarProperties,
                                  ComputeResourceRepository computeResourceRepository,
                                  ObjectProvider<HostPanel> hostPanelProvider,
-                                 Environment environment,
                                  ProgressDialog progressDialog,
                                  SshService sshService,
                                  SshState sshState,
-                                 PassphraseDialog passphraseDialog,
                                  AlertUtility alertUtility,
                                  StatusBarState statusBarState,
-                                 HostPanelStylingService hostPanelStylingService,
                                  HostPanelService hostPanelService,
-                                 PathFilesTableView pathFilesTableView
+                                 PathFilesTableView pathFilesTableView,
+                                 FilePersistenceService filePersistenceService,
+                                 ObjectProvider<ConfigurationChangeCheckTask> configurationChangeCheckTaskObjectProvider
     )
     {
         this.computeResourceState = computeResourceState;
         this.statusBarProperties = statusBarProperties;
         this.computeResourceRepository = computeResourceRepository;
         this.hostPanelProvider = hostPanelProvider;
-        this.environment = environment;
         this.progressDialog = progressDialog;
         this.sshService = sshService;
         this.sshState = sshState;
-        this.passphraseDialog = passphraseDialog;
         this.alertUtility = alertUtility;
         this.statusBarState = statusBarState;
-        this.hostPanelStylingService = hostPanelStylingService;
         this.hostPanelService = hostPanelService;
         this.pathFilesTableView = pathFilesTableView;
+        this.filePersistenceService = filePersistenceService;
+        this.configurationChangeCheckTaskObjectProvider = configurationChangeCheckTaskObjectProvider;
     }
 
     @Override
@@ -97,13 +95,19 @@ public class HostManagementService implements SpringInitializableNode {
                         computeResourceRepository.deleteById(change.getKey());
                     }
                 });
+        /**
+         * When resources have finished loading perform
+         * initial tasks.
+         */
         computeResourceState.computeResourcesLoadedProperty()
                 .addListener((obj, oldVal, newVal) -> {
                     if (newVal) {
                         verifyHostSshStatus();
+                        Thread.ofVirtual().start(configurationChangeCheckTaskObjectProvider.getIfAvailable());
                     }
                 });
         pathFilesTableView.setHostManagementService(this);
+        filePersistenceService.setHostManagementService(this);
     }
 
     /**

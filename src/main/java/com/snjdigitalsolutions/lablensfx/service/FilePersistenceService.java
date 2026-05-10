@@ -1,11 +1,13 @@
 package com.snjdigitalsolutions.lablensfx.service;
 
 import com.snjdigitalsolutions.lablensfx.application.ChangeListenerRegistry;
+import com.snjdigitalsolutions.lablensfx.nodes.tableview.PathFilesTableView;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.orm.FileSystemObject;
 import com.snjdigitalsolutions.lablensfx.repository.FileStorageRepository;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import com.snjdigitalsolutions.lablensfx.task.PersistConfigurationFileTask;
+import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,28 +21,33 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class FilePersistenceService {
+public class FilePersistenceService  {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FilePersistenceService.class);
 
-    private final HostManagementService hostManagementService;
     private final FileStorageRepository fileStorageRepository;
     private final ObjectProvider<PersistConfigurationFileTask> persistConfigurationFileTaskProvider;
     private final ComputeResourceState computeResourceState;
 
-    public FilePersistenceService(HostManagementService hostManagementService,
-                                  FileStorageRepository fileStorageRepository,
+    @Setter
+    private HostManagementService hostManagementService;
+
+    public FilePersistenceService(FileStorageRepository fileStorageRepository,
                                   ObjectProvider<PersistConfigurationFileTask> persistConfigurationFileTaskProvider,
                                   ComputeResourceState computeResourceState,
                                   ChangeListenerRegistry changeListenerRegistry
     ) {
-        this.hostManagementService = hostManagementService;
         this.fileStorageRepository = fileStorageRepository;
         this.persistConfigurationFileTaskProvider = persistConfigurationFileTaskProvider;
         this.computeResourceState = computeResourceState;
     }
 
-    @Scheduled(fixedRate = 60000)
+    /**
+     * Call whenever configuration files selections are
+     * changed to verify persistence status. Files are
+     * added and removed from the database depending
+     * on selection state.
+     */
     public void updateConfigurationFilePersistence(){
         if (computeResourceState.isComputeResourcesLoaded()){
             Map<ComputeResource, List<FileSystemObject>> mapOfUnpersistedFiles = findUnpersistedTrackedFiles();
@@ -50,6 +57,7 @@ public class FilePersistenceService {
                 Thread.ofVirtual().start(task);
             }
         }
+        LOGGER.debug("Configuration files checked to confirm persistence");
     }
 
     /**
@@ -80,4 +88,6 @@ public class FilePersistenceService {
     public boolean isFilePersisted(ComputeResource computeResource, String absoluteFilePath) {
         return fileStorageRepository.existsByComputeResourceAndAbsolutePath(computeResource, absoluteFilePath);
     }
+
+
 }

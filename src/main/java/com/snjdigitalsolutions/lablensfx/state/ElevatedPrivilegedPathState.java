@@ -43,7 +43,7 @@ public class ElevatedPrivilegedPathState {
         boolean elevationRequired = false;
         try {
             LOGGER.debug("Hostname: {}", computeResource.getHostName());
-            elevationRequired = checkElevatedPrivilegesRequiredCommand.checkFilePath(computeResource, path);
+            elevationRequired = checkElevatedPrivilegesRequiredCommand.performCommand(computeResource, path);
             computerToPathMap.get(computeResource)
                     .put(path, elevationRequired);
         } catch (Exception e) {

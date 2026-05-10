@@ -14,7 +14,6 @@
 <?import javafx.scene.layout.VBox?>
 <?import org.controlsfx.control.StatusBar?>
 
-
 <StackPane fx:id="stackPane" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.snjdigitalsolutions.lablensfx.application.LabLensFxBootReadyController">
    <children>
       <BorderPane fx:id="borderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" style="-fx-background-color: ededdd;">
@@ -50,6 +49,7 @@
                       <Menu mnemonicParsing="false" text="Help">
                         <items>
                           <MenuItem mnemonicParsing="false" text="About" />
+                              <MenuItem fx:id="testFunctionMenuItem" mnemonicParsing="false" text="Test Function" />
                         </items>
                       </Menu>
                     </menus>

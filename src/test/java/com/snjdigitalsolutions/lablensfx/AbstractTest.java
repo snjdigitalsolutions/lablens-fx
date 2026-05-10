@@ -1,6 +1,7 @@
 package com.snjdigitalsolutions.lablensfx;
 
 import com.snjdigitalsolutions.lablensfx.configuration.LabLensFXConfiguration;
+import com.snjdigitalsolutions.lablensfx.service.command.MD5SumCommand;
 import com.snjdigitalsolutions.lablensfx.state.SshState;
 import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import com.snjdigitalsolutions.lablensfx.service.SshService;
@@ -55,6 +56,8 @@ public class AbstractTest {
     protected ListFileParser listFileParser;
     @Autowired
     protected ElevatedPrivilegedPathState elevatedPrivilegedPathState;
+    @Autowired
+    protected MD5SumCommand md5SumCommand;
 
     /**
      * Specifically for testing

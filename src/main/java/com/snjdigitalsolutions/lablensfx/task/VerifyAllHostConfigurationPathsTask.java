@@ -53,7 +53,7 @@ public class VerifyAllHostConfigurationPathsTask extends Task<Void> {
                                     if (!path.getElevationCheckComplete()) {
                                         //Perform check and update
                                         try {
-                                            path.requiresElevation().setValue(checkElevatedPrivilegesRequiredCommand.checkFilePath(resource, path.getConfigurationPath()));
+                                            path.requiresElevation().setValue(checkElevatedPrivilegesRequiredCommand.performCommand(resource, path.getConfigurationPath()));
                                             path.setElevationCheckComplete(true);
                                             changed.set(true);
                                         } catch (Exception e) {

@@ -27,7 +27,7 @@ public class SingleColumnConfigurationPathTableView extends TableView<Configurat
         getColumns().add(pathColumn);
         setMaxHeight(150);
         setItems(paths);
-        setPlaceholder(new Label("No configuration paths tracked"));
+        setPlaceholder(new Label("No configuration paths added"));
     }
 
     private TableColumn<ConfigurationPath, String> getConfigurationPathStringTableColumn() {

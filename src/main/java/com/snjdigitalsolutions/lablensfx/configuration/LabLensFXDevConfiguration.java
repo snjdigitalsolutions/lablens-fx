@@ -1,6 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.configuration;
 
 import org.h2.tools.Server;
+import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -14,6 +15,14 @@ public class LabLensFXDevConfiguration {
     @Bean(initMethod = "start", destroyMethod = "stop")
     public Server h2TcpServer() throws SQLException {
         return Server.createTcpServer("-tcp", "-tcpAllowOthers", "-tcpPort", "9092");
+    }
+
+    @Bean
+    public FlywayMigrationStrategy repairFirst() {
+        return flyway -> {
+            flyway.repair();
+            flyway.migrate();
+        };
     }
 
 }

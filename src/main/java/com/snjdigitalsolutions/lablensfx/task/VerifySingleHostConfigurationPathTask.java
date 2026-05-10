@@ -38,7 +38,7 @@ public class VerifySingleHostConfigurationPathTask extends Task<Void> {
                             //Perform check and update
                             try {
                                 path.requiresElevation()
-                                        .setValue(checkElevatedPrivilegesRequiredCommand.checkFilePath(computeResource, path.getConfigurationPath()));
+                                        .setValue(checkElevatedPrivilegesRequiredCommand.performCommand(computeResource, path.getConfigurationPath()));
                                 path.setElevationCheckComplete(true);
                                 changed.set(true);
                             } catch (Exception e) {

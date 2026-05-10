@@ -26,6 +26,7 @@ public class ComputeResourceState {
     private final MapProperty<Long, HostPanelLarge> computeResourceHostPanelLargeMap = new SimpleMapProperty<>(FXCollections.observableHashMap());
     private final ObjectProperty<ComputeResource> computerResourceBeingEdited = new SimpleObjectProperty<>();
     private final IntegerProperty hostsOnlineCount = new SimpleIntegerProperty(0);
+    private final IntegerProperty configurationChangeCount = new SimpleIntegerProperty(0);
     private final ListProperty<ComputeResource> selectedResources = new SimpleListProperty<>(FXCollections.observableArrayList());
     private final BooleanProperty computeResourcesLoaded = new SimpleBooleanProperty(false);
     private final ComputeResourceRepository computeResourceRepository;
@@ -140,5 +141,11 @@ public class ComputeResourceState {
         getComputeResourcesMap().put(computeResource.getId(), computeResource);
     }
 
+    public int getConfigurationChangeCount() {
+        return configurationChangeCount.get();
+    }
 
+    public IntegerProperty configurationChangeCountProperty() {
+        return configurationChangeCount;
+    }
 }

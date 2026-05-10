@@ -34,5 +34,8 @@ public class ComputeResource {
     @OneToMany(mappedBy = "computeResource", fetch = FetchType.EAGER,
             cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FileSystemObject> fileSystemObjects = new ArrayList<>();
+    @OneToMany(mappedBy = "computeResource", fetch = FetchType.EAGER,
+            cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FileStorage> fileStorages = new ArrayList<>();
 
 }

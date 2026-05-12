@@ -9,12 +9,14 @@ import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import com.snjdigitalsolutions.lablensfx.service.VerifyHostConfigurationService;
 import com.snjdigitalsolutions.lablensfx.service.node.ConfigurationPaneService;
 import com.snjdigitalsolutions.lablensfx.service.node.StatusBarService;
+import com.snjdigitalsolutions.lablensfx.setting.Interval;
 import com.snjdigitalsolutions.lablensfx.setting.SettingType;
 import com.snjdigitalsolutions.lablensfx.shapes.SshPassphraseIndicator;
 import com.snjdigitalsolutions.lablensfx.state.*;
 import com.snjdigitalsolutions.lablensfx.task.ConfigurationChangeCheckTask;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
+import com.snjdigitalsolutions.springbootutilityfx.node.utility.StageNodeBuilder;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.TooltipGenerator;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
@@ -25,6 +27,7 @@ import javafx.scene.effect.BoxBlur;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Modality;
 import org.controlsfx.control.SegmentedButton;
 import org.controlsfx.control.StatusBar;
 import org.slf4j.Logger;
@@ -63,6 +66,8 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     private Button timelineButton;
     @FXML
     private Button dashboardButton;
+    @FXML
+    private Button settingsButton;
 
     @FXML
     private MenuItem deleteSelectedHostsMenuItem;
@@ -101,6 +106,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     private final ChangeListenerRegistry changeListenerRegistry;
     private final LoadingOverlay loadingOverlay;
     private final TooltipGenerator tooltipGenerator;
+    private final SettingsDialogPane settingsDialogPane;
 
     private SshPassphraseIndicator indicator;
 
@@ -132,6 +138,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                                         ApplicationState applicationState,
                                         ChangeListenerRegistry changeListenerRegistry,
                                         LoadingOverlay loadingOverlay,
+                                        SettingsDialogPane settingsDialogPane,
                                         ObjectProvider<ConfigurationChangeCheckTask> configurationChangeCheckTaskObjectProvider
     )
     {
@@ -157,6 +164,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         this.applicationState = applicationState;
         this.changeListenerRegistry = changeListenerRegistry;
         this.loadingOverlay = loadingOverlay;
+        this.settingsDialogPane = settingsDialogPane;
         this.configurationChangeCheckTaskObjectProvider = configurationChangeCheckTaskObjectProvider;
     }
 
@@ -223,6 +231,14 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         testFunctionMenuItem.setOnAction(event -> {
            Thread.ofVirtual().start(configurationChangeCheckTaskObjectProvider.getObject());
         });
+        settingsButton.setOnAction(event -> {
+            StageNodeBuilder.builder()
+                    .setModality(Modality.APPLICATION_MODAL)
+                    .setResizable(false)
+                    .setTitle("Settings")
+                    .setNode(settingsDialogPane)
+                    .buildAndShow();
+        });
     }
 
     private void initializeLoadingOverlay() {
@@ -272,7 +288,11 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                 if (type.isBoolType()) {
                     setting.setBoolValue((boolean) type.getDefaultValue());
                 } else {
-                    setting.setStringValue((String) type.getDefaultValue());
+                    if (type.getDefaultValue() instanceof Interval){
+                        setting.setStringValue(((Interval)type.getDefaultValue()).displayValue());
+                    } else {
+                        setting.setStringValue((String) type.getDefaultValue());
+                    }
                 }
                 settingRepository.save(setting);
                 LOGGER.debug("Setting loaded: {} with default value of {}", type.getName(), type.getDefaultValue());

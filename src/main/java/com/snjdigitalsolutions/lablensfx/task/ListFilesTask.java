@@ -43,6 +43,9 @@ public class ListFilesTask extends Task<Void> {
     private List<FileSystemObjectModel> hostFileList;
     private final Map<String, FileSystemObjectModel> fileNameToModelMap = new HashMap<>();
 
+    /**
+     * Creates the list-files task with all required command and state dependencies.
+     */
     public ListFilesTask(ListFileCommand listFileCommand,
                          ListFileParser listFileParser,
                          ComputeResourceState computeResourceState,
@@ -56,6 +59,12 @@ public class ListFilesTask extends Task<Void> {
         this.hostManagementService = hostManagementService;
     }
 
+    /**
+     * Connects to the selected host, lists files under the configured path, and updates state.
+     *
+     * @return {@code null} on completion
+     * @throws Exception if any remote command or parsing operation fails
+     */
     @Override
     protected Void call() throws Exception {
         //Get list of filenames at selected configuration path
@@ -85,6 +94,9 @@ public class ListFilesTask extends Task<Void> {
         return null;
     }
 
+    /**
+     * Merges newly listed files with the current host file-list state, preserving track flags.
+     */
     private void updateHostFileListWithMergedFiles() {
         hostFileList.clear();
         hostFileList.addAll(fileNameToModelMap.values());
@@ -98,6 +110,12 @@ public class ListFilesTask extends Task<Void> {
      *
      * @param databasedFiles list of files from the database contained in ComputeResource
      * @return true when FileSystemObject is created
+     */
+    /**
+     * Adds file-system objects to the compute resource for files not yet in the database.
+     *
+     * @param databasedFiles the list of persisted file-system objects to append to
+     * @return an atomic flag that is {@code true} if any new objects were added
      */
     @NonNull
     private AtomicBoolean addFileSystemObjectsToComputeResource(List<FileSystemObject> databasedFiles) {
@@ -116,6 +134,11 @@ public class ListFilesTask extends Task<Void> {
         return updateResource;
     }
 
+    /**
+     * Replaces in-memory models with their database counterparts and marks missing files as non-existent.
+     *
+     * @return the list of persisted file-system objects from the compute resource
+     */
     @NonNull
     private List<FileSystemObject> replaceFileSystemObjectsWithThoseFoundInDatabase() {
         List<FileSystemObject> databasedFiles = configurationPath.getComputeResource()
@@ -134,11 +157,17 @@ public class ListFilesTask extends Task<Void> {
         return databasedFiles;
     }
 
+    /**
+     * Delivers the completed file list to the registered consumer after the task finishes.
+     */
     @Override
     public void succeeded() {
         listConsumer.accept(hostFileList);
     }
 
+    /**
+     * No-op cancellation handler.
+     */
     @Override
     public void cancelled() {
 

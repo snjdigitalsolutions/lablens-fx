@@ -41,6 +41,9 @@ public class HostPane extends AnchorPane implements SpringInitializableNode {
     private final IpComparator ipComparator;
     private final ShowIpAddressState showIpAddressState;
 
+    /**
+     * Creates the host pane with all state and service dependencies.
+     */
     public HostPane(@Value("classpath:/fxml/HostPane.fxml") Resource fxml,
                     ChangeListenerRegistry changeListenerRegistry,
                     ComputeResourceState computeResourceState,
@@ -57,6 +60,9 @@ public class HostPane extends AnchorPane implements SpringInitializableNode {
         NodeLoader.load(fxml, this);
     }
 
+    /**
+     * Initializes the host panel container and loads any existing compute resources.
+     */
     @Override
     public void performIntialization() {
         panelVBox.setAlignment(Pos.CENTER_LEFT);
@@ -81,6 +87,9 @@ public class HostPane extends AnchorPane implements SpringInitializableNode {
                 .addListener(onComputeResourceChange);
     }
 
+    /**
+     * Reloads host panels from the current compute-resource state.
+     */
     private void refresh() {
         panelVBox.getChildren()
                 .clear();

@@ -24,6 +24,14 @@ public class VerifyAllHostConfigurationPathsTask extends Task<Void> {
     private final Consumer<List<ComputeResource>> onSuccess;
     private final List<ComputeResource> changedComputeResources;
 
+    /**
+     * Creates the task that verifies configuration path accessibility across all selected hosts.
+     *
+     * @param computeResourceState                 the application state holding selected resources
+     * @param checkElevatedPrivilegesRequiredCommand the command used to probe path elevation requirements
+     * @param progressDialog                       the dialog that shows verification progress
+     * @param onSuccess                            consumer called with changed resources when the task succeeds
+     */
     public VerifyAllHostConfigurationPathsTask(ComputeResourceState computeResourceState,
                                                CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand,
                                                ProgressDialog progressDialog,
@@ -35,6 +43,12 @@ public class VerifyAllHostConfigurationPathsTask extends Task<Void> {
         this.changedComputeResources = new ArrayList<>();
     }
 
+    /**
+     * Iterates all selected hosts and their configuration paths, probing each for elevation requirements.
+     *
+     * @return {@code null} on completion
+     * @throws Exception if any remote check operation fails
+     */
     @Override
     protected Void call() throws Exception {
         try {
@@ -72,6 +86,9 @@ public class VerifyAllHostConfigurationPathsTask extends Task<Void> {
         return null;
     }
 
+    /**
+     * Invokes the success consumer with changed resources and closes the progress dialog.
+     */
     @Override
     public void succeeded() {
         super.succeeded();
@@ -79,6 +96,9 @@ public class VerifyAllHostConfigurationPathsTask extends Task<Void> {
         progressDialog.closeDialog();
     }
 
+    /**
+     * Closes the progress dialog when the task fails.
+     */
     @Override
     public void failed() {
         super.failed();

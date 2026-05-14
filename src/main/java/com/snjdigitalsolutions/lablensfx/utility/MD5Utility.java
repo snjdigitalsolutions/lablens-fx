@@ -16,6 +16,14 @@ import java.util.HexFormat;
 @Component
 public class MD5Utility {
 
+    /**
+     * Calculates the MD5 hash of a local file.
+     *
+     * @param filePath the absolute path of the file to hash
+     * @return the lowercase hex MD5 digest string
+     * @throws IOException              if the file cannot be read
+     * @throws NoSuchAlgorithmException if the MD5 algorithm is unavailable
+     */
     public String calculate(String filePath) throws IOException, NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance("MD5");
         try (InputStream inputStream = Files.newInputStream(Paths.get(filePath));
@@ -25,6 +33,12 @@ public class MD5Utility {
         return HexFormat.of().formatHex(digest.digest());
     }
 
+    /**
+     * Returns the size of a local file in bytes.
+     *
+     * @param filePath the absolute path of the file
+     * @return the file size in bytes, or {@code 0} if the file does not exist
+     */
     public long getFileSize(String filePath){
         long size = 0L;
         File localFile = new File(filePath);
@@ -34,6 +48,13 @@ public class MD5Utility {
         return size;
     }
 
+    /**
+     * Reads all bytes of a local file into a byte array.
+     *
+     * @param filePath the absolute path of the file
+     * @return the complete file contents as a byte array, or {@code null} if the file does not exist
+     * @throws IOException if the file cannot be read
+     */
     public byte[] getFileBytes(String filePath) throws IOException {
         byte[] data = null;
         File localFile = new File(filePath);

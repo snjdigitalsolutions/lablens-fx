@@ -31,11 +31,21 @@ public class ConfigurationPath {
     private BooleanProperty requiresElevationProperty;
 
 
+    /**
+     * Returns the file-system path string for this configuration entry as an observable property.
+     *
+     * @return a {@link StringProperty} containing the absolute path
+     */
     @Transient
     public StringProperty configurationPath() {
         return new SimpleStringProperty(configurationPath);
     }
 
+    /**
+     * Returns whether accessing this path requires elevated (sudo) privileges as an observable property.
+     *
+     * @return a {@link BooleanProperty} that is {@code true} if elevation is required
+     */
     @Transient
     public BooleanProperty requiresElevation() {
         if (requiresElevationProperty == null){

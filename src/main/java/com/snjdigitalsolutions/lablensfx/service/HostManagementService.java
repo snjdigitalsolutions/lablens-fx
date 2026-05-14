@@ -57,6 +57,9 @@ public class HostManagementService implements SpringInitializableNode {
     @Value("${application.ssh.promptforpassphrase}")
     private boolean promptForPassPhrase;
 
+    /**
+     * Creates the host management service with all required state and repository dependencies.
+     */
     public HostManagementService(ComputeResourceState computeResourceState,
                                  StatusBarState statusBarProperties,
                                  ComputeResourceRepository computeResourceRepository,
@@ -87,6 +90,9 @@ public class HostManagementService implements SpringInitializableNode {
         this.configurationChangeCheckTaskObjectProvider = configurationChangeCheckTaskObjectProvider;
     }
 
+    /**
+     * Loads all compute resources from the repository and populates the UI host panels.
+     */
     @Override
     public void performIntialization() {
         computeResourceState.getComputeResourcesMap()
@@ -132,6 +138,11 @@ public class HostManagementService implements SpringInitializableNode {
                 });
     }
 
+    /**
+     * Deletes either the selected host panel subset or the given source panel if no selection exists.
+     *
+     * @param sourcePanel the panel that triggered the delete action
+     */
     public void deleteSelectedHosts(HostPanel sourcePanel) {
         ObservableList<HostPanel> selectedHosts = statusBarProperties.selectedHostPanelListProperty()
                 .get();
@@ -151,6 +162,12 @@ public class HostManagementService implements SpringInitializableNode {
         }
     }
 
+    /**
+     * Returns whether the given compute resource currently shows an online SSH status.
+     *
+     * @param computeResource the resource to check
+     * @return {@code true} if the host's SSH indicator is {@link com.snjdigitalsolutions.lablensfx.shapes.SshStatus#ONLINE}
+     */
     private boolean isHostOnline(ComputeResource computeResource) {
         return computeResourceState.getComputeResourceHostPanelLargeMap()
                 .get(computeResource.getId())
@@ -159,6 +176,11 @@ public class HostManagementService implements SpringInitializableNode {
                 .equals(SshStatus.ONLINE);
     }
 
+    /**
+     * Opens the host edit form pre-populated with the compute resource associated with the given panel.
+     *
+     * @param sourcePanel the panel whose resource should be loaded into the edit form
+     */
     public void editSelectedHost(HostPanel sourcePanel) {
         ComputeResource resource = computeResourceState.getHostPanelToComputeResourceMap()
                 .get(sourcePanel);
@@ -166,10 +188,21 @@ public class HostManagementService implements SpringInitializableNode {
                 .setValue(resource);
     }
 
+    /**
+     * Adds a new compute resource to the application state.
+     *
+     * @param computeResource the resource to add
+     */
     public void addComputeResource(ComputeResource computeResource) {
         computeResourceState.addNewComputeResource(computeResource);
     }
 
+    /**
+     * Looks up a compute resource by its database ID.
+     *
+     * @param id the database ID to look up
+     * @return an {@link Optional} containing the resource if found
+     */
     public Optional<ComputeResource> getComputerResourceById(Long id) {
         return computeResourceRepository.findById(id);
     }
@@ -192,6 +225,9 @@ public class HostManagementService implements SpringInitializableNode {
         }
     }
 
+    /**
+     * Probes SSH connectivity for all known compute resources and updates their online-status indicators.
+     */
     public void verifyHostSshStatus() {
         if (sshState.getPassPhraseMode()
                 .equals(PassPhraseMode.PROVIDED) || sshState.getPassPhraseMode()
@@ -220,11 +256,22 @@ public class HostManagementService implements SpringInitializableNode {
         }
     }
 
+    /**
+     * Probes SSH connectivity for a single compute resource identified by its database ID.
+     *
+     * @param resourceID the database ID of the resource to check
+     */
     public void verifyHostSshStatus(Long resourceID) {
         SshStatusForSingleHostTask task = new SshStatusForSingleHostTask(resourceID, computeResourceState, sshService, this);
         Thread.ofVirtual().start(task);
     }
 
+    /**
+     * Sets the SSH status indicator for the given panel to {@code UNKNOWN} and optionally decrements the online count.
+     *
+     * @param panel     the panel whose indicator should be reset
+     * @param decrement {@code true} to decrement the online host count
+     */
     public void changeHostSshStatusToUnknown(HostPanelLarge panel,
                                              boolean decrement
     )
@@ -243,6 +290,11 @@ public class HostManagementService implements SpringInitializableNode {
         }
     }
 
+    /**
+     * Creates and returns a {@link HostPanel} for every known compute resource.
+     *
+     * @return list of host panels, one per compute resource
+     */
     public List<HostPanel> getHostPanels() {
         List<HostPanel> panels = new ArrayList<>();
         computeResourceState.getComputeResourcesMap()
@@ -253,6 +305,12 @@ public class HostManagementService implements SpringInitializableNode {
         return panels;
     }
 
+    /**
+     * Instantiates and registers a host panel for the given compute resource.
+     *
+     * @param resource the compute resource to create a panel for
+     * @return the newly created and registered {@link HostPanel}
+     */
     private HostPanel createHostPanelForComputeResource(ComputeResource resource) {
         LOGGER.debug("Adding panel for resource: {}", resource.getHostName());
         HostPanel panel = hostPanelProvider.getObject();
@@ -266,6 +324,11 @@ public class HostManagementService implements SpringInitializableNode {
         return panel;
     }
 
+    /**
+     * Persists changes to the given compute resource and refreshes its associated host panels.
+     *
+     * @param resource the updated compute resource
+     */
     public void updateComputeResource(ComputeResource resource) {
         LOGGER.debug(DebugUtility.getCallerInfo());
         ComputeResourceModel resourceModel = new ComputeResourceModel(resource);
@@ -281,6 +344,12 @@ public class HostManagementService implements SpringInitializableNode {
                 .setValue(null);
     }
 
+    /**
+     * Records the last successful SSH communication timestamp for the given resource.
+     *
+     * @param resourceID the database ID of the compute resource
+     * @param value      the epoch-millis timestamp to record
+     */
     public void setResourceSshCommValue(Long resourceID,
                                         Long value
     )
@@ -292,14 +361,29 @@ public class HostManagementService implements SpringInitializableNode {
         });
     }
 
+    /**
+     * Returns all compute resources stored in the repository.
+     *
+     * @return an iterable of all compute resources
+     */
     public Iterable<ComputeResource> getAllComputeResources() {
         return computeResourceRepository.findAll();
     }
 
+    /**
+     * Returns whether at least one compute resource has a recorded SSH communication, indicating SSH is in use.
+     *
+     * @return {@code true} if SSH connectivity should be established on startup
+     */
     public boolean sshNeededOnStartup() {
         return computeResourceRepository.countComputeResourceBySshCommunicateIsGreaterThan(0L) > 0;
     }
 
+    /**
+     * Adds the compute resource associated with the given panel to the current selection.
+     *
+     * @param hostPanel the panel whose resource should be selected
+     */
     public void addComputeResourceToSelectedSources(HostPanel hostPanel)
     {
         incrementsSelectedHostCount(hostPanel);
@@ -308,6 +392,11 @@ public class HostManagementService implements SpringInitializableNode {
                              .get(hostPanel));
     }
 
+    /**
+     * Increments the selected-host count and adds the given panel to the selection list.
+     *
+     * @param hostPanel the panel being added to the selection
+     */
     private void incrementsSelectedHostCount(HostPanel hostPanel) {
         int currentValue = statusBarState.numberOfSelectedHostsProperty()
                 .getValue();
@@ -319,6 +408,11 @@ public class HostManagementService implements SpringInitializableNode {
                 .add(hostPanel);
     }
 
+    /**
+     * Removes the compute resource associated with the given panel from the current selection.
+     *
+     * @param hostPanel the panel whose resource should be deselected
+     */
     public void removeComputeResourceFromSelectedSources(HostPanel hostPanel)
     {
         decreaseSelectedHostCount(hostPanel);
@@ -328,6 +422,11 @@ public class HostManagementService implements SpringInitializableNode {
                 .remove(resourceForPanel);
     }
 
+    /**
+     * Decrements the selected-host count and removes the given panel from the selection list.
+     *
+     * @param hostPanel the panel being removed from the selection
+     */
     private void decreaseSelectedHostCount(HostPanel hostPanel) {
         int currentValue = statusBarState.numberOfSelectedHostsProperty()
                 .getValue();
@@ -339,11 +438,21 @@ public class HostManagementService implements SpringInitializableNode {
                 .remove(hostPanel);
     }
 
+    /**
+     * Returns whether at least one host is already in the selection (i.e. a multi-select is in progress).
+     *
+     * @return {@code true} if one or more hosts are currently selected
+     */
     public boolean multipleHostsBeingSelected() {
         return statusBarState.numberOfSelectedHostsProperty()
                 .intValue() >= 1;
     }
 
+    /**
+     * Replaces the current single selection with the given panel, updating styling and state.
+     *
+     * @param newlySelectedHostPanel the panel to make the sole selected host
+     */
     public void clearCurrentlySelectedHostAndAddNewlySelectedHost(HostPanel newlySelectedHostPanel)
     {
         var currentlySelectedResource = computeResourceState.getSelectedResources()
@@ -355,11 +464,21 @@ public class HostManagementService implements SpringInitializableNode {
         statusBarState.setHostPanelAsOnlySelection(newlySelectedHostPanel);
     }
 
+    /**
+     * Returns whether at least one compute resource is currently selected.
+     *
+     * @return {@code true} if the selected-resources list is non-empty
+     */
     public boolean isComputeResourceSelected() {
         return !computeResourceState.getSelectedResources()
                 .isEmpty();
     }
 
+    /**
+     * Sets the SSH status indicator for the given resource to {@code ONLINE} and increments the online count.
+     *
+     * @param resource the compute resource that came online
+     */
     public void setResourceStateOnline(ComputeResource resource) {
         computeResourceState.getComputeResourceHostPanelLargeMap()
                 .get(resource.getId())
@@ -373,6 +492,11 @@ public class HostManagementService implements SpringInitializableNode {
                 .setValue(value + 1);
     }
 
+    /**
+     * Sets the SSH status indicator for the given resource to {@code OFFLINE} and decrements the online count.
+     *
+     * @param resource the compute resource that went offline
+     */
     public void setResourceStateOffline(ComputeResource resource) {
         HostPanelLarge panel = computeResourceState.getComputeResourceHostPanelLargeMap()
                 .get(resource.getId());
@@ -390,6 +514,11 @@ public class HostManagementService implements SpringInitializableNode {
         }
     }
 
+    /**
+     * Returns the configuration paths for the currently selected resource, or an empty list if none is selected.
+     *
+     * @return configuration paths of the selected resource
+     */
     public List<ConfigurationPath> getConfigurationPathsForSelectedResource() {
         List<ConfigurationPath> hostPaths = new ArrayList<>();
         if (computeResourceState.getSelectedResources()

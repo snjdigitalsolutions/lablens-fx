@@ -19,6 +19,9 @@ public class VerifyHostConfigurationService implements TaskStartingService {
     private final ProgressDialog progressDialog;
     private final ComputeResourceRepository computeResourceRepository;
 
+    /**
+     * Creates the service with dependencies needed to verify all host configuration paths.
+     */
     public VerifyHostConfigurationService(ComputeResourceState computeResourceState,
                                           CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand,
                                           ProgressDialog progressDialog,
@@ -30,6 +33,9 @@ public class VerifyHostConfigurationService implements TaskStartingService {
     }
 
 
+    /**
+     * Starts the background task that verifies configuration path accessibility on all hosts.
+     */
     @Override
     public void startTask() {
         progressDialog.setProgressText("Verifying Unchecked Configuration Paths");

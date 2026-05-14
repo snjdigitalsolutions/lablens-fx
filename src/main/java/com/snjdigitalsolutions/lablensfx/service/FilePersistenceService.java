@@ -32,6 +32,9 @@ public class FilePersistenceService  {
     @Setter
     private HostManagementService hostManagementService;
 
+    /**
+     * Creates the persistence service with required repository and state dependencies.
+     */
     public FilePersistenceService(FileStorageRepository fileStorageRepository,
                                   ObjectProvider<PersistConfigurationFileTask> persistConfigurationFileTaskProvider,
                                   ComputeResourceState computeResourceState,
@@ -85,6 +88,13 @@ public class FilePersistenceService  {
         return result;
     }
 
+    /**
+     * Checks whether the given file has already been persisted to storage for the specified host.
+     *
+     * @param computeResource  the compute resource (host) to check against
+     * @param absoluteFilePath the absolute path of the file on the host
+     * @return {@code true} if a storage record exists for this file and host
+     */
     public boolean isFilePersisted(ComputeResource computeResource, String absoluteFilePath) {
         return fileStorageRepository.existsByComputeResourceAndAbsolutePath(computeResource, absoluteFilePath);
     }

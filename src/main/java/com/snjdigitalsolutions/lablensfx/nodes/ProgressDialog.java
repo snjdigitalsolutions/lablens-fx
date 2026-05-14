@@ -26,10 +26,18 @@ public class ProgressDialog extends AnchorPane implements SpringInitializableNod
     @Setter
     private Runnable onDialogClosed;
 
+    /**
+     * Creates a progress dialog backed by the given FXML resource.
+     *
+     * @param fxml the FXML resource for the progress dialog layout
+     */
     public ProgressDialog(@Value("classpath:/fxml/ProgressDialog.fxml") Resource fxml) {
         NodeLoader.load(fxml, this);
     }
 
+    /**
+     * Initializes the dialog layout and registers a close-request handler.
+     */
     @Override
     public void performIntialization() {
         sceneProperty().addListener((obs, oldScene, newScene) -> {
@@ -47,6 +55,9 @@ public class ProgressDialog extends AnchorPane implements SpringInitializableNod
         });
     }
 
+    /**
+     * Closes and hides the progress dialog.
+     */
     public void closeDialog() {
         if (sceneProperty().get() != null){
             Window window = sceneProperty().get().getWindow();
@@ -56,6 +67,11 @@ public class ProgressDialog extends AnchorPane implements SpringInitializableNod
         }
     }
 
+    /**
+     * Updates the progress message label.
+     *
+     * @param text the message to display
+     */
     public void setProgressText(String text){
         this.progressLabel.setText(text);
     }

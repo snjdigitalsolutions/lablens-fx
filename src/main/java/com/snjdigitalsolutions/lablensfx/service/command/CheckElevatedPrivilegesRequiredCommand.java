@@ -11,10 +11,24 @@ public class CheckElevatedPrivilegesRequiredCommand extends AbstractCommand<Bool
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CheckElevatedPrivilegesRequiredCommand.class);
 
+    /**
+     * Creates the elevation-check command backed by the given SSH service.
+     *
+     * @param sshService the SSH service used to probe the remote path
+     */
     public CheckElevatedPrivilegesRequiredCommand(SshService sshService) {
         super(sshService);
     }
 
+    /**
+     * Determines whether the given path on the resource requires sudo access.
+     *
+     * @param resource        the target host
+     * @param filePath        the file path to test
+     * @param elevationNeeded unused; elevation is always probed fresh
+     * @return {@code true} if the path cannot be accessed without elevated privileges
+     * @throws Exception if the remote check fails
+     */
     @Override
     public Boolean performCommand(ComputeResource resource,
                                   String filePath,
@@ -24,6 +38,14 @@ public class CheckElevatedPrivilegesRequiredCommand extends AbstractCommand<Bool
         return checkFilePath(resource, filePath);
     }
 
+    /**
+     * Probes a specific file path to determine whether read access requires elevation.
+     *
+     * @param computeResource the target compute resource
+     * @param filePath        the absolute file path to test
+     * @return {@code true} if elevation is required; {@code false} otherwise
+     * @throws Exception if the remote check fails
+     */
     private Boolean checkFilePath(ComputeResource computeResource, String filePath) throws Exception {
         boolean elevationRequired = false;
         if (!filePath.isEmpty()) {

@@ -41,6 +41,9 @@ public class PassphraseDialog extends GridPane implements SpringInitializableNod
     @Setter
     private Runnable postDialogAction;
 
+    /**
+     * Creates the passphrase dialog with the SSH state needed to persist the entered passphrase.
+     */
     public PassphraseDialog(@Value("classpath:/fxml/PassphraseDialog.fxml") Resource fxml,
                             NodeUtility nodeUtility,
                             SshState sshState,
@@ -51,6 +54,9 @@ public class PassphraseDialog extends GridPane implements SpringInitializableNod
         NodeLoader.load(fxml, this);
     }
 
+    /**
+     * Initializes dialog controls and wires the confirm/cancel button actions.
+     */
     @Override
     public void performIntialization() {
         Runnable submitAction = () -> {
@@ -88,12 +94,20 @@ public class PassphraseDialog extends GridPane implements SpringInitializableNod
         });
     }
 
+    /**
+     * Validates that the username and passphrase fields are non-empty.
+     *
+     * @return {@code true} if the fields are valid
+     */
     private boolean validateTextField() {
         return (!passphrasePasswordField.getText()
                 .isBlank() || noPassphraseCheckbox.isSelected()) && !userNamerTextField.getText()
                 .isBlank();
     }
 
+    /**
+     * Displays the passphrase dialog and blocks until the user confirms or cancels.
+     */
     public void showDialog() {
         StageNodeBuilder.builder()
                 .setNode(this)

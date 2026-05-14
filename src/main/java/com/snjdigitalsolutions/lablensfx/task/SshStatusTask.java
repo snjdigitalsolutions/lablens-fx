@@ -21,6 +21,9 @@ public class SshStatusTask extends Task<Void> {
     private final SshService sshService;
     private final HostManagementService hostManagementService;
 
+    /**
+     * Creates the SSH status task that checks all configured hosts.
+     */
     public SshStatusTask(ComputeResourceState computeResourceState,
                          ProgressDialog progressDialog,
                          SshService sshService,
@@ -33,6 +36,12 @@ public class SshStatusTask extends Task<Void> {
         this.hostManagementService = hostManagementService;
     }
 
+    /**
+     * Probes SSH connectivity for all compute resources and updates online-status state.
+     *
+     * @return {@code null} on completion
+     * @throws Exception if any SSH operation fails unexpectedly
+     */
     @Override
     protected Void call() throws Exception {
         List<ComputeResource> resources = computeResourceState.getComputeResourcesMap()
@@ -69,18 +78,27 @@ public class SshStatusTask extends Task<Void> {
         return null;
     }
 
+    /**
+     * Closes the progress dialog after all status checks complete.
+     */
     @Override
     protected void succeeded() {
         super.succeeded();
         progressDialog.closeDialog();
     }
 
+    /**
+     * Closes the progress dialog when the task is cancelled.
+     */
     @Override
     protected void cancelled() {
         super.cancelled();
         progressDialog.closeDialog();
     }
 
+    /**
+     * Logs the failure and closes the progress dialog when the task fails.
+     */
     @Override
     protected void failed() {
         super.failed();

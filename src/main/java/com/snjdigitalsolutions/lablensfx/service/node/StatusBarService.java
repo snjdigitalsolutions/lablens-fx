@@ -16,6 +16,9 @@ public class StatusBarService implements SpringInitializableNode {
     private final StatusBarState statusBarState;
     private final ApplicationState applicationState;
 
+    /**
+     * Creates the status bar service with required state dependencies.
+     */
     public StatusBarService(StatusBarState statusBarState,
                             ApplicationState applicationState
     ) {
@@ -23,6 +26,9 @@ public class StatusBarService implements SpringInitializableNode {
         this.applicationState = applicationState;
     }
 
+    /**
+     * Binds the status bar to the backing state properties after Spring initialization.
+     */
     @Override
     public void performIntialization() {
         statusBar.setText("");
@@ -39,24 +45,45 @@ public class StatusBarService implements SpringInitializableNode {
         });
     }
 
+    /**
+     * Replaces the managed status bar instance.
+     *
+     * @param statusBar the new status bar component
+     */
     public void setStatusbar(StatusBar statusBar) {
         this.statusBar = statusBar;
     }
 
+    /**
+     * Updates the primary status bar text.
+     *
+     * @param text the message to display
+     */
     public void setStatusText(String text) {
         statusBar.setText(text);
     }
 
+    /**
+     * Adds a "Loading files" suffix to the status bar text and sets the loading state.
+     */
     public void addLoadingFilesMessage() {
         applicationState.loadingDataProperty().setValue(true);
         statusBar.setText(statusBar.getText() + " -- Loading files");
     }
 
+    /**
+     * Removes the "Loading files" suffix from the status bar text and clears the loading state.
+     */
     public void removeLoadingFilesMessage() {
         applicationState.loadingDataProperty().setValue(false);
         statusBar.setText(statusBar.getText().replace(" -- Loading files", ""));
     }
 
+    /**
+     * Updates the selected-host count displayed in the status bar.
+     *
+     * @param numberOfSelectedHosts the number of currently selected hosts
+     */
     public void setSelectedHostCount(int numberOfSelectedHosts) {
         statusBarState.numberOfSelectedHostsProperty().setValue(numberOfSelectedHosts);
     }

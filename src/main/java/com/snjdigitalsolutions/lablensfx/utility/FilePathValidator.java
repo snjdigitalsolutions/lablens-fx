@@ -29,6 +29,12 @@ public class FilePathValidator {
 
     public enum PathType { UNIX_ABSOLUTE, UNIX_RELATIVE, WINDOWS_ABSOLUTE, UNKNOWN }
 
+    /**
+     * Detects the type of the given path string.
+     *
+     * @param path the path string to inspect
+     * @return one of {@code UNIX_ABSOLUTE}, {@code UNIX_RELATIVE}, {@code WINDOWS_ABSOLUTE}, or {@code UNKNOWN}
+     */
     public PathType detect(String path) {
         if (path == null || path.isBlank()) return PathType.UNKNOWN;
         if (UNIX_ABSOLUTE.matcher(path).matches())    return PathType.UNIX_ABSOLUTE;
@@ -37,10 +43,22 @@ public class FilePathValidator {
         return PathType.UNKNOWN;
     }
 
+    /**
+     * Returns whether the given path is a recognized valid path type.
+     *
+     * @param path the path string to validate
+     * @return {@code true} if the path is valid; {@code false} if it is {@code UNKNOWN}
+     */
     public boolean isValid(String path) {
         return detect(path) != PathType.UNKNOWN;
     }
 
+    /**
+     * Joins all segments into a single path string and returns it if valid.
+     *
+     * @param segments one or more path segments to join and validate
+     * @return an {@link Optional} containing the joined path if valid, or empty if not
+     */
     public Optional<String> allValid(String... segments) {
         if (segments == null || segments.length == 0) return Optional.empty();
         String joined = Paths.get(segments[0], Arrays.copyOfRange(segments, 1, segments.length)).toString();

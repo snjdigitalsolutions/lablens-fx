@@ -39,6 +39,9 @@ public class PersistConfigurationFileTask extends Task<Void> {
     @Setter
     private Map<ComputeResource, List<FileSystemObject>> unpersistedFiles;
 
+    /**
+     * Creates the persistence task with required service and state dependencies.
+     */
     public PersistConfigurationFileTask(SshService sshService,
                                         FilePathValidator filePathValidator,
                                         MD5Utility md5Utility,
@@ -50,6 +53,12 @@ public class PersistConfigurationFileTask extends Task<Void> {
         this.hostManagementService = hostManagementService;
     }
 
+    /**
+     * Persists tracked configuration files that have not yet been saved to the database.
+     *
+     * @return {@code null} on completion
+     * @throws Exception if any file transfer or hashing operation fails
+     */
     @Override
     protected Void call() throws Exception {
         unpersistedFiles.keySet().forEach(hostKey -> {

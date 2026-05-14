@@ -19,6 +19,9 @@ public class LoadingOverlay extends VBox  implements SpringInitializableNode {
     private final Resource imageResource;
     private final ApplicationState applicationState;
 
+    /**
+     * Creates the loading overlay with the spinner image and application state dependency.
+     */
     public LoadingOverlay(@Value("classpath:/images/spinner-96-tsp.gif") Resource imageResource,
                           ApplicationState applicationState
     ){
@@ -26,6 +29,9 @@ public class LoadingOverlay extends VBox  implements SpringInitializableNode {
         this.applicationState = applicationState;
     }
 
+    /**
+     * Configures the spinner and overlay pane and attaches them to the root scene graph.
+     */
     @Override
     public void performIntialization() {
         this.setAlignment(Pos.CENTER);

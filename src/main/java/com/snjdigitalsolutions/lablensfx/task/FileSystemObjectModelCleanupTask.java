@@ -29,10 +29,21 @@ public class FileSystemObjectModelCleanupTask extends Task<Void> {
     @Setter
     private Runnable successRunnable;
 
+    /**
+     * Creates the cleanup task.
+     *
+     * @param hostManagementService the service used to remove stale file-system object models
+     */
     public FileSystemObjectModelCleanupTask(HostManagementService hostManagementService) {
         this.hostManagementService = hostManagementService;
     }
 
+    /**
+     * Removes file-system object models that correspond to paths no longer present on the remote host.
+     *
+     * @return {@code null} on completion
+     * @throws Exception if any removal operation fails
+     */
     @Override
     protected Void call() throws Exception {
         fileSystemObjectModelList.forEach(model -> {
@@ -50,12 +61,18 @@ public class FileSystemObjectModelCleanupTask extends Task<Void> {
         return null;
     }
 
+    /**
+     * Invokes the success runnable after the cleanup task completes.
+     */
     @Override
     protected void succeeded() {
         super.succeeded();
         successRunnable.run();
     }
 
+    /**
+     * Invokes the success runnable even when the cleanup task fails.
+     */
     @Override
     protected void failed() {
         super.failed();

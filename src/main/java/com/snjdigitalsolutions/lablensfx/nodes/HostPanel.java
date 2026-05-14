@@ -63,6 +63,9 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
 
     private boolean selected = false;
 
+    /**
+     * Creates a host panel for the given compute resource model.
+     */
     public HostPanel(@Value("classpath:/fxml/HostPanel.fxml") Resource fxml,
                      HostManagementService hostManagementService,
                      ShowIpAddressState showIpAddressState,
@@ -83,6 +86,9 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
         NodeLoader.load(fxml, this);
     }
 
+    /**
+     * Wires all property bindings, icons, and mouse-click handlers after construction.
+     */
     @PostConstruct
     @Override
     public void performIntialization() {
@@ -91,6 +97,9 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
         initializeDeleteIconClick();
     }
 
+    /**
+     * Registers the delete-icon click handler to trigger host deletion.
+     */
     private void initializeDeleteIconClick() {
         deleteIcon.setOnMouseClicked(event -> {
             if (hostManagementService.isComputeResourceSelected()) {
@@ -105,6 +114,9 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
         });
     }
 
+    /**
+     * Registers the pencil-icon click handler to open the host edit form.
+     */
     private void initializePencilIconClick() {
         pencilIcon.setOnMouseClicked(event -> {
             hostManagementService.editSelectedHost(this);
@@ -112,6 +124,9 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
         });
     }
 
+    /**
+     * Binds IP-address and hostname labels to the underlying model's observable properties.
+     */
     private void bindProperties() {
         if (hostNameLabel.textProperty().isBound()){
             hostNameLabel.textProperty().unbind();
@@ -138,6 +153,9 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
         }
     }
 
+    /**
+     * Registers the panel's mouse-click handler to change the selected host.
+     */
     private void initializeMouseClickAction() {
         this.setOnMouseClicked(event -> {
             if (selected) { // HostPanel currently selected
@@ -170,15 +188,30 @@ public class HostPanel extends GridPane implements SpringInitializableNode, IpSo
         });
     }
 
+    /**
+     * Visually marks this panel as selected or deselected.
+     *
+     * @param selected {@code true} to apply selection styling; {@code false} to remove it
+     */
     public void setSelectionState(boolean selected) {
         this.selected = selected;
     }
 
+    /**
+     * Returns the IP address displayed on this host panel.
+     *
+     * @return the panel's IP address string
+     */
     @Override
     public String getIpAddress() {
         return resourceModel.getIpAddress();
     }
 
+    /**
+     * Updates this panel to reflect the given compute resource model.
+     *
+     * @param resourceModel the model containing updated host data
+     */
     public void setResourceModel(ComputeResourceModel resourceModel) {
         this.resourceModel = resourceModel;
         bindProperties();

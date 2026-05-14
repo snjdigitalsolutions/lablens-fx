@@ -18,6 +18,14 @@ public class SshStatusForSingleHostTask extends Task<Void> {
     private final SshService sshService;
     private final HostManagementService hostManagementService;
 
+    /**
+     * Creates a task that verifies SSH connectivity for a single host.
+     *
+     * @param resourceId           the database ID of the compute resource to check
+     * @param computeResourceState the application state (unused directly; passed for context)
+     * @param sshService           the SSH service used to execute the probe command
+     * @param hostManagementService the service used to update the resource's online status
+     */
     public SshStatusForSingleHostTask(Long resourceId,
                                       ComputeResourceState computeResourceState,
                                       SshService sshService,
@@ -29,6 +37,12 @@ public class SshStatusForSingleHostTask extends Task<Void> {
         this.hostManagementService = hostManagementService;
     }
 
+    /**
+     * Attempts an SSH connection to the target host and updates its online status.
+     *
+     * @return {@code null} on completion
+     * @throws Exception if the look-up or SSH execution fails unexpectedly
+     */
     @Override
     protected Void call() throws Exception {
         Optional<ComputeResource> optionalResource = hostManagementService.getComputerResourceById(resourceID);

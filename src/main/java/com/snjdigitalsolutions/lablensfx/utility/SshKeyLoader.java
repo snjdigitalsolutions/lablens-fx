@@ -20,10 +20,18 @@ public class SshKeyLoader implements SpringInitializableNode {
     private final KeyDirectoryProvider keyDirectoryProvider;
     private boolean initialized = false;
 
+    /**
+     * Creates the key loader with the provider that resolves the SSH key directory.
+     *
+     * @param keyDirectoryProvider supplies the path to the directory containing key files
+     */
     public SshKeyLoader(KeyDirectoryProvider keyDirectoryProvider) {
         this.keyDirectoryProvider = keyDirectoryProvider;
     }
 
+    /**
+     * Populates the list of known private key file names and marks this loader as initialized.
+     */
     @Override
     public void performIntialization() {
         privateKeyFileNameList.addAll(Arrays.asList("id_rsa",
@@ -35,6 +43,11 @@ public class SshKeyLoader implements SpringInitializableNode {
         initialized = true;
     }
 
+    /**
+     * Returns the list of paths to SSH private key files found in the key directory.
+     *
+     * @return list of available SSH key file paths; empty if none are found
+     */
     public List<Path> getAvailableKeyFilePaths() {
         List<Path> validFilePaths = new ArrayList<>();
         if (!initialized){

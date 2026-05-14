@@ -23,12 +23,25 @@ public class ComputeResourceModel {
     private final ObjectProperty<Long> sshCommunicate = new SimpleObjectProperty<>();
     private final ObservableList<ConfigurationPathModel> configurationPaths = FXCollections.observableArrayList();
 
+    /**
+     * Creates an empty compute resource model with default observable property values.
+     */
     public ComputeResourceModel() {}
 
+    /**
+     * Creates a compute resource model pre-populated from the given entity.
+     *
+     * @param computeResource the JPA entity to copy values from
+     */
     public ComputeResourceModel(ComputeResource computeResource) {
         fromComputeResource(computeResource);
     }
 
+    /**
+     * Populates this model's properties from the given {@link ComputeResource} entity.
+     *
+     * @param source the source entity
+     */
     public void fromComputeResource(ComputeResource source) {
         if (source.getId() != null) id.set(source.getId());
         ipAddress.set(source.getIpAddress());
@@ -44,6 +57,11 @@ public class ComputeResourceModel {
         );
     }
 
+    /**
+     * Converts this model back into a {@link ComputeResource} JPA entity.
+     *
+     * @return a new entity populated with this model's current values
+     */
     public ComputeResource toComputeResource() {
         ComputeResource target = new ComputeResource();
         if (id.get() != 0) target.setId(id.get());
@@ -56,33 +74,55 @@ public class ComputeResourceModel {
         return target;
     }
 
+    /** @return the database ID of this compute resource */
     public long getId() { return id.get(); }
+    /** @param id the database ID to set */
     public void setId(long id) { this.id.set(id); }
+    /** @return the observable property for the database ID */
     public LongProperty idProperty() { return id; }
 
+    /** @return the IP address of this compute resource */
     public String getIpAddress() { return ipAddress.get(); }
+    /** @param ipAddress the IP address to set */
     public void setIpAddress(String ipAddress) { this.ipAddress.set(ipAddress); }
+    /** @return the observable property for the IP address */
     public StringProperty ipAddressProperty() { return ipAddress; }
 
+    /** @return the operating system name of this compute resource */
     public String getOperatingSystem() { return operatingSystem.get(); }
+    /** @param operatingSystem the OS name to set */
     public void setOperatingSystem(String operatingSystem) { this.operatingSystem.set(operatingSystem); }
+    /** @return the observable property for the operating system name */
     public StringProperty operatingSystemProperty() { return operatingSystem; }
 
+    /** @return the description of this compute resource */
     public String getDescription() { return description.get(); }
+    /** @param description the description to set */
     public void setDescription(String description) { this.description.set(description); }
+    /** @return the observable property for the description */
     public StringProperty descriptionProperty() { return description; }
 
+    /** @return the hostname of this compute resource */
     public String getHostName() { return hostName.get(); }
+    /** @param hostName the hostname to set */
     public void setHostName(String hostName) { this.hostName.set(hostName); }
+    /** @return the observable property for the hostname */
     public StringProperty hostNameProperty() { return hostName; }
 
+    /** @return the SSH port used to connect to this compute resource */
     public Integer getSshPort() { return sshPort.get(); }
+    /** @param sshPort the SSH port number to set */
     public void setSshPort(Integer sshPort) { this.sshPort.set(sshPort); }
+    /** @return the observable property for the SSH port */
     public ObjectProperty<Integer> sshPortProperty() { return sshPort; }
 
+    /** @return the timestamp of the last successful SSH communication with this resource */
     public Long getSshCommunicate() { return sshCommunicate.get(); }
+    /** @param sshCommunicate the epoch-millis timestamp to set */
     public void setSshCommunicate(Long sshCommunicate) { this.sshCommunicate.set(sshCommunicate); }
+    /** @return the observable property for the last SSH communication timestamp */
     public ObjectProperty<Long> sshCommunicateProperty() { return sshCommunicate; }
 
+    /** @return the configuration path models associated with this compute resource */
     public ObservableList<ConfigurationPathModel> getConfigurationPaths() { return configurationPaths; }
 }

@@ -50,6 +50,9 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
     private final ShowIpAddressState showIpAddressState;
     private final StatusBarService statusBarService;
 
+    /**
+     * Creates the dashboard pane with the resources and services required to render summary panels.
+     */
     public DashboardPane(@Value("classpath:/fxml/DashboardPane.fxml") Resource fxml,
                          ObjectProvider<SummaryPanel> summaryPanelProvider,
                          ObjectProvider<HostPanelLarge> hostPanelLargeProvider,
@@ -66,6 +69,9 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         NodeLoader.load(fxml, this);
     }
 
+    /**
+     * Initializes all summary panels and wires them to their state properties.
+     */
     @Override
     public void performIntialization() {
         performRefresh.bind(computeResourceState.computeResourcesLoadedProperty());
@@ -117,6 +123,12 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         });
     }
 
+    /**
+     * Constructs a summary panel of the given type.
+     *
+     * @param type the type of summary panel to create
+     * @return the configured {@link SummaryPanel}
+     */
     private SummaryPanel createSummaryPanel(SummaryPanelType type) {
         SummaryPanel panel = summaryPanelProvider.getObject();
         panel.performIntialization();
@@ -131,6 +143,12 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         return panel;
     }
 
+    /**
+     * Attaches a property change listener so the panel's count label updates when state changes.
+     *
+     * @param panel the target summary panel
+     * @param type  the panel type that determines which property to observe
+     */
     private void addListenerForLabel(SummaryPanel panel,
                                      SummaryPanelType type
     )
@@ -158,6 +176,9 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         }
     }
 
+    /**
+     * Refreshes all summary panel counts from the current state.
+     */
     public void refresh() {
         LOGGER.debug("Refreshing dashboard");
         clearHostPanel();
@@ -192,6 +213,9 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         });
     }
 
+    /**
+     * Removes all host panels from the host-panel container.
+     */
     private void clearHostPanel() {
         hostFlowPane.getChildren()
                 .clear();

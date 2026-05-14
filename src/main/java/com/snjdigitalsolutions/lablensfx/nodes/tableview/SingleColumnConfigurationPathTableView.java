@@ -18,6 +18,9 @@ public class SingleColumnConfigurationPathTableView extends TableView<Configurat
 
     private final ObservableList<ConfigurationPath> paths = FXCollections.observableArrayList();
 
+    /**
+     * Configures the single path-string column and its cell factory.
+     */
     @Override
     public void performIntialization() {
         setFocusTraversable(false);
@@ -30,6 +33,11 @@ public class SingleColumnConfigurationPathTableView extends TableView<Configurat
         setPlaceholder(new Label("No configuration paths added"));
     }
 
+    /**
+     * Returns the path-string column.
+     *
+     * @return the path string {@link TableColumn}
+     */
     private TableColumn<ConfigurationPath, String> getConfigurationPathStringTableColumn() {
         TableColumn<ConfigurationPath, String> pathColumn = new TableColumn<>("Path");
         pathColumn.setCellValueFactory(path -> path.getValue()
@@ -37,6 +45,11 @@ public class SingleColumnConfigurationPathTableView extends TableView<Configurat
         return pathColumn;
     }
 
+    /**
+     * Replaces the table contents with the given list of paths.
+     *
+     * @param paths the configuration paths to display
+     */
     public void setConfigurationPaths(List<ConfigurationPath> paths){
         this.paths.clear();
         this.paths.addAll(paths);

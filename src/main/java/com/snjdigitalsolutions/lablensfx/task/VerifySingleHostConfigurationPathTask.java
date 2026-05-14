@@ -18,6 +18,12 @@ public class VerifySingleHostConfigurationPathTask extends Task<Void> {
     private final CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand;
     private final ComputeResourceState computeResourceState;
 
+    /**
+     * Creates the task that verifies configuration paths for a single host.
+     *
+     * @param checkElevatedPrivilegesRequiredCommand the command used to probe elevation requirements
+     * @param computeResourceState                  the application state holding the selected resource
+     */
     public VerifySingleHostConfigurationPathTask(CheckElevatedPrivilegesRequiredCommand checkElevatedPrivilegesRequiredCommand,
                                                  ComputeResourceState computeResourceState
     )
@@ -26,6 +32,12 @@ public class VerifySingleHostConfigurationPathTask extends Task<Void> {
         this.computeResourceState = computeResourceState;
     }
 
+    /**
+     * Probes each configuration path on the selected host to determine if elevation is required.
+     *
+     * @return {@code null} on completion
+     * @throws Exception if any remote check operation fails
+     */
     @Override
     protected Void call() throws Exception {
         AtomicBoolean changed = new AtomicBoolean(false);

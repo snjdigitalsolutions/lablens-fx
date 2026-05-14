@@ -13,6 +13,13 @@ import java.util.List;
 @Component
 public class ListFileParser {
 
+    /**
+     * Parses raw {@code find} command output lines into a list of file-system object models.
+     *
+     * @param parentPath     the parent directory path to assign to each parsed model
+     * @param listFileResult raw output lines from the remote {@code find} command
+     * @return a list of {@link FileSystemObjectModel} objects parsed from the output
+     */
     public List<FileSystemObjectModel> getFileSystemObjectModels(String parentPath,
                                                                  List<String> listFileResult
     )
@@ -32,6 +39,12 @@ public class ListFileParser {
         return fileSystemObjects;
     }
 
+    /**
+     * Parses a modification-time string from the {@code find} output into an {@link Instant}.
+     *
+     * @param value the timestamp string in the format produced by {@code find -printf}
+     * @return the corresponding {@link Instant}
+     */
     private Instant parseModifiedTime(String value) {
         // Replace '+' date/time separator with 'T' for ISO-8601 compatibility
         String normalized = value.replace("+", "T");

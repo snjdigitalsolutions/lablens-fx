@@ -10,6 +10,11 @@ import java.nio.file.Paths;
 @Profile(("!test"))
 public class HomeDirectoryKeyPathProvider implements KeyDirectoryProvider {
 
+    /**
+     * Returns the path to the {@code .ssh} directory in the current user's home directory.
+     *
+     * @return the absolute path to the SSH key directory
+     */
     @Override
     public Path keyDirectoryPath() {
         return Paths.get(System.getProperty("user.home"), ".ssh");

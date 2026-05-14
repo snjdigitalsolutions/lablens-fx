@@ -36,6 +36,7 @@ public class ConfigurationChangeCheckTask extends Task<Void> {
 
     @Override
     protected Void call() throws Exception {
+        LOGGER.debug("Starting configuration change check...");
         AtomicInteger changeCount = new AtomicInteger(0);
         AtomicBoolean updateResource = new AtomicBoolean(false);
         Map<Long, ComputeResource> idResourceMap = computeResourceState.getComputeResourcesMap();
@@ -65,6 +66,7 @@ public class ConfigurationChangeCheckTask extends Task<Void> {
         Platform.runLater(() -> {
             computeResourceState.configurationChangeCountProperty().setValue(changeCount.get());
         });
+        LOGGER.debug("Finished configuration change check...");
         return null;
     }
 }

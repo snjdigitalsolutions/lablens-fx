@@ -95,7 +95,7 @@ public class HostManagementService implements SpringInitializableNode {
                         computeResourceRepository.deleteById(change.getKey());
                     }
                 });
-        /**
+        /*
          * When resources have finished loading perform
          * initial tasks.
          */

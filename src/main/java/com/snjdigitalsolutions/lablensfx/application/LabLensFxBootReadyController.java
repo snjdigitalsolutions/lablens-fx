@@ -198,8 +198,6 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                     indicator.passPhraseMode()
                             .setValue(newVal);
                 });
-
-
         HBox buttonBox = (HBox)sshButton.getParent();
         buttonBox.getChildren().remove(configButton);
         buttonBox.getChildren().remove(dashboardButton);
@@ -209,7 +207,6 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         dashboardButton.visibleProperty().setValue(false);
         logButton.visibleProperty().setValue(false);
         timelineButton.visibleProperty().setValue(false);
-
         SegmentedButton segmentedButton = new SegmentedButton();
         segmentedButton.getButtons().addAll(dashboardToggleButton, configToggleButton, logToggleButton, timelineToggleButton);
         // Apply the listener to each button

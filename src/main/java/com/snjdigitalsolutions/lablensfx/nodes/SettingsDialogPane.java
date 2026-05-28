@@ -4,9 +4,13 @@ import com.snjdigitalsolutions.lablensfx.orm.Setting;
 import com.snjdigitalsolutions.lablensfx.repository.SettingRepository;
 import com.snjdigitalsolutions.lablensfx.setting.Interval;
 import com.snjdigitalsolutions.lablensfx.setting.SettingType;
+import com.snjdigitalsolutions.springbootutilityfx.node.CloseableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
+import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeUtility;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
@@ -19,18 +23,25 @@ import java.util.Arrays;
 import java.util.Optional;
 
 @Component
-public class SettingsDialogPane extends AnchorPane implements SpringInitializableNode {
+public class SettingsDialogPane extends AnchorPane implements SpringInitializableNode, CloseableNode {
 
     @FXML
     private ComboBox<Interval> intervalComboBox;
     @FXML
     private TextField snapshotIntervalValueTextField;
+    @FXML
+    private Button cancelButton;
+    @FXML
+    private Button applyButton;
     private final SettingRepository settingRepository;
+    private final NodeUtility nodeUtility;
 
     public SettingsDialogPane(@Value("classpath:/fxml/SettingsPane.fxml") Resource fxml,
-                              SettingRepository settingRepository
+                              SettingRepository settingRepository,
+                              NodeUtility nodeUtility
     ) {
         this.settingRepository = settingRepository;
+        this.nodeUtility = nodeUtility;
         NodeLoader.load(fxml, this);
     }
 
@@ -70,5 +81,16 @@ public class SettingsDialogPane extends AnchorPane implements SpringInitializabl
         setting = settingRepository.findBySettingName(SettingType.SNAPSHOT_INTERVAL_VALUE.getName());
         setting.ifPresent(value -> snapshotIntervalValueTextField.setText(value.getStringValue()));
         intervalComboBox.setConverter(converter);
+        applyButton.prefWidthProperty().bind(cancelButton.widthProperty());
+        cancelButton.setOnAction(this::close);
+        applyButton.setOnAction(event -> {
+            //TODO complete the work when applied
+            this.close(event);
+        });
+    }
+
+    @Override
+    public void close(ActionEvent event) {
+        nodeUtility.closeNode(event);
     }
 }

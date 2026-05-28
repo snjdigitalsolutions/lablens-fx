@@ -1,6 +1,6 @@
 package com.snjdigitalsolutions.lablensfx.service;
 
-import javafx.concurrent.Task;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.TaskScheduler;
@@ -17,6 +17,7 @@ public class TaskSchedulingService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskSchedulingService.class);
 
     private final TaskScheduler taskScheduler;
+    @Getter
     private List<ScheduledFuture<?>> scheduledFutureTaskList;
 
 
@@ -24,7 +25,7 @@ public class TaskSchedulingService {
         this.taskScheduler = taskScheduler;
     }
 
-    public void scheduleFixedRateTask(Task<?> taskToSchedule, Long durationInSeconds) {
+    public void scheduleFixedRateTask(Runnable taskToSchedule, Long durationInSeconds) {
         if (scheduledFutureTaskList == null){
             scheduledFutureTaskList = new ArrayList<>();
         }
@@ -38,4 +39,5 @@ public class TaskSchedulingService {
             task.cancel(true);
         });
     }
+
 }

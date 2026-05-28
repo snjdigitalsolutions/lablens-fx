@@ -1,7 +1,9 @@
 package com.snjdigitalsolutions.lablensfx.state;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleLongProperty;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -10,6 +12,7 @@ public class SettingState {
     private final BooleanProperty settingsLoaded = new SimpleBooleanProperty(false);
     private final BooleanProperty showIPs = new SimpleBooleanProperty(true);
     private final BooleanProperty promptWhenConfigSelectionChanges = new SimpleBooleanProperty(true);
+    private final LongProperty snapshotIntervalInSeconds = new SimpleLongProperty(0L);
 
     public boolean isSettingsLoaded() {
         return settingsLoaded.get();
@@ -33,5 +36,13 @@ public class SettingState {
 
     public BooleanProperty promptWhenConfigSelectionChangesProperty() {
         return promptWhenConfigSelectionChanges;
+    }
+
+    public long getSnapshotIntervalInSeconds() {
+        return snapshotIntervalInSeconds.get();
+    }
+
+    public LongProperty snapshotIntervalInSecondsProperty() {
+        return snapshotIntervalInSeconds;
     }
 }

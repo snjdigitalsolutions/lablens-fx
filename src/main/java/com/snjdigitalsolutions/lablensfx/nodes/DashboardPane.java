@@ -1,9 +1,11 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
+import com.snjdigitalsolutions.lablensfx.application.ChangeListenerRegistry;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.orm.model.ComputeResourceModel;
 import com.snjdigitalsolutions.lablensfx.service.node.StatusBarService;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
+import com.snjdigitalsolutions.lablensfx.state.ConfigurationCheckState;
 import com.snjdigitalsolutions.lablensfx.state.ShowIpAddressState;
 import com.snjdigitalsolutions.lablensfx.state.StatusBarState;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
@@ -11,6 +13,7 @@ import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
 import impl.org.controlsfx.skin.ToggleSwitchSkin;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -41,6 +44,8 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
     private Label allOnLabel;
     @FXML
     private Label allOffLabel;
+    @FXML
+    private Label nextSnapshotLabel;
 
     private BooleanProperty performRefresh = new SimpleBooleanProperty(false);
 
@@ -49,13 +54,16 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
     private final ComputeResourceState computeResourceState;
     private final ShowIpAddressState showIpAddressState;
     private final StatusBarService statusBarService;
+    private final ConfigurationCheckState configurationCheckState;
+    private final ChangeListenerRegistry changeListenerRegistry;
 
     public DashboardPane(@Value("classpath:/fxml/DashboardPane.fxml") Resource fxml,
                          ObjectProvider<SummaryPanel> summaryPanelProvider,
                          ObjectProvider<HostPanelLarge> hostPanelLargeProvider,
                          ComputeResourceState computeResourceState,
-                         ShowIpAddressState showIpAddressState, StatusBarService statusBarService
-
+                         ShowIpAddressState showIpAddressState, StatusBarService statusBarService,
+                         ConfigurationCheckState configurationCheckState,
+                         ChangeListenerRegistry changeListenerRegistry
     )
     {
         this.summaryPanelProvider = summaryPanelProvider;
@@ -63,6 +71,8 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         this.computeResourceState = computeResourceState;
         this.showIpAddressState = showIpAddressState;
         this.statusBarService = statusBarService;
+        this.configurationCheckState = configurationCheckState;
+        this.changeListenerRegistry = changeListenerRegistry;
         NodeLoader.load(fxml, this);
     }
 
@@ -115,6 +125,15 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                 hostPanelLarge.changeToggleState(false);
             });
         });
+        nextSnapshotLabel.setText(configurationCheckState.getCheckStatus());
+        ChangeListener<String> nextSnapshotLabelChangeListener = (obj, oldVal, newVal) -> {
+            if (newVal != null) {
+                nextSnapshotLabel.setText(newVal);
+            } else {
+                nextSnapshotLabel.setText("");
+            }
+        };
+        changeListenerRegistry.add(this, configurationCheckState.checkStatusProperty(), nextSnapshotLabelChangeListener);
     }
 
     private SummaryPanel createSummaryPanel(SummaryPanelType type) {

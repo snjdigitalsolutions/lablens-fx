@@ -7,8 +7,8 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 
 @Service
@@ -18,25 +18,34 @@ public class TaskSchedulingService {
 
     private final TaskScheduler taskScheduler;
     @Getter
-    private List<ScheduledFuture<?>> scheduledFutureTaskList;
+    private Map<ScheduledTaskType, ScheduledFuture<?>> scheduledFutureTaskMap;
 
 
     public TaskSchedulingService(TaskScheduler taskScheduler) {
         this.taskScheduler = taskScheduler;
     }
 
-    public void scheduleFixedRateTask(Runnable taskToSchedule, Long durationInSeconds) {
-        if (scheduledFutureTaskList == null){
-            scheduledFutureTaskList = new ArrayList<>();
+    public boolean scheduleFixedRateTask(Runnable taskToSchedule, ScheduledTaskType type, Long durationInSeconds) {
+        boolean existed = false;
+        if (scheduledFutureTaskMap == null){
+            scheduledFutureTaskMap = new HashMap<>();
         }
         ScheduledFuture<?> scheduleTask = taskScheduler.scheduleAtFixedRate(taskToSchedule, Duration.ofSeconds(durationInSeconds));
-        scheduledFutureTaskList.add(scheduleTask);
+        if(scheduledFutureTaskMap.put(type, scheduleTask) != null) {
+            existed = true;
+        };
         LOGGER.debug("Task scheduled");
+        return existed;
+    }
+
+    public void cancelScheduledTask(ScheduledTaskType type) {
+        scheduledFutureTaskMap.get(type).cancel(true);
+        scheduledFutureTaskMap.remove(type);
     }
 
     public void cancelAllTasks(){
-        scheduledFutureTaskList.forEach(task -> {
-            task.cancel(true);
+        scheduledFutureTaskMap.keySet().forEach(scheduledTaskType -> {
+           scheduledFutureTaskMap.get(scheduledTaskType).cancel(true);
         });
     }
 

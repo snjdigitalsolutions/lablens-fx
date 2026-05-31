@@ -5,7 +5,6 @@ import com.snjdigitalsolutions.lablensfx.service.command.MD5SumCommand;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import com.snjdigitalsolutions.lablensfx.state.ConfigurationCheckState;
 import com.snjdigitalsolutions.lablensfx.utility.PermissionForPathUtility;
-import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
@@ -13,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,7 +45,8 @@ public class ConfigurationChangeCheckTask extends Task<Void> {
     public void run() {
         LOGGER.debug("Starting configuration change check...");
         Platform.runLater(() -> {
-           configurationCheckState.checkStatusProperty().setValue("Checking Configurations...");
+            configurationCheckState.checkStatusProperty()
+                    .setValue("Checking Configurations...");
         });
         AtomicInteger changeCount = new AtomicInteger(0);
         AtomicBoolean updateResource = new AtomicBoolean(false);
@@ -81,7 +83,11 @@ public class ConfigurationChangeCheckTask extends Task<Void> {
         });
         LOGGER.debug("Finished configuration change check...");
         Platform.runLater(() -> {
-           configurationCheckState.checkStatusProperty().setValue("");
+            LocalTime now = LocalTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+            String timeString = "Last Check: " + formatter.format(now);
+            configurationCheckState.checkStatusProperty()
+                    .setValue(timeString);
         });
     }
 

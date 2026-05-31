@@ -1,5 +1,6 @@
 package com.snjdigitalsolutions.lablensfx.state;
 
+import com.snjdigitalsolutions.lablensfx.setting.Interval;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -44,5 +45,9 @@ public class SettingState {
 
     public LongProperty snapshotIntervalInSecondsProperty() {
         return snapshotIntervalInSeconds;
+    }
+
+    public void setSnapshotInterval(Interval snapshotInterval, Integer quantity) {
+        this.snapshotIntervalInSeconds.set(snapshotInterval.multiplier() * quantity);
     }
 }

@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Fail.fail;
@@ -26,7 +25,7 @@ class TaskSchedulingServiceTest extends AbstractTest {
         TestTask task = new TestTask(taskConsumer);
 
         //Act
-        taskSchedulingService.scheduleFixedRateTask(task, 1L);
+        taskSchedulingService.scheduleFixedRateTask(task, ScheduledTaskType.CONFIGURATION_CHANGE_CHECK, 1L);
         Thread.sleep(4000);
 
         //Assert
@@ -37,7 +36,7 @@ class TaskSchedulingServiceTest extends AbstractTest {
     @Order(2)
     void taskStillRunning() throws InterruptedException {
         //Arrange
-        ScheduledFuture<?> scheduledFuture = taskSchedulingService.getScheduledFutureTaskList().getFirst();
+        ScheduledFuture<?> scheduledFuture = taskSchedulingService.getScheduledFutureTaskMap().get(ScheduledTaskType.CONFIGURATION_CHANGE_CHECK);
 
         //Act
         if (scheduledFuture==null){

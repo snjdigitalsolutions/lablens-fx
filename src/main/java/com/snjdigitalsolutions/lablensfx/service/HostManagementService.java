@@ -2,7 +2,6 @@ package com.snjdigitalsolutions.lablensfx.service;
 
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanelLarge;
-import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
 import com.snjdigitalsolutions.lablensfx.nodes.ProgressDialog;
 import com.snjdigitalsolutions.lablensfx.nodes.tableview.PathFilesTableView;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
@@ -25,7 +24,6 @@ import com.snjdigitalsolutions.lablensfx.utility.DebugUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.StageNodeBuilder;
-import com.snjdigitalsolutions.springbootutilityfx.node.utility.TaskStarter;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.stage.Modality;
@@ -33,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -116,12 +113,10 @@ public class HostManagementService implements SpringInitializableNode {
                 .addListener((obj, oldVal, newVal) -> {
                     if (newVal) {
                         verifyHostSshStatus();
-
-//                        Thread.ofVirtual().start(configurationChangeCheckTaskObjectProvider.getIfAvailable());
-                        //TODO Plug in scheduled task service here by retrieving settings.
                         LOGGER.info("Snapshot frequency: {}", settingState.getSnapshotIntervalInSeconds());
-                        taskSchedulingService.scheduleFixedRateTask(configurationChangeCheckTaskObjectProvider.getIfAvailable(), settingState.getSnapshotIntervalInSeconds());
-
+                        if (taskSchedulingService.scheduleFixedRateTask(configurationChangeCheckTaskObjectProvider.getIfAvailable(), ScheduledTaskType.CONFIGURATION_CHANGE_CHECK, settingState.getSnapshotIntervalInSeconds())) {
+                            LOGGER.warn("Task previously scheduled");
+                        }
                     }
                 });
         pathFilesTableView.setHostManagementService(this);
@@ -207,14 +202,18 @@ public class HostManagementService implements SpringInitializableNode {
             Optional<Setting> optSettingInterval = settingRepository.findBySettingName(SettingType.SNAPSHOT_INTERVAL.getName());
             Optional<Setting> optSettingValue = settingRepository.findBySettingName(SettingType.SNAPSHOT_INTERVAL_VALUE.getName());
             if (optSettingInterval.isPresent() && optSettingValue.isPresent()) {
-                String interval = optSettingInterval.get().getStringValue();
-                String intervalValue = optSettingValue.get().getStringValue();
+                String interval = optSettingInterval.get()
+                        .getStringValue();
+                String intervalValue = optSettingValue.get()
+                        .getStringValue();
                 switch (interval) {
                     case "Hours":
-                        settingState.snapshotIntervalInSecondsProperty().set(Long.parseLong(intervalValue) * 3600L);
+                        settingState.snapshotIntervalInSecondsProperty()
+                                .set(Long.parseLong(intervalValue) * 3600L);
                         break;
                     default:
-                        settingState.snapshotIntervalInSecondsProperty().set(3600L);
+                        settingState.snapshotIntervalInSecondsProperty()
+                                .set(3600L);
                 }
 
             }
@@ -239,7 +238,8 @@ public class HostManagementService implements SpringInitializableNode {
                 progressDialog.getProgressBar()
                         .progressProperty()
                         .bind(statusTask.progressProperty());
-                Thread.ofVirtual().start(statusTask);
+                Thread.ofVirtual()
+                        .start(statusTask);
                 StageNodeBuilder.builder()
                         .setModality(Modality.APPLICATION_MODAL)
                         .setResizable(false)
@@ -254,7 +254,8 @@ public class HostManagementService implements SpringInitializableNode {
 
     public void verifyHostSshStatus(Long resourceID) {
         SshStatusForSingleHostTask task = new SshStatusForSingleHostTask(resourceID, computeResourceState, sshService, this);
-        Thread.ofVirtual().start(task);
+        Thread.ofVirtual()
+                .start(task);
     }
 
     public void changeHostSshStatusToUnknown(HostPanelLarge panel,

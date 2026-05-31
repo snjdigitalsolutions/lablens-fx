@@ -29,9 +29,6 @@ public class ConfigurationChangeCheckTask extends Task<Void> {
     private final ComputeResourceState computeResourceState;
     private final ConfigurationCheckState configurationCheckState;
 
-    /**
-     * Creates the configuration-change check task with required state and service dependencies.
-     */
     public ConfigurationChangeCheckTask(MD5SumCommand md5SumCommand,
                                         PermissionForPathUtility permissionForPathUtility,
                                         ComputeResourceState computeResourceState,
@@ -94,12 +91,6 @@ public class ConfigurationChangeCheckTask extends Task<Void> {
         });
     }
 
-    /**
-     * Checks whether any tracked configuration files have changed since the last scan.
-     *
-     * @return {@code null} on completion
-     * @throws Exception if any SSH or hashing operation fails
-     */
     @Override
     protected Void call() throws Exception {
         this.run();

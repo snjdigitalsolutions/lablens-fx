@@ -192,7 +192,11 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
                                         .filter(fso -> fso.getAbsolutePath()
                                                 .equals(absoluteFilePath))
                                         .toList();
-                                optComputeResource.get().getFileStorages().remove(fileStorageList.getFirst());
+                                if (!fileStorageList.isEmpty()) {
+                                    optComputeResource.get()
+                                            .getFileStorages()
+                                            .remove(fileStorageList.getFirst());
+                                }
                             }
                         });
                         hostManagementService.updateComputeResource(optComputeResource.get());

@@ -1,6 +1,8 @@
 package com.snjdigitalsolutions.lablensfx;
 
 import com.snjdigitalsolutions.lablensfx.configuration.LabLensFXConfiguration;
+import com.snjdigitalsolutions.lablensfx.service.TaskCountReference;
+import com.snjdigitalsolutions.lablensfx.service.TaskSchedulingService;
 import com.snjdigitalsolutions.lablensfx.service.command.MD5SumCommand;
 import com.snjdigitalsolutions.lablensfx.state.SshState;
 import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
@@ -58,6 +60,10 @@ public class AbstractTest {
     protected ElevatedPrivilegedPathState elevatedPrivilegedPathState;
     @Autowired
     protected MD5SumCommand md5SumCommand;
+    @Autowired
+    protected TaskSchedulingService taskSchedulingService;
+    @Autowired
+    protected TaskCountReference taskCountReference;
 
     /**
      * Specifically for testing

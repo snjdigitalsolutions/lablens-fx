@@ -2,16 +2,19 @@ package com.snjdigitalsolutions.lablensfx.service;
 
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanelLarge;
-import com.snjdigitalsolutions.lablensfx.nodes.PassphraseDialog;
 import com.snjdigitalsolutions.lablensfx.nodes.ProgressDialog;
 import com.snjdigitalsolutions.lablensfx.nodes.tableview.PathFilesTableView;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.orm.ConfigurationPath;
+import com.snjdigitalsolutions.lablensfx.orm.Setting;
 import com.snjdigitalsolutions.lablensfx.orm.model.ComputeResourceModel;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
+import com.snjdigitalsolutions.lablensfx.repository.SettingRepository;
 import com.snjdigitalsolutions.lablensfx.service.node.HostPanelService;
+import com.snjdigitalsolutions.lablensfx.setting.SettingType;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
+import com.snjdigitalsolutions.lablensfx.state.SettingState;
 import com.snjdigitalsolutions.lablensfx.state.SshState;
 import com.snjdigitalsolutions.lablensfx.state.StatusBarState;
 import com.snjdigitalsolutions.lablensfx.task.ConfigurationChangeCheckTask;
@@ -21,7 +24,6 @@ import com.snjdigitalsolutions.lablensfx.utility.DebugUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.StageNodeBuilder;
-import com.snjdigitalsolutions.springbootutilityfx.node.utility.TaskStarter;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.stage.Modality;
@@ -29,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -53,6 +54,9 @@ public class HostManagementService implements SpringInitializableNode {
     private final PathFilesTableView pathFilesTableView;
     private final FilePersistenceService filePersistenceService;
     private final ObjectProvider<ConfigurationChangeCheckTask> configurationChangeCheckTaskObjectProvider;
+    private final TaskSchedulingService taskSchedulingService;
+    private final SettingRepository settingRepository;
+    private final SettingState settingState;
 
     @Value("${application.ssh.promptforpassphrase}")
     private boolean promptForPassPhrase;
@@ -72,7 +76,10 @@ public class HostManagementService implements SpringInitializableNode {
                                  HostPanelService hostPanelService,
                                  PathFilesTableView pathFilesTableView,
                                  FilePersistenceService filePersistenceService,
-                                 ObjectProvider<ConfigurationChangeCheckTask> configurationChangeCheckTaskObjectProvider
+                                 ObjectProvider<ConfigurationChangeCheckTask> configurationChangeCheckTaskObjectProvider,
+                                 TaskSchedulingService taskSchedulingService,
+                                 SettingRepository settingRepository,
+                                 SettingState settingState
     )
     {
         this.computeResourceState = computeResourceState;
@@ -88,6 +95,9 @@ public class HostManagementService implements SpringInitializableNode {
         this.pathFilesTableView = pathFilesTableView;
         this.filePersistenceService = filePersistenceService;
         this.configurationChangeCheckTaskObjectProvider = configurationChangeCheckTaskObjectProvider;
+        this.taskSchedulingService = taskSchedulingService;
+        this.settingRepository = settingRepository;
+        this.settingState = settingState;
     }
 
     /**
@@ -101,7 +111,7 @@ public class HostManagementService implements SpringInitializableNode {
                         computeResourceRepository.deleteById(change.getKey());
                     }
                 });
-        /**
+        /*
          * When resources have finished loading perform
          * initial tasks.
          */
@@ -109,7 +119,10 @@ public class HostManagementService implements SpringInitializableNode {
                 .addListener((obj, oldVal, newVal) -> {
                     if (newVal) {
                         verifyHostSshStatus();
-                        Thread.ofVirtual().start(configurationChangeCheckTaskObjectProvider.getIfAvailable());
+                        LOGGER.info("Snapshot frequency: {}", settingState.getSnapshotIntervalInSeconds());
+                        if (taskSchedulingService.scheduleFixedRateTask(configurationChangeCheckTaskObjectProvider.getIfAvailable(), ScheduledTaskType.CONFIGURATION_CHANGE_CHECK, settingState.getSnapshotIntervalInSeconds())) {
+                            LOGGER.warn("Task previously scheduled");
+                        }
                     }
                 });
         pathFilesTableView.setHostManagementService(this);
@@ -219,6 +232,24 @@ public class HostManagementService implements SpringInitializableNode {
                 computeResourceState.getComputeResourcesMap()
                         .put(resource.getId(), resource);
             });
+            Optional<Setting> optSettingInterval = settingRepository.findBySettingName(SettingType.SNAPSHOT_INTERVAL.getName());
+            Optional<Setting> optSettingValue = settingRepository.findBySettingName(SettingType.SNAPSHOT_INTERVAL_VALUE.getName());
+            if (optSettingInterval.isPresent() && optSettingValue.isPresent()) {
+                String interval = optSettingInterval.get()
+                        .getStringValue();
+                String intervalValue = optSettingValue.get()
+                        .getStringValue();
+                switch (interval) {
+                    case "Hours":
+                        settingState.snapshotIntervalInSecondsProperty()
+                                .set(Long.parseLong(intervalValue) * 3600L);
+                        break;
+                    default:
+                        settingState.snapshotIntervalInSecondsProperty()
+                                .set(3600L);
+                }
+
+            }
             computeResourceState.computeResourcesLoadedProperty()
                     .setValue(true);
             LOGGER.debug("Compute resources loaded");
@@ -243,7 +274,8 @@ public class HostManagementService implements SpringInitializableNode {
                 progressDialog.getProgressBar()
                         .progressProperty()
                         .bind(statusTask.progressProperty());
-                Thread.ofVirtual().start(statusTask);
+                Thread.ofVirtual()
+                        .start(statusTask);
                 StageNodeBuilder.builder()
                         .setModality(Modality.APPLICATION_MODAL)
                         .setResizable(false)
@@ -263,7 +295,8 @@ public class HostManagementService implements SpringInitializableNode {
      */
     public void verifyHostSshStatus(Long resourceID) {
         SshStatusForSingleHostTask task = new SshStatusForSingleHostTask(resourceID, computeResourceState, sshService, this);
-        Thread.ofVirtual().start(task);
+        Thread.ofVirtual()
+                .start(task);
     }
 
     /**

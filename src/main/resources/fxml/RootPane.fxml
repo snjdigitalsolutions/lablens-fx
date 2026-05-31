@@ -76,7 +76,7 @@
                               <FontAwesomeIconView glyphName="PLUS" />
                            </graphic>
                         </Button>
-                        <Button mnemonicParsing="false" text="Settings">
+                        <Button fx:id="settingsButton" mnemonicParsing="false" text="Settings">
                            <graphic>
                               <FontAwesomeIconView glyphName="GEAR" />
                            </graphic>

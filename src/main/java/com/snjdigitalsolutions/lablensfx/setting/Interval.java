@@ -15,10 +15,21 @@ public enum Interval {
         this.multiplier = multiplier;
     }
 
+    /**
+     * Returns the human-readable label for this interval (e.g. {@code "Minutes"}).
+     *
+     * @return the display value string
+     */
     public String displayValue(){
         return this.displayValue;
     }
 
+    /**
+     * Returns the number of seconds that one unit of this interval represents.
+     * For example, {@link #HOURS} returns {@code 3600}.
+     *
+     * @return the seconds-per-unit multiplier
+     */
     public long multiplier() {
         return this.multiplier;
     }

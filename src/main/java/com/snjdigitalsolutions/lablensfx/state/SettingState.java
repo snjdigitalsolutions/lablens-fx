@@ -69,14 +69,32 @@ public class SettingState {
         return promptWhenConfigSelectionChanges;
     }
 
+    /**
+     * Returns the current snapshot interval expressed in seconds.
+     *
+     * @return the snapshot interval in seconds
+     */
     public long getSnapshotIntervalInSeconds() {
         return snapshotIntervalInSeconds.get();
     }
 
+    /**
+     * Returns the observable {@link LongProperty} for the snapshot interval in seconds,
+     * allowing UI components to bind directly to interval changes.
+     *
+     * @return the snapshot-interval-in-seconds property
+     */
     public LongProperty snapshotIntervalInSecondsProperty() {
         return snapshotIntervalInSeconds;
     }
 
+    /**
+     * Sets the snapshot interval by multiplying the given {@link Interval} unit's seconds
+     * value by the specified quantity and storing the result.
+     *
+     * @param snapshotInterval the time unit to use (e.g. {@link com.snjdigitalsolutions.lablensfx.setting.Interval#MINUTES})
+     * @param quantity         the number of units
+     */
     public void setSnapshotInterval(Interval snapshotInterval, Integer quantity) {
         this.snapshotIntervalInSeconds.set(snapshotInterval.multiplier() * quantity);
     }

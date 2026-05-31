@@ -8,6 +8,13 @@ public class ComboBoxResizingUtility {
 
     private static final double ARROW_BUTTON_WIDTH = 60.0;
 
+    /**
+     * Resizes the given {@link ComboBox} so its preferred width fits the widest item label,
+     * accounting for the dropdown arrow button width.
+     *
+     * @param comboBox the combo box to resize; its converter is used if present, otherwise
+     *                 {@link Interval#displayValue()} is used to derive each item's label
+     */
     public static void resizeToContent(ComboBox<Interval> comboBox) {
         Text textNode = new Text();
         textNode.setFont(comboBox.getEditor()

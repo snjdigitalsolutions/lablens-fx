@@ -21,10 +21,18 @@ public class ConfigurationPathTableView extends TableView<ConfigurationPath> imp
 
     private final ChangeListenerRegistry changeListenerRegistry;
 
+    /**
+     * Creates the table view with the registry used to track listeners for later disposal.
+     *
+     * @param changeListenerRegistry the change listener registry
+     */
     public ConfigurationPathTableView(ChangeListenerRegistry changeListenerRegistry) {
         this.changeListenerRegistry = changeListenerRegistry;
     }
 
+    /**
+     * Configures table columns and their cell factories.
+     */
     @Override
     public void performIntialization() {
         setFocusTraversable(false);
@@ -40,34 +48,69 @@ public class ConfigurationPathTableView extends TableView<ConfigurationPath> imp
         setItems(FXCollections.observableArrayList());
     }
 
+    /**
+     * Returns the currently selected configuration path, or {@code null} if none is selected.
+     *
+     * @return the selected {@link ConfigurationPath}
+     */
     public ConfigurationPath getSelectedItem(){
         return getSelectionModel().getSelectedItem();
     }
 
+    /**
+     * Removes the currently highlighted row from the table and from the backing list.
+     */
     public void removeCurrentlySelectedItem(){
         getItems().remove(getSelectedItem());
     }
 
+    /**
+     * Clears the table's current row selection without removing items.
+     */
     public void clearSelection(){
         getSelectionModel().clearSelection();
     }
 
+    /**
+     * Removes all rows from the table.
+     */
     public void clearItems(){
         getItems().clear();
     }
 
+    /**
+     * Appends a configuration path entry to the table.
+     *
+     * @param path the path to add
+     */
     public void addItem(ConfigurationPath path) {
         getItems().add(path);
     }
 
+    /**
+     * Registers an external listener on the selected-item property.
+     *
+     * @param observableValue the observable to attach to (typically the selection model)
+     * @param changeListener  the listener to notify on change
+     */
     public void addSelectedItemChangeListener(ObservableValue<ConfigurationPath> observableValue, ChangeListener<ConfigurationPath> changeListener){
         changeListenerRegistry.add(this, observableValue, changeListener);
     }
 
+    /**
+     * Exposes the selected-item property for external binding.
+     *
+     * @return the selected-item observable property
+     */
     public ObservableValue<ConfigurationPath> selectedItemProperty(){
         return getSelectionModel().selectedItemProperty();
     }
 
+    /**
+     * Returns the path-string column for external configuration.
+     *
+     * @return the path string {@link TableColumn}
+     */
     @NonNull
     private TableColumn<ConfigurationPath, String> getConfigurationPathStringTableColumn() {
         TableColumn<ConfigurationPath, String> pathColumn = new TableColumn<>("Path");
@@ -76,6 +119,11 @@ public class ConfigurationPathTableView extends TableView<ConfigurationPath> imp
         return pathColumn;
     }
 
+    /**
+     * Returns the elevation-required column for external configuration.
+     *
+     * @return the elevation-required {@link TableColumn}
+     */
     @NonNull
     private TableColumn<ConfigurationPath, Boolean> getConfigurationPathElevationrequiredTableColumn() {
         TableColumn<ConfigurationPath, Boolean> privilegeColumn = new TableColumn<>("Privilege");

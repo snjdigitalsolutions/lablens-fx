@@ -45,6 +45,9 @@ public class SshService {
     private boolean clientInitialized = false;
     private final Map<String, ClientSession> activeSessions = new ConcurrentHashMap<>();
 
+    /**
+     * Creates the SSH service with key-loader and SSH state dependencies.
+     */
     public SshService(SshState sshState,
                       SshKeyLoader sshKeyLoader
     )
@@ -53,6 +56,11 @@ public class SshService {
         this.sshKeyLoader = sshKeyLoader;
     }
 
+    /**
+     * Initializes the Apache MINA SSHD client and loads available key pairs.
+     *
+     * @return {@code true} if the client was successfully initialized
+     */
     synchronized public boolean init() {
         if (!clientInitialized) {
             client = SshClient.setUpDefaultClient();
@@ -79,6 +87,12 @@ public class SshService {
         return clientInitialized;
     }
 
+    /**
+     * Gracefully shuts down the SSH client and closes all open sessions.
+     *
+     * @return {@code true} if the client was stopped; {@code false} if it was never started
+     * @throws IOException if stopping the client fails
+     */
     @PreDestroy
     public boolean shutdown() throws IOException {
         boolean success = false;
@@ -89,6 +103,13 @@ public class SshService {
         return success;
     }
 
+    /**
+     * Returns an existing open session for the given host, or creates a new one.
+     *
+     * @param host the hostname or IP address
+     * @param port the SSH port
+     * @return an {@link Optional} containing an active {@link ClientSession}, or empty on failure
+     */
     private Optional<ClientSession> getOrCreateSession(String host,
                                                        int port
     )
@@ -187,6 +208,16 @@ public class SshService {
         return response;
     }
 
+    /**
+     * Downloads a file from the remote host to a local destination via SCP.
+     *
+     * @param host            the hostname or IP address
+     * @param port            the SSH port
+     * @param srcAbsolutePath the absolute path of the file on the remote host
+     * @param destPath        the local destination path
+     * @return {@code true} if the file was transferred successfully
+     * @throws Exception if the transfer fails
+     */
     public boolean secureCopyFileFromHost(String host,
                                           int port,
                                           String srcAbsolutePath,

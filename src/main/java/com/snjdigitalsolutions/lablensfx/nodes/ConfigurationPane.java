@@ -42,6 +42,9 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
     private final ChangeListenerRegistry changeListenerRegistry;
     private final ConfigurationPaneService configurationPaneService;
 
+    /**
+     * Creates the configuration pane with all required service and state dependencies.
+     */
     public ConfigurationPane(@Value("classpath:/fxml/ConfigurationPane.fxml") Resource fxml,
                              ConfigurationPathTableView configurationPathTableView,
                              PathFilesTableView pathFilesTableView,
@@ -56,6 +59,9 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
         NodeLoader.load(fxml, this);
     }
 
+    /**
+     * Initializes child components and binds them to the backing configuration state.
+     */
     @Override
     public void performIntialization() {
         initializeDivider();
@@ -76,6 +82,9 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
 
     }
 
+    /**
+     * Wires the delete button to remove the currently selected configuration path.
+     */
     private void initializeDeleteButton() {
         deleteButton.setOnAction(event -> {
             configurationPaneService.removeConfigurationPathFromSelectedResource(configurationPathTableView.getSelectedItem());
@@ -84,6 +93,9 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
         });
     }
 
+    /**
+     * Configures the split-pane divider position and resize policy.
+     */
     private void initializeDivider() {
         ChangeListener<Number> dividerPositionChangeListener = (obj, oldVal, newVal) -> {
             if (newVal.doubleValue() != splitPaneDividerPosition) {
@@ -95,12 +107,18 @@ public class ConfigurationPane extends AnchorPane implements SpringInitializable
                 .positionProperty(), dividerPositionChangeListener);
     }
 
+    /**
+     * Wires the add button to open the path-entry dialog and persist new paths.
+     */
     private void initializeAddButton() {
         addButton.setOnAction(event -> {
             configurationPaneService.addButtonAction(filePathTextField);
         });
     }
 
+    /**
+     * Populates and configures the configuration-path table view.
+     */
     private void initializePathTable() {
         leftVBox.getChildren()
                 .add(configurationPathTableView);

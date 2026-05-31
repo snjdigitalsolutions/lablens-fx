@@ -19,6 +19,9 @@ public class LabLensFxPostShowAction implements PostShowRunnable {
     private final PassphraseDialog passphraseDialog;
     private final Environment environment;
 
+    /**
+     * Creates the post-show action with all services needed to bootstrap the UI data.
+     */
     public LabLensFxPostShowAction(HostManagementService hostManagementService, SshState sshState, PassphraseDialog passphraseDialog, Environment environment) {
         this.hostManagementService = hostManagementService;
         this.sshState = sshState;
@@ -26,6 +29,9 @@ public class LabLensFxPostShowAction implements PostShowRunnable {
         this.environment = environment;
     }
 
+    /**
+     * Executes all startup actions (load hosts, verify SSH status, etc.) after the window is shown.
+     */
     @Override
     public void performPostSHowAction() {
         if (promptForPassPhrase) {

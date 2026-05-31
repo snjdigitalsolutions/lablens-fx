@@ -57,6 +57,9 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
     private final EtcOsReleaseParser osReleaseParser;
     private final SettingState settingState;
 
+    /**
+     * Creates the host-form pane with all required service and state dependencies.
+     */
     public HostFormPane(@Value("classpath:/fxml/HostFormPane.fxml") Resource fxml,
                         NodeUtility nodeUtility,
                         AlertUtility alertUtility,
@@ -79,6 +82,9 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
         NodeLoader.load(fxml, this);
     }
 
+    /**
+     * Initializes form fields and action bindings for the host entry/edit form.
+     */
     @Override
     public void performIntialization() {
         ipaddressTextField.setTextFormatter(new TextFormatter<>(change -> {
@@ -151,6 +157,12 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
                 });
     }
 
+    /**
+     * Writes the form field values onto the given {@link ComputeResource}.
+     *
+     * @param resource    the entity to populate
+     * @param newResource {@code true} when creating a new resource; {@code false} when editing
+     */
     private void setValuesOnResource(ComputeResource resource,
                                      boolean newResource
     )
@@ -168,6 +180,12 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
         }
     }
 
+    /**
+     * Validates all required form fields and marks invalid fields visually.
+     *
+     * @param autoPopulate {@code true} when in auto-populate mode; only IP and port are required
+     * @return {@code true} if all required fields pass validation
+     */
     public boolean performFormValidation(boolean autoPopulate) {
         boolean valid = false;
         if (!autoPopulate) {
@@ -196,10 +214,18 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
         return valid;
     }
 
+    /**
+     * Returns the IP address entered in the form.
+     *
+     * @return the current IP address field value
+     */
     private String getIpAddress() {
         return !settingState.isShowIPs() ? actualIpValue : ipaddressTextField.getText();
     }
 
+    /**
+     * Clears all form field values and resets the IP address buffer.
+     */
     private void clearForm() {
         hostNameTextField.clear();
         ipaddressTextField.clear();
@@ -209,16 +235,29 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
         sshPortTextField.clear();
     }
 
+    /**
+     * Closes the host-form pane in response to a cancel or close action.
+     *
+     * @param event the action event that triggered the close
+     */
     @Override
     public void close(ActionEvent event) {
         nodeUtility.closeNode(event);
     }
 
+    /**
+     * Displays the form pane in creation mode with empty fields.
+     */
     public void showPane() {
         clearForm();
         makeFormVisible("Add Host");
     }
 
+    /**
+     * Displays the form pane in edit mode pre-populated with the given resource's values.
+     *
+     * @param resource the compute resource whose data should be pre-filled
+     */
     public void showPane(ComputeResource resource) {
         hostNameTextField.setText(resource.getHostName());
         if (!settingState.isShowIPs()) {
@@ -238,6 +277,11 @@ public class HostFormPane extends AnchorPane implements SpringInitializableNode,
         makeFormVisible("Edit Host");
     }
 
+    /**
+     * Makes the form visible and sets the pane title.
+     *
+     * @param title the string to display in the form header
+     */
     private void makeFormVisible(String title) {
         StageNodeBuilder.builder()
                 .setNode(this)

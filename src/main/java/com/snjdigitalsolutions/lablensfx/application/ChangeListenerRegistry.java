@@ -30,6 +30,9 @@ public class ChangeListenerRegistry {
         listenerRemovers.get(registrant).add(() -> property.removeListener(listener));
     }
 
+    /**
+     * Removes and disposes all registered change listeners, preventing memory leaks.
+     */
     public void disposeAll(){
         listenerRemovers.keySet().forEach(key -> {
             listenerRemovers.get(key).forEach(Runnable::run);
@@ -37,6 +40,11 @@ public class ChangeListenerRegistry {
         listenerRemovers.clear();
     }
 
+    /**
+     * Removes and disposes all change listeners registered by the given owner.
+     *
+     * @param registrant the object whose listeners should be released
+     */
     public void disposeForRegistrant(Object registrant){
         if (listenerRemovers.get(registrant) != null){
             listenerRemovers.get(registrant).forEach(Runnable::run);

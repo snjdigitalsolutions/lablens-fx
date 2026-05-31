@@ -60,6 +60,9 @@ public class HostPanelLarge extends GridPane implements IpSortable {
     private final ShowIpAddressState showIpAddressState;
     private SingleColumnConfigurationPathTableView table;
 
+    /**
+     * Creates an expanded host panel that shows configuration paths and file details.
+     */
     public HostPanelLarge(@Value("classpath:/fxml/HostPanelLarge.fxml") Resource fxml,
                           SshStatusIndicator statusIndicator,
                           HostManagementService hostManagementService,
@@ -78,6 +81,11 @@ public class HostPanelLarge extends GridPane implements IpSortable {
         NodeLoader.load(fxml, this);
     }
 
+    /**
+     * Initializes the expanded panel for the given compute resource.
+     *
+     * @param computeResourceId the database ID of the compute resource to display
+     */
     public void performInitialization(Long computeResourceId) {
         this.computeResourceId = computeResourceId;
         hostHBox.getChildren().addFirst(statusIndicator);
@@ -96,11 +104,17 @@ public class HostPanelLarge extends GridPane implements IpSortable {
                 });
     }
 
+    /**
+     * Fetches and populates configuration paths from state into the path table.
+     */
     private void loadConfigurationPaths() {
         Optional<ComputeResource> optionalResource = hostManagementService.getComputerResourceById(computeResourceId);
         optionalResource.ifPresent(computeResource -> table.setConfigurationPaths(computeResource.getConfigurationPaths()));
     }
 
+    /**
+     * Attaches a listener to the configuration-path toggle to react to selection changes.
+     */
     public void addToggleListener() {
         ChangeListener<Boolean> listener = (obj, oldVal, newVal) -> {
             long setValue = 0L;
@@ -121,16 +135,30 @@ public class HostPanelLarge extends GridPane implements IpSortable {
         changeListenerRegistry.add(this, sshCommToggle.selectedProperty(), listener);
     }
 
+    /**
+     * Expands or collapses the configuration path detail area.
+     *
+     * @param toggleOn {@code true} to enable SSH communication; {@code false} to disable
+     */
     public void changeToggleState(boolean toggleOn) {
         sshCommToggle.setSelected(toggleOn);
     }
 
+    /**
+     * Returns the IP address of the host shown in this panel.
+     *
+     * @return the host's IP address
+     */
     @Override
     public String getIpAddress() {
         return resourceModel.getIpAddress();
     }
 
-
+    /**
+     * Replaces the displayed data with the provided compute resource model.
+     *
+     * @param resourceModel the new model to display
+     */
     public void setResourceModel(ComputeResourceModel resourceModel) {
         this.resourceModel = resourceModel;
         if (hostNameLabel.textProperty().isBound()){

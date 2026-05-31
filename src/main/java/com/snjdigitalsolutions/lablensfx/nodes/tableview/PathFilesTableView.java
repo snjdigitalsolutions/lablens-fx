@@ -31,10 +31,18 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
     @Setter
     private FilePersistenceService filePersistenceService;
 
+    /**
+     * Creates the files table view backed by the given persistence service.
+     *
+     * @param filePersistenceService the service used to resolve file persistence state
+     */
     public PathFilesTableView(FilePersistenceService filePersistenceService) {
         this.filePersistenceService = filePersistenceService;
     }
 
+    /**
+     * Configures file-name and track-file columns with their cell factories.
+     */
     @Override
     public void performIntialization() {
         setFocusTraversable(false);
@@ -51,30 +59,59 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
         setPlaceholder(new Label("No file path selected"));
     }
 
+    /**
+     * Returns the currently selected file-system object model, or {@code null} if none is selected.
+     *
+     * @return the selected {@link FileSystemObjectModel}
+     */
     public FileSystemObjectModel getSelectedItem() {
         return getSelectionModel().getSelectedItem();
     }
 
+    /**
+     * Removes the currently selected row from the table and backing list.
+     */
     public void removeCurrentlySelectedItem() {
         getItems().remove(getSelectedItem());
     }
 
+    /**
+     * Clears the current row selection without removing items.
+     */
     public void clearSelection() {
         getSelectionModel().clearSelection();
     }
 
+    /**
+     * Removes all file rows from the table.
+     */
     public void clearItems() {
         getItems().clear();
     }
 
+    /**
+     * Appends a file-system object model row to the table.
+     *
+     * @param fileSystemObject the model to add
+     */
     public void addItem(FileSystemObjectModel fileSystemObject) {
         getItems().add(fileSystemObject);
     }
 
+    /**
+     * Exposes the selected-item property for external binding.
+     *
+     * @return the selected-item observable property
+     */
     public ObservableValue<FileSystemObjectModel> selectedItemProperty() {
         return getSelectionModel().selectedItemProperty();
     }
 
+    /**
+     * Returns the file-name column for external configuration.
+     *
+     * @return the file-name {@link TableColumn}
+     */
     @NonNull
     private TableColumn<FileSystemObjectModel, String> getFileNameTableColumn() {
         TableColumn<FileSystemObjectModel, String> filenameColumn = new TableColumn<>("Filename");
@@ -107,6 +144,11 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
         return filenameColumn;
     }
 
+    /**
+     * Returns the track-file toggle column for external configuration.
+     *
+     * @return the track-file {@link TableColumn}
+     */
     @NonNull
     private TableColumn<FileSystemObjectModel, Boolean> getTrackFileTableColumn() {
         TableColumn<FileSystemObjectModel, Boolean> trackFileColumn = new TableColumn<>("Track");

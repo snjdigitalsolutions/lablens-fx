@@ -117,6 +117,9 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
 
     private final ObjectProvider<ConfigurationChangeCheckTask> configurationChangeCheckTaskObjectProvider;
 
+    /**
+     * Creates the boot-ready controller with all required UI and service dependencies.
+     */
     public LabLensFxBootReadyController(ObjectProvider<SshPassphraseIndicator> statusIndicatorProvider,
                                         HostPane hostPane,
                                         HostFormPane hostFormPane,
@@ -168,6 +171,9 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         this.configurationChangeCheckTaskObjectProvider = configurationChangeCheckTaskObjectProvider;
     }
 
+    /**
+     * Orchestrates full UI initialization after the Spring context is ready.
+     */
     @Override
     public void performIntialization() {
         borderPane.setLeft(hostPane);
@@ -238,6 +244,9 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         });
     }
 
+    /**
+     * Configures and installs the loading overlay onto the root pane.
+     */
     private void initializeLoadingOverlay() {
         stackPane.getChildren().add(loadingOverlay);
         ChangeListener<Boolean> loadingListener = (obj, oldVal, newVal) -> {
@@ -251,10 +260,16 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         changeListenerRegistry.add(this, applicationState.loadingDataProperty(), loadingListener);
     }
 
+    /**
+     * Binds the status bar component to its backing state properties.
+     */
     private void initializeStatusBar() {
         statusBarService.setStatusbar(statusBar);
     }
 
+    /**
+     * Wires the dashboard navigation button to show the dashboard view.
+     */
     private void initializeDashboardButton() {
         dashboardToggleButton.setOnAction(event -> {
            setDashboardVisible();
@@ -264,6 +279,9 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         });
     }
 
+    /**
+     * Wires the configuration navigation button to show the configuration view.
+     */
     private void initializeConfigurationButton() {
         configToggleButton.setOnAction(event -> {
             LOGGER.debug("Configuration button clicked");
@@ -275,6 +293,9 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         });
     }
 
+    /**
+     * Loads persisted application settings from the repository into state.
+     */
     private void initializeApplicationSettings() {
         //Ensure default values are populated in datasource
         for (SettingType type : SettingType.values()) {
@@ -345,6 +366,9 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                 .setValue(true);
     }
 
+    /**
+     * Configures the privilege-elevation menu item based on current SSH state.
+     */
     private void initializePrivilegeMenuItem() {
         verifyPathPrivilegeMenuItem.setDisable(true);
         verifyPathPrivilegeMenuItem.setOnAction(event -> {
@@ -356,6 +380,9 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                 });
     }
 
+    /**
+     * Makes the configuration pane visible and hides the dashboard pane.
+     */
     private void setConfigurationVisible() {
         selectedViewState.selectedViewProperty()
                 .setValue(ApplicationView.CONFIGURATIONS);
@@ -363,12 +390,18 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         borderPane.setCenter(configurationPane);
     }
 
+    /**
+     * Makes the dashboard pane visible and hides the configuration pane.
+     */
     private void setDashboardVisible() {
         selectedViewState.selectedViewProperty()
                 .setValue(ApplicationView.DASHBOARD);
         borderPane.setCenter(dashboardPane);
     }
 
+    /**
+     * Registers click handlers for all primary navigation view buttons.
+     */
     private void initializeViewButtons() {
         disableNonDashboardButtons(true);
         statusBarState.numberOfSelectedHostsProperty()
@@ -377,6 +410,11 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                 });
     }
 
+    /**
+     * Enables or disables all non-dashboard toolbar buttons.
+     *
+     * @param value {@code true} to disable; {@code false} to enable
+     */
     private void disableNonDashboardButtons(boolean value) {
         configButton.setDisable(value);
         configToggleButton.setDisable(value);
@@ -391,6 +429,9 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         }
     }
 
+    /**
+     * Binds the SSH credential indicator shape to the current passphrase mode state.
+     */
     private void initializeSshCredentialIndicator() {
         indicator = statusIndicatorProvider.getObject();
         indicator.passPhraseMode()
@@ -399,6 +440,9 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                 .add(indicator);
     }
 
+    /**
+     * Wires the SSH button action to open the passphrase dialog.
+     */
     private void initializeSshButton() {
         sshButton.setTooltip(tooltipGenerator.generateTooltip("Set SSH credentials and verify host connectivity."));
         sshButton.setOnAction(event -> {
@@ -407,12 +451,18 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         });
     }
 
+    /**
+     * Wires the add-host button to display the host-form pane.
+     */
     private void initializeAddHostButton() {
         addHostButton.setOnAction(buttonEvent -> {
             hostFormPane.showPane();
         });
     }
 
+    /**
+     * Binds the delete-selected-host menu item to the current selection state.
+     */
     private void initializeDeleteSelectedHostMenuItem() {
         deleteSelectedHostsMenuItem.disableProperty()
                 .bind(statusBarState.disableDeleteHostMenuItemProperty());
@@ -423,6 +473,9 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         });
     }
 
+    /**
+     * Adds a listener that shows or hides IP addresses after settings finish loading.
+     */
     private void initializeShowHideIpMenuItemAfterSettingsLoaded() {
         if (settingState.isShowIPs()) {
             showHideIpIconView.setIcon(FontAwesomeIcon.CHECK);
@@ -450,6 +503,9 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         });
     }
 
+    /**
+     * Adds a listener that enables the confirm-on-config-change setting after load.
+     */
     private void initializeConfirmConfigurationSelectionChangeAfterSettingsLoaded() {
         if (settingState.isPromptWhenConfigSelectionChanges()) {
             confirmChangeIconView.setIcon(FontAwesomeIcon.CHECK);

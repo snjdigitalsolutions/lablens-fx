@@ -15,6 +15,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class LablensFxBoot implements FxBoot {
 
+    /**
+     * Application entry point. Bootstraps the Spring Boot context before launching JavaFX.
+     *
+     * @param args command-line arguments forwarded to Spring
+     */
     public static void main(String[] args) {
         SplashConfiguration.getInstance().setApplicationName("LabLens");
         ApplicationPreConfiguration.getInstance().setStageWidth(925);

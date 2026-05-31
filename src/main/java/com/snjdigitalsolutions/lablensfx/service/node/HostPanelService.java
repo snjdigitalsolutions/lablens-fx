@@ -11,6 +11,9 @@ public class HostPanelService {
     private final HostPanelStylingService hostPanelStylingService;
     private final ConfigurationPaneService configurationPaneService;
 
+    /**
+     * Creates the host panel service with styling and state dependencies.
+     */
     public HostPanelService(HostPanelStylingService hostPanelStylingService,
                             ConfigurationPaneService configurationPaneService
     ) {
@@ -31,11 +34,21 @@ public class HostPanelService {
         configurationPaneService.loadExistingPaths();
     }
 
+    /**
+     * Applies selection styling to the given panel.
+     *
+     * @param panel the host panel to mark as selected
+     */
     public void setHostPanelSelected(HostPanel panel) {
         panel.setSelectionState(true);
         hostPanelStylingService.addSelectionStyle(panel);
     }
 
+    /**
+     * Removes selection styling from the given panel.
+     *
+     * @param panel the host panel to deselect
+     */
     public void clearSelectedStyling(HostPanel panel) {
         panel.setSelectionState(false);
         hostPanelStylingService.removeSelectionStyle(panel);

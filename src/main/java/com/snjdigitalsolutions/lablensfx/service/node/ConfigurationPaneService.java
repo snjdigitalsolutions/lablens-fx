@@ -45,6 +45,9 @@ public class ConfigurationPaneService {
     private final ObjectProvider<ListFilesTask> listFilesTaskObjectProvider;
     private final ObjectProvider<FileSystemObjectModelCleanupTask> fileSystemObjectModelCleanupTaskObjectProvider;
 
+    /**
+     * Creates the configuration pane service with all required state and repository dependencies.
+     */
     public ConfigurationPaneService(ComputeResourceState computeResourceState,
                                     ComputeResourceRepository computeResourceRepository,
                                     FilePathValidator filePathValidator,
@@ -69,6 +72,11 @@ public class ConfigurationPaneService {
         this.fileSystemObjectModelCleanupTaskObjectProvider = fileSystemObjectModelCleanupTaskObjectProvider;
     }
 
+    /**
+     * Removes the given configuration path from the currently selected compute resource.
+     *
+     * @param configurationPath the configuration path to remove
+     */
     public void removeConfigurationPathFromSelectedResource(ConfigurationPath configurationPath) {
         if (computeResourceState.getSelectedResources()
                 .size() == 1) {
@@ -80,6 +88,11 @@ public class ConfigurationPaneService {
         }
     }
 
+    /**
+     * Returns all configuration paths associated with the currently selected compute resource.
+     *
+     * @return list of configuration paths for the selected resource
+     */
     public List<ConfigurationPath> getConfigurationPathsForSelectedResource() {
         List<ConfigurationPath> hostPaths = new ArrayList<>();
         if (computeResourceState.getSelectedResources()
@@ -91,6 +104,12 @@ public class ConfigurationPaneService {
         return hostPaths;
     }
 
+    /**
+     * Adds a new configuration path to the currently selected compute resource and persists it.
+     *
+     * @param configurationPath the configuration path to add
+     * @return {@code true} if the path was added; {@code false} if it was a duplicate or no resource is selected
+     */
     public boolean addPathToSelectedResource(ConfigurationPath configurationPath) {
         boolean success = false;
         AtomicBoolean isDuplicate = new AtomicBoolean(false);
@@ -124,6 +143,11 @@ public class ConfigurationPaneService {
         return success;
     }
 
+    /**
+     * Validates the entered path, adds it to the selected resource, and triggers an elevation check.
+     *
+     * @param filePathTextField the text field containing the path entered by the user
+     */
     public void addButtonAction(TextField filePathTextField) {
         if (filePathValidator.isValid(filePathTextField.getText())) {
             ConfigurationPath path = creteNewConfigurationPath(filePathTextField);
@@ -142,6 +166,12 @@ public class ConfigurationPaneService {
         }
     }
 
+    /**
+     * Constructs a new {@link ConfigurationPath} entity from the given text field value.
+     *
+     * @param filePathTextField the text field whose value becomes the path string
+     * @return a new, un-persisted {@link ConfigurationPath} with elevation checks pending
+     */
     @NonNull
     private ConfigurationPath creteNewConfigurationPath(TextField filePathTextField) {
         ConfigurationPath path = new ConfigurationPath();
@@ -151,12 +181,20 @@ public class ConfigurationPaneService {
         return path;
     }
 
+    /**
+     * Reloads configuration paths and clears the files table for the currently selected resource.
+     */
     public void loadExistingPaths() {
         configurationPathTableView.clearItems();
         pathFilesTableView.clearItems();
         getConfigurationPathsForSelectedResource().forEach(configurationPathTableView::addItem);
     }
 
+    /**
+     * Starts a background task to list all files under the given configuration path and populates the files table.
+     *
+     * @param configurationPath the path whose files should be listed
+     */
     public void listFilesForConfigurationPath(ConfigurationPath configurationPath) {
         try {
             statusBarService.addLoadingFilesMessage();

@@ -3,6 +3,7 @@ package com.snjdigitalsolutions.lablensfx.state;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanel;
 import com.snjdigitalsolutions.lablensfx.nodes.HostPanelLarge;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
+import com.snjdigitalsolutions.lablensfx.orm.FileStorage;
 import com.snjdigitalsolutions.lablensfx.repository.ComputeResourceRepository;
 import com.snjdigitalsolutions.lablensfx.shapes.SshStatus;
 import com.snjdigitalsolutions.lablensfx.utility.DebugUtility;
@@ -12,6 +13,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -230,15 +232,61 @@ public class ComputeResourceState {
      */
     public void updateComputeResource(ComputeResource computeResource) {
         LOGGER.debug(DebugUtility.getCallerInfo());
-        boolean wasSelected = selectedResources.removeIf(r -> r.getId().equals(computeResource.getId()));
+        ComputeResource savedResource = updateTheSelectedResourceListWhenSelected(computeResource);
+        computeResourcesMap.put(savedResource.getId(), savedResource);
+        updateHostPanelWithSavedComputeResource(savedResource);
+        LOGGER.debug("Updated compute resource: {}", savedResource.getIpAddress());
+    }
+
+    /**
+     * After compute resource has been updated in the database, the
+     * HostPanel map with ID as key is then updated with the newly
+     * updated compute resource
+     *
+     * @param savedResource the previously saved resource
+     */
+    private void updateHostPanelWithSavedComputeResource(ComputeResource savedResource) {
+        HostPanel mappedPanel = computeResourceHostPanelMap.get(savedResource.getId());
+        hostPanelToComputeResourceMap.put(mappedPanel, savedResource);
+    }
+
+    /**
+     * If modified compute resource has been modified it needs
+     * to be updated in the selected resource list.
+     *
+     * @param computeResource the modfied compute resource
+     * @return the modified compute resource
+     */
+    @NonNull
+    private ComputeResource updateTheSelectedResourceListWhenSelected(ComputeResource computeResource) {
+        boolean wasSelected = selectedResources.removeIf(r -> r.getId()
+                .equals(computeResource.getId()));
         ComputeResource savedResource = computeResourceRepository.save(computeResource);
+
+        //Check for and set child relationship on file storage
+        FileStorage newlyAddedChildStorage = null;
+        for (FileStorage storage : savedResource.getFileStorages()) {
+            if (storage.getParent() != null && storage.getParent() > 0) {
+                newlyAddedChildStorage = storage;
+            }
+        }
+        if (newlyAddedChildStorage != null) {
+            Long childID = newlyAddedChildStorage.getId();
+            for (FileStorage storage : savedResource.getFileStorages()) {
+                if (storage.getId().compareTo(Integer.toUnsignedLong(newlyAddedChildStorage.getParent())) == 0) {
+                    storage.setChild(newlyAddedChildStorage.getId().intValue());
+                }
+            }
+        }
+        savedResource = computeResourceRepository.save(savedResource);
+
+        //TODO as this code stands a new child will be created every time the
+        //application runs creating an orphaned child file storage
+
         if (wasSelected) {
             selectedResources.add(savedResource);
         }
-        computeResourcesMap.put(savedResource.getId(), savedResource);
-        HostPanel mappedPanel = computeResourceHostPanelMap.get(savedResource.getId());
-        hostPanelToComputeResourceMap.put(mappedPanel, savedResource);
-        LOGGER.debug("Updated compute resource: {}", savedResource.getIpAddress());
+        return savedResource;
     }
 
     /**

@@ -30,4 +30,10 @@ public class FileStorage {
     private byte[] fileDate;
     @Column(name = "changed_on_disk")
     private Boolean changedOnDisk;
+    @Column(name = "resolved")
+    private Boolean resolved;
+    @Column(name = "parent")
+    private Integer parent;
+    @Column(name = "child")
+    private Integer child;
 }

@@ -7,6 +7,7 @@ import com.snjdigitalsolutions.lablensfx.orm.model.FileSystemObjectModel;
 import com.snjdigitalsolutions.lablensfx.service.FilePersistenceService;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
+import com.snjdigitalsolutions.springbootutilityfx.node.utility.AlertUtility;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
 public class PathFilesTableView extends TableView<FileSystemObjectModel> implements SpringInitializableNode {
@@ -30,14 +32,18 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
     private HostManagementService hostManagementService;
     @Setter
     private FilePersistenceService filePersistenceService;
+    private final AlertUtility alertUtility;
 
     /**
      * Creates the files table view backed by the given persistence service.
      *
      * @param filePersistenceService the service used to resolve file persistence state
      */
-    public PathFilesTableView(FilePersistenceService filePersistenceService) {
+    public PathFilesTableView(FilePersistenceService filePersistenceService,
+                              AlertUtility alertUtility
+    ) {
         this.filePersistenceService = filePersistenceService;
+        this.alertUtility = alertUtility;
     }
 
     /**
@@ -184,19 +190,30 @@ public class PathFilesTableView extends TableView<FileSystemObjectModel> impleme
                         // Change selected status
                         optFileObject.ifPresent(fileSystemObject -> {
                             fileSystemObject.setTrackFile(trackCheckBox.isSelected());
+                            //Remove files from database when file not selected
                             if (!trackCheckBox.isSelected()) {
-                                String absoluteFilePath = fileSystemObject.getParentPath() + "/" + fileSystemObject.getFileName();
-                                List<FileStorage> fileStorageList = optComputeResource.get()
-                                        .getFileStorages()
-                                        .stream()
-                                        .filter(fso -> fso.getAbsolutePath()
-                                                .equals(absoluteFilePath))
-                                        .toList();
-                                if (!fileStorageList.isEmpty()) {
-                                    optComputeResource.get()
+                                AtomicBoolean confirmedYes = new AtomicBoolean(false);
+                                alertUtility.confirmAlert("Remove Configuration", "Removing the configuration from tracking status will remove history from the database for this file. Continue?", () -> {
+                                    confirmedYes.set(true);
+                                    String absoluteFilePath = fileSystemObject.getParentPath() + "/" + fileSystemObject.getFileName();
+                                    List<FileStorage> fileStorageList = optComputeResource.get()
                                             .getFileStorages()
-                                            .remove(fileStorageList.getFirst());
+                                            .stream()
+                                            .filter(fso -> fso.getAbsolutePath()
+                                                    .equals(absoluteFilePath))
+                                            .toList();
+                                    if (!fileStorageList.isEmpty()) {
+                                        for (FileStorage fileStorage : fileStorageList) {
+                                            optComputeResource.get()
+                                                    .getFileStorages()
+                                                    .remove(fileStorage);
+                                        }
+                                    }
+                                });
+                                if (!confirmedYes.get()) {
+                                    trackCheckBox.setSelected(true);
                                 }
+                                fileSystemObject.setTrackFile(trackCheckBox.isSelected());
                             }
                         });
                         hostManagementService.updateComputeResource(optComputeResource.get());

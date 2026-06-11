@@ -2,6 +2,7 @@ package com.snjdigitalsolutions.lablensfx.repository;
 
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.orm.FileStorage;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 public interface FileStorageRepository extends CrudRepository<FileStorage, Long> {
@@ -14,5 +15,14 @@ public interface FileStorageRepository extends CrudRepository<FileStorage, Long>
      * @return {@code true} if the file has been persisted for this resource
      */
     boolean existsByComputeResourceAndAbsolutePath(ComputeResource computeResource, String absolutePath);
+
+    /**
+     * Returns the count of file storage records that are marked as changed
+     * but not as resolved
+     *
+     * @return the count of file storage records
+     */
+    @Query("SELECT count(*) FROM FileStorage fs WHERE fs.changedOnDisk = true AND fs.resolved = false")
+    Integer countOfChangedAndUnresolved();
 
 }

@@ -92,6 +92,10 @@ public class PersistConfigurationFileTask extends Task<Void> {
                             fileStorageObject.setFileDate(md5Utility.getFileBytes(destFile));
                             fileStorageObject.setCreatedTime(Instant.ofEpochMilli(System.currentTimeMillis()));
                             fileStorageObject.setComputeResource(hostKey);
+                            fileStorageObject.setChangedOnDisk(false);
+                            fileStorageObject.setResolved(false);
+                            fileStorageObject.setParent(0);
+                            fileStorageObject.setChild(0);
                             hostKey.getFileStorages().add(fileStorageObject);
                             hostManagementService.updateComputeResource(hostKey);
                         }

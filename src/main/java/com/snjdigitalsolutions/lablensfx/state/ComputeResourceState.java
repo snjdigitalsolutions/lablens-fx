@@ -271,7 +271,6 @@ public class ComputeResourceState {
             }
         }
         if (newlyAddedChildStorage != null) {
-            Long childID = newlyAddedChildStorage.getId();
             for (FileStorage storage : savedResource.getFileStorages()) {
                 if (storage.getId().compareTo(Integer.toUnsignedLong(newlyAddedChildStorage.getParent())) == 0) {
                     storage.setChild(newlyAddedChildStorage.getId().intValue());

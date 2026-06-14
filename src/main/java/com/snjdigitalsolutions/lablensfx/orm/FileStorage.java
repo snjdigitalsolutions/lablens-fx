@@ -36,4 +36,9 @@ public class FileStorage {
     private Integer parent;
     @Column(name = "child")
     private Integer child;
+
+    @Override
+    public String toString(){
+        return "File Storage: " + getId().toString();
+    }
 }

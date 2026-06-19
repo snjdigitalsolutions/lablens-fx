@@ -183,9 +183,15 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         if (type == SummaryPanelType.NUM_CONFIG_CHANGE) {
             Consumer<Event> eventConsumer = event -> {
                 if (event.getSource() instanceof Label) {
-                    String labelText = ((Label)event.getSource()).getText();
-                    if (NumberUtils.isIntegerNumber(labelText) && Integer.parseInt(labelText) > 0) {
-                       graphViewer.showGraph(labelText);
+                    String labelText = ((Label) event.getSource()).getText();
+                    if (NumberUtils.isIntegerNumber(labelText)) {
+                        try {
+                            if (Integer.parseInt(labelText) > 0) {
+                                graphViewer.showGraph(labelText);
+                            }
+                        } catch (NumberFormatException ex) {
+                            LOGGER.debug("Invalid numeric label text for configuration change count: {}", labelText, ex);
+                        }
                     }
                 }
             };

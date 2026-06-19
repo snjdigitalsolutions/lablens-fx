@@ -78,7 +78,11 @@ public class SettingsDialogPane extends AnchorPane implements SpringInitializabl
         applyButton.setOnAction(event -> {
             taskSchedulingService.cancelScheduledTask(ScheduledTaskType.CONFIGURATION_CHANGE_CHECK);
             if ( isValidNonZeroInt(snapshotIntervalValueTextField.getText())){
-                settingState.setSnapshotInterval(intervalComboBox.getValue(), Integer.valueOf(snapshotIntervalValueTextField.getText()));
+                try {
+                    settingState.setSnapshotInterval(intervalComboBox.getValue(), Integer.valueOf(snapshotIntervalValueTextField.getText()));
+                } catch (NumberFormatException e) {
+                    LOGGER.warn("Invalid snapshot interval value: {}", snapshotIntervalValueTextField.getText(), e);
+                }
             }
             Optional<Setting> optIntervalSetting = settingRepository.findBySettingName(SettingType.SNAPSHOT_INTERVAL.getName());
             optIntervalSetting.ifPresent(value -> {

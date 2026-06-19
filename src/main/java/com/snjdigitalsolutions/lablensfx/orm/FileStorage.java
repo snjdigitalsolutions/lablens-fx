@@ -5,12 +5,14 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 @Entity
 @Table(name = "file_storage")
 @Getter
 @Setter
-public class FileStorage implements Relational{
+public class FileStorage implements Relational {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,7 +40,9 @@ public class FileStorage implements Relational{
     private Integer child;
 
     @Override
-    public String toString(){
-        return "File Storage: " + getId().toString();
+    public String toString() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                .withZone(ZoneId.systemDefault());
+        return formatter.format(createdTime);
     }
 }

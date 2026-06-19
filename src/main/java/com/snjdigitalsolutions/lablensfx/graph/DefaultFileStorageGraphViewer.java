@@ -1,5 +1,6 @@
 package com.snjdigitalsolutions.lablensfx.graph;
 
+import com.brunomnsilva.smartgraph.containers.ContentZoomScrollPane;
 import com.brunomnsilva.smartgraph.containers.SmartGraphDemoContainer;
 import com.brunomnsilva.smartgraph.graph.Digraph;
 import com.brunomnsilva.smartgraph.graphview.*;
@@ -11,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Component
@@ -34,12 +37,11 @@ public class DefaultFileStorageGraphViewer implements GraphViewer<FileStorage> {
         for (ChangedConfigurationGraphBase<FileStorage> changedConfigurationGraphBase : changedConfigurations) {
             Digraph<FileStorage, String> graph = changedConfigurationGraphBase.getChangeGraph();
 
-            // using for PoC only
-//            SmartPlacementStrategy initialPlacement = new SmartCircularSortedPlacementStrategy();
+            // TODO using for PoC only
             ForceDirectedLayoutStrategy<FileStorage> automaticPlacementStrategy = new ForceDirectedSpringGravityLayoutStrategy<>();
             SmartGraphPanel<FileStorage, String> graphView = new LabLensSmartGraphPanel<>(graph, hierarchicalPlacementStrategy, automaticPlacementStrategy);
+            ContentZoomScrollPane contentZoomScrollPane = new ContentZoomScrollPane(graphView);
             Scene scene = new Scene(new SmartGraphDemoContainer(graphView), 1024, 768);
-
             Stage stage = new Stage(StageStyle.DECORATED);
             stage.setTitle("JavaFX SmartGraph Visualization");
             stage.setMinHeight(500);

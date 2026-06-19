@@ -1,6 +1,5 @@
 package com.snjdigitalsolutions.lablensfx.graph;
 
-import com.brunomnsilva.smartgraph.containers.ContentZoomScrollPane;
 import com.brunomnsilva.smartgraph.containers.SmartGraphDemoContainer;
 import com.brunomnsilva.smartgraph.graph.Digraph;
 import com.brunomnsilva.smartgraph.graphview.*;
@@ -40,7 +39,6 @@ public class DefaultFileStorageGraphViewer implements GraphViewer<FileStorage> {
             // TODO using for PoC only
             ForceDirectedLayoutStrategy<FileStorage> automaticPlacementStrategy = new ForceDirectedSpringGravityLayoutStrategy<>();
             SmartGraphPanel<FileStorage, String> graphView = new LabLensSmartGraphPanel<>(graph, hierarchicalPlacementStrategy, automaticPlacementStrategy);
-            ContentZoomScrollPane contentZoomScrollPane = new ContentZoomScrollPane(graphView);
             Scene scene = new Scene(new SmartGraphDemoContainer(graphView), 1024, 768);
             Stage stage = new Stage(StageStyle.DECORATED);
             stage.setTitle("JavaFX SmartGraph Visualization");

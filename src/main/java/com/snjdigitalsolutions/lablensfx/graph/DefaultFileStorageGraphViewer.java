@@ -14,13 +14,17 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class DefaultGraphViewer implements GraphViewer {
+public class DefaultFileStorageGraphViewer implements GraphViewer<FileStorage> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGraphViewer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileStorageGraphViewer.class);
     private final ChangedConfigurationGraphBaseCreator changedConfigurationGraphBaseCreator;
+    private final HierarchicalPlacementStrategy hierarchicalPlacementStrategy;
 
-    public DefaultGraphViewer(ChangedConfigurationGraphBaseCreator changedConfigurationGraphBaseCreator) {
+    public DefaultFileStorageGraphViewer(ChangedConfigurationGraphBaseCreator changedConfigurationGraphBaseCreator,
+                                         HierarchicalPlacementStrategy hierarchicalPlacementStrategy
+    ) {
         this.changedConfigurationGraphBaseCreator = changedConfigurationGraphBaseCreator;
+        this.hierarchicalPlacementStrategy = hierarchicalPlacementStrategy;
     }
 
     @Override
@@ -32,9 +36,8 @@ public class DefaultGraphViewer implements GraphViewer {
 
             // using for PoC only
 //            SmartPlacementStrategy initialPlacement = new SmartCircularSortedPlacementStrategy();
-            SmartPlacementStrategy initialPlacement = new HierarchicalPlacementStrategy();
             ForceDirectedLayoutStrategy<FileStorage> automaticPlacementStrategy = new ForceDirectedSpringGravityLayoutStrategy<>();
-            SmartGraphPanel<FileStorage, String> graphView = new LabLensSmartGraphPanel<>(graph, initialPlacement, automaticPlacementStrategy);
+            SmartGraphPanel<FileStorage, String> graphView = new LabLensSmartGraphPanel<>(graph, hierarchicalPlacementStrategy, automaticPlacementStrategy);
             Scene scene = new Scene(new SmartGraphDemoContainer(graphView), 1024, 768);
 
             Stage stage = new Stage(StageStyle.DECORATED);

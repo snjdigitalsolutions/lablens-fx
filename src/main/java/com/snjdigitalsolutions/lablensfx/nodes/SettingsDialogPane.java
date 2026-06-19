@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.Optional;
 
 @Component
@@ -39,6 +38,8 @@ public class SettingsDialogPane extends AnchorPane implements SpringInitializabl
     private ComboBox<Interval> intervalComboBox;
     @FXML
     private TextField snapshotIntervalValueTextField;
+    @FXML
+    private TextField graphLevelSpacingTextField;
     @FXML
     private Button cancelButton;
     @FXML
@@ -66,6 +67,51 @@ public class SettingsDialogPane extends AnchorPane implements SpringInitializabl
 
     @Override
     public void performIntialization() {
+        initIntervalCombobox();
+        initTextFields();
+        initApplyButton();
+        cancelButton.setOnAction(this::close);
+    }
+
+    private void initApplyButton() {
+        applyButton.prefWidthProperty().bind(cancelButton.widthProperty());
+        applyButton.setOnAction(event -> {
+            taskSchedulingService.cancelScheduledTask(ScheduledTaskType.CONFIGURATION_CHANGE_CHECK);
+            if ( isValidNonZeroInt(snapshotIntervalValueTextField.getText())){
+                settingState.setSnapshotInterval(intervalComboBox.getValue(), Integer.valueOf(snapshotIntervalValueTextField.getText()));
+            }
+            Optional<Setting> optIntervalSetting = settingRepository.findBySettingName(SettingType.SNAPSHOT_INTERVAL.getName());
+            optIntervalSetting.ifPresent(value -> {
+                value.setStringValue(intervalComboBox.getValue()
+                                             .displayValue());
+                settingRepository.save(value);
+            });
+            Optional<Setting> optIntervalValue = settingRepository.findBySettingName(SettingType.SNAPSHOT_INTERVAL_VALUE.getName());
+            optIntervalValue.ifPresent(value -> {
+               value.setStringValue(snapshotIntervalValueTextField.getText());
+               settingRepository.save(value);
+            });
+            taskSchedulingService.scheduleFixedRateTask(configurationChangeCheckTaskProvider.getIfAvailable(), ScheduledTaskType.CONFIGURATION_CHANGE_CHECK, settingState.getSnapshotIntervalInSeconds());
+            LOGGER.info("Setting snapshot interval in seconds: {}", settingState.getSnapshotIntervalInSeconds());
+            Optional<Setting> optLevelSetting = settingRepository.findBySettingName(SettingType.HIERARCHICAL_GRAPH_LEVEL_SPACING.getName());
+            optLevelSetting.ifPresent(value -> {
+                value.setStringValue(graphLevelSpacingTextField.getText());
+                settingState.setGraphLevelSpacing(Integer.valueOf(graphLevelSpacingTextField.getText()));
+                settingRepository.save(value);
+            });
+            this.close(event);
+        });
+    }
+
+    private void initTextFields() {
+        Optional<Setting>setting = settingRepository.findBySettingName(SettingType.SNAPSHOT_INTERVAL_VALUE.getName());
+        setting.ifPresent(value -> snapshotIntervalValueTextField.setText(value.getStringValue()));
+
+        setting = settingRepository.findBySettingName(SettingType.HIERARCHICAL_GRAPH_LEVEL_SPACING.getName());
+        setting.ifPresent(value -> graphLevelSpacingTextField.setText(value.getStringValue()));
+    }
+
+    private void initIntervalCombobox() {
         StringConverter<Interval> converter = new StringConverter<>() {
             @Override
             public String toString(Interval object) {
@@ -104,30 +150,6 @@ public class SettingsDialogPane extends AnchorPane implements SpringInitializabl
                 }
             }
         }
-        setting = settingRepository.findBySettingName(SettingType.SNAPSHOT_INTERVAL_VALUE.getName());
-        setting.ifPresent(value -> snapshotIntervalValueTextField.setText(value.getStringValue()));
-        applyButton.prefWidthProperty().bind(cancelButton.widthProperty());
-        cancelButton.setOnAction(this::close);
-        applyButton.setOnAction(event -> {
-            taskSchedulingService.cancelScheduledTask(ScheduledTaskType.CONFIGURATION_CHANGE_CHECK);
-            if ( isValidNonZeroInt(snapshotIntervalValueTextField.getText())){
-                settingState.setSnapshotInterval(intervalComboBox.getValue(), Integer.valueOf(snapshotIntervalValueTextField.getText()));
-            }
-            Optional<Setting> optIntervalSetting = settingRepository.findBySettingName(SettingType.SNAPSHOT_INTERVAL.getName());
-            optIntervalSetting.ifPresent(value -> {
-                value.setStringValue(intervalComboBox.getValue()
-                                             .displayValue());
-                settingRepository.save(value);
-            });
-            Optional<Setting> optIntervalValue = settingRepository.findBySettingName(SettingType.SNAPSHOT_INTERVAL_VALUE.getName());
-            optIntervalValue.ifPresent(value -> {
-               value.setStringValue(snapshotIntervalValueTextField.getText());
-               settingRepository.save(value);
-            });
-            taskSchedulingService.scheduleFixedRateTask(configurationChangeCheckTaskProvider.getIfAvailable(), ScheduledTaskType.CONFIGURATION_CHANGE_CHECK, settingState.getSnapshotIntervalInSeconds());
-            LOGGER.info("Setting snapshot interval in seconds: {}", settingState.getSnapshotIntervalInSeconds());
-            this.close(event);
-        });
     }
 
     @Override

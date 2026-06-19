@@ -5,7 +5,8 @@ public enum SettingType {
     CONFIG_CONFIRMATION("confirm-config", true, true),
     SHOW_IP_ADDRESSES("show-ips", true, true),
     SNAPSHOT_INTERVAL("snapshot-interval", false, Interval.HOURS),
-    SNAPSHOT_INTERVAL_VALUE("snapshot-interval-value", false, Integer.toString(2));
+    SNAPSHOT_INTERVAL_VALUE("snapshot-interval-value", false, Integer.toString(2)),
+    HIERARCHICAL_GRAPH_LEVEL_SPACING("hierarchical-graph-level-soacing", false, Integer.toString(100));
 
     final String name;
     final boolean boolType;

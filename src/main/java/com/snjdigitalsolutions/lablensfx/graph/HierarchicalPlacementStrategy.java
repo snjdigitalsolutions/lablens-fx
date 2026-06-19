@@ -5,18 +5,24 @@ import com.brunomnsilva.smartgraph.graphview.SmartGraphVertex;
 import com.brunomnsilva.smartgraph.graphview.SmartPlacementStrategy;
 import com.snjdigitalsolutions.lablensfx.orm.FileStorage;
 import com.snjdigitalsolutions.lablensfx.orm.Relational;
+import com.snjdigitalsolutions.lablensfx.state.SettingState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+@Component
 public class HierarchicalPlacementStrategy implements FileStorageHierarchicalStrategy, SmartPlacementStrategy {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HierarchicalPlacementStrategy.class);
+    private final SettingState settingState;
 
-    private int levelSpacing = 150;
+    public HierarchicalPlacementStrategy(SettingState settingState) {
+        this.settingState = settingState;
+    }
 
     @Override
     public <V extends Relational, E> void placeHierarchically(double width,
@@ -87,6 +93,7 @@ public class HierarchicalPlacementStrategy implements FileStorageHierarchicalStr
         LOGGER.debug("Center of graph: {}", center);
 
         int levelZeroLocation = 0;
+        int levelSpacing = settingState.getGraphLevelSpacing();
         if (((numberOfLevels) % 2) == 0) {
             //Even levels
             LOGGER.debug("Even levels");

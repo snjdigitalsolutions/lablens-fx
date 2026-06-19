@@ -1,10 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.state;
 
 import com.snjdigitalsolutions.lablensfx.setting.Interval;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.LongProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.property.*;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,6 +11,7 @@ public class SettingState {
     private final BooleanProperty showIPs = new SimpleBooleanProperty(true);
     private final BooleanProperty promptWhenConfigSelectionChanges = new SimpleBooleanProperty(true);
     private final LongProperty snapshotIntervalInSeconds = new SimpleLongProperty(0L);
+    private final IntegerProperty graphLevelSpacing = new SimpleIntegerProperty(0);
 
     /**
      * Returns whether application settings have been loaded from the database.
@@ -97,5 +95,17 @@ public class SettingState {
      */
     public void setSnapshotInterval(Interval snapshotInterval, Integer quantity) {
         this.snapshotIntervalInSeconds.set(snapshotInterval.multiplier() * quantity);
+    }
+
+    public int getGraphLevelSpacing() {
+        return graphLevelSpacing.get();
+    }
+
+    public IntegerProperty graphLevelSpacingProperty() {
+        return graphLevelSpacing;
+    }
+
+    public void setGraphLevelSpacing(Integer graphLevelSpacing) {
+        this.graphLevelSpacing.set(graphLevelSpacing);
     }
 }

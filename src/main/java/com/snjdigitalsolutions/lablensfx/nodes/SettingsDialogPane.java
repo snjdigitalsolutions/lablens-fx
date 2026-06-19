@@ -99,9 +99,14 @@ public class SettingsDialogPane extends AnchorPane implements SpringInitializabl
             LOGGER.info("Setting snapshot interval in seconds: {}", settingState.getSnapshotIntervalInSeconds());
             Optional<Setting> optLevelSetting = settingRepository.findBySettingName(SettingType.HIERARCHICAL_GRAPH_LEVEL_SPACING.getName());
             optLevelSetting.ifPresent(value -> {
-                value.setStringValue(graphLevelSpacingTextField.getText());
-                settingState.setGraphLevelSpacing(Integer.valueOf(graphLevelSpacingTextField.getText()));
-                settingRepository.save(value);
+                try {
+                    Integer graphLevelSpacing = Integer.valueOf(graphLevelSpacingTextField.getText());
+                    value.setStringValue(graphLevelSpacingTextField.getText());
+                    settingState.setGraphLevelSpacing(graphLevelSpacing);
+                    settingRepository.save(value);
+                } catch (NumberFormatException ex) {
+                    LOGGER.warn("Invalid graph level spacing value: {}", graphLevelSpacingTextField.getText(), ex);
+                }
             });
             this.close(event);
         });

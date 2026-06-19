@@ -359,7 +359,17 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                                                 .setValue(setting.getBoolValue());
                                     }
                                     case HIERARCHICAL_GRAPH_LEVEL_SPACING -> {
-                                        settingState.graphLevelSpacingProperty().setValue(Integer.valueOf(setting.getStringValue()));
+                                        try {
+                                            settingState.graphLevelSpacingProperty().setValue(Integer.valueOf(setting.getStringValue()));
+                                        } catch (NumberFormatException ex) {
+                                            Integer defaultSpacing = Integer.valueOf((String) SettingType.HIERARCHICAL_GRAPH_LEVEL_SPACING.getDefaultValue());
+                                            LOGGER.warn("Invalid value '{}' for setting '{}'. Falling back to default '{}'.",
+                                                    setting.getStringValue(),
+                                                    SettingType.HIERARCHICAL_GRAPH_LEVEL_SPACING.getName(),
+                                                    defaultSpacing,
+                                                    ex);
+                                            settingState.graphLevelSpacingProperty().setValue(defaultSpacing);
+                                        }
                                     }
                                 }
                             });

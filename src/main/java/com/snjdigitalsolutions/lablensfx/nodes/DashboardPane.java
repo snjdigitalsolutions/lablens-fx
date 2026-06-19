@@ -1,25 +1,34 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
+import com.brunomnsilva.smartgraph.containers.SmartGraphDemoContainer;
+import com.brunomnsilva.smartgraph.graph.Digraph;
+import com.brunomnsilva.smartgraph.graphview.*;
 import com.snjdigitalsolutions.lablensfx.application.ChangeListenerRegistry;
+import com.snjdigitalsolutions.lablensfx.graph.ChangedConfigurationGraphBase;
+import com.snjdigitalsolutions.lablensfx.graph.ChangedConfigurationGraphBaseCreator;
+import com.snjdigitalsolutions.lablensfx.graph.GraphViewer;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
+import com.snjdigitalsolutions.lablensfx.orm.FileStorage;
 import com.snjdigitalsolutions.lablensfx.orm.model.ComputeResourceModel;
+import com.snjdigitalsolutions.lablensfx.repository.FileStorageRepository;
 import com.snjdigitalsolutions.lablensfx.service.node.StatusBarService;
 import com.snjdigitalsolutions.lablensfx.state.ComputeResourceState;
 import com.snjdigitalsolutions.lablensfx.state.ConfigurationCheckState;
 import com.snjdigitalsolutions.lablensfx.state.ShowIpAddressState;
-import com.snjdigitalsolutions.lablensfx.state.StatusBarState;
 import com.snjdigitalsolutions.springbootutilityfx.node.SpringInitializableNode;
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
-import impl.org.controlsfx.skin.ToggleSwitchSkin;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.MapChangeListener;
+import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
-import org.controlsfx.control.ToggleSwitch;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import org.apache.sshd.common.util.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -31,11 +40,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 @Component
 public class DashboardPane extends AnchorPane implements SpringInitializableNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DashboardPane.class);
+    private final FileStorageRepository fileStorageRepository;
     @FXML
     private HBox summaryPanelHBox;
     @FXML
@@ -56,6 +67,8 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
     private final StatusBarService statusBarService;
     private final ConfigurationCheckState configurationCheckState;
     private final ChangeListenerRegistry changeListenerRegistry;
+    private final ChangedConfigurationGraphBaseCreator changedConfigurationGraphBaseCreator;
+    private final GraphViewer graphViewer;
 
     /**
      * Creates the dashboard pane with the resources and services required to render summary panels.
@@ -66,7 +79,10 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                          ComputeResourceState computeResourceState,
                          ShowIpAddressState showIpAddressState, StatusBarService statusBarService,
                          ConfigurationCheckState configurationCheckState,
-                         ChangeListenerRegistry changeListenerRegistry
+                         ChangeListenerRegistry changeListenerRegistry,
+                         ChangedConfigurationGraphBaseCreator changedConfigurationGraphBaseCreator,
+                         FileStorageRepository fileStorageRepository,
+                         GraphViewer graphViewer
     )
     {
         this.summaryPanelProvider = summaryPanelProvider;
@@ -76,7 +92,10 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         this.statusBarService = statusBarService;
         this.configurationCheckState = configurationCheckState;
         this.changeListenerRegistry = changeListenerRegistry;
+        this.changedConfigurationGraphBaseCreator = changedConfigurationGraphBaseCreator;
+        this.graphViewer = graphViewer;
         NodeLoader.load(fxml, this);
+        this.fileStorageRepository = fileStorageRepository;
     }
 
     /**
@@ -96,9 +115,9 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         summaryPanelHBox.getChildren()
                 .add(createSummaryPanel(SummaryPanelType.NUM_ONLINE));
         summaryPanelHBox.getChildren()
-                .add(createSummaryPanel(SummaryPanelType.NUM_CONFIG_CHANGES));
+                .add(createSummaryPanel(SummaryPanelType.NUM_LOG_ERRORS));
         summaryPanelHBox.getChildren()
-                .add(createSummaryPanel(SummaryPanelType.NUM_LOG_ERROR));
+                .add(createSummaryPanel(SummaryPanelType.NUM_CONFIG_CHANGE));
         computeResourceState.getComputeResourcesMap()
                 .addListener((MapChangeListener<Long, ComputeResource>) change -> {
                     if (change.wasAdded() && !change.wasRemoved()) {
@@ -150,7 +169,7 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
      */
     private SummaryPanel createSummaryPanel(SummaryPanelType type) {
         SummaryPanel panel = summaryPanelProvider.getObject();
-        panel.performIntialization();
+        panel.performInitialization();
         panel.setHeaderLabelText(type.getHeader());
         panel.setMoreInfoLabel(type.getMoreInfo());
         if (!type.getCssClass()
@@ -159,6 +178,26 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         }
         HBox.setHgrow(panel, Priority.ALWAYS);
         addListenerForLabel(panel, type);
+
+        //When panel type is the number of configuration changes add listener to the number label
+        if (type == SummaryPanelType.NUM_CONFIG_CHANGE) {
+            Consumer<Event> eventConsumer = event -> {
+                if (event.getSource() instanceof Label) {
+                    String labelText = ((Label) event.getSource()).getText();
+                    if (NumberUtils.isIntegerNumber(labelText)) {
+                        try {
+                            if (Integer.parseInt(labelText) > 0) {
+                                graphViewer.showGraph(labelText);
+                            }
+                        } catch (NumberFormatException ex) {
+                            LOGGER.debug("Invalid numeric label text for configuration change count: {}", labelText, ex);
+                        }
+                    }
+                }
+            };
+            panel.setLabelListener(eventConsumer);
+            LOGGER.debug("Added consumer to configuration change count label");
+        }
         return panel;
     }
 
@@ -186,7 +225,7 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                             panel.setCountLabel(newVal.toString());
                         });
             }
-            case NUM_LOG_ERROR -> {
+            case NUM_CONFIG_CHANGE -> {
                 computeResourceState.configurationChangeCountProperty()
                         .addListener((obj, oldVal, newVal) -> {
                             panel.setCountLabel(newVal.toString());

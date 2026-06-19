@@ -30,6 +30,11 @@
                           <MenuItem mnemonicParsing="false" text="Close" />
                         </items>
                       </Menu>
+                        <Menu mnemonicParsing="false" text="Actions">
+                          <items>
+                            <MenuItem fx:id="checkForConfigurationChangesMenuItem" mnemonicParsing="false" text="Check for Configuration Changes" />
+                          </items>
+                        </Menu>
                       <Menu mnemonicParsing="false" text="Edit">
                         <items>
                           <MenuItem fx:id="deleteSelectedHostsMenuItem" mnemonicParsing="false" text="Delete Selected Hosts" />

@@ -1,6 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.nodes;
 
 import com.snjdigitalsolutions.springbootutilityfx.node.utility.NodeLoader;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -8,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
+
+import java.util.function.Consumer;
 
 @Component
 @Scope("prototype")
@@ -25,17 +28,18 @@ public class SummaryPanel extends HBox {
      *
      * @param fxml the FXML resource for the summary panel layout
      */
-    public SummaryPanel(@Value("classpath:/fxml/SummaryPanel.fxml")Resource fxml){
+    public SummaryPanel(@Value("classpath:/fxml/SummaryPanel.fxml") Resource fxml) {
         NodeLoader.load(fxml, this);
     }
 
     /**
      * Initializes the panel layout with default label values and styling.
      */
-    public void performIntialization() {
+    public void performInitialization() {
         headerLabel.setText("Summary Panel");
         countLabel.setText("0");
-        countLabel.getStyleClass().add("summary-panel-count-black");
+        countLabel.getStyleClass()
+                .add("summary-panel-count-black");
         moreInfoLabel.setText("default configuration");
     }
 
@@ -72,8 +76,10 @@ public class SummaryPanel extends HBox {
      * @param clazz the style class name to apply
      */
     public void setCountLabelStyleClass(String clazz) {
-        this.countLabel.getStyleClass().clear();
-        this.countLabel.getStyleClass().add(clazz);
+        this.countLabel.getStyleClass()
+                .clear();
+        this.countLabel.getStyleClass()
+                .add(clazz);
     }
 
     /**
@@ -83,6 +89,19 @@ public class SummaryPanel extends HBox {
      */
     public void setMoreInfoLabel(String text) {
         this.moreInfoLabel.setText(text);
+    }
+
+    /**
+     * Applies a consumer to the mouse click action
+     * of the numeric label on the panel
+     *
+     * @param eventConsumer the consumer for the mouse click event
+     */
+    public void setLabelListener(Consumer<Event> eventConsumer) {
+        System.out.println("setLabelListener");
+        countLabel.setOnMouseClicked(event -> {
+            eventConsumer.accept(event);
+        });
     }
 
 }

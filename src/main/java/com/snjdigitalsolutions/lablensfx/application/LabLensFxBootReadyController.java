@@ -3,7 +3,6 @@ package com.snjdigitalsolutions.lablensfx.application;
 import com.snjdigitalsolutions.lablensfx.nodes.*;
 import com.snjdigitalsolutions.lablensfx.orm.Setting;
 import com.snjdigitalsolutions.lablensfx.repository.SettingRepository;
-import com.snjdigitalsolutions.lablensfx.service.FilePersistenceService;
 import com.snjdigitalsolutions.lablensfx.service.HostManagementService;
 import com.snjdigitalsolutions.lablensfx.service.PassPhraseMode;
 import com.snjdigitalsolutions.lablensfx.service.VerifyHostConfigurationService;
@@ -78,6 +77,8 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     @FXML
     private MenuItem verifyPathPrivilegeMenuItem;
     @FXML
+    private MenuItem checkForConfigurationChangesMenuItem;
+    @FXML
     private MenuItem testFunctionMenuItem;
     @FXML
     private FontAwesomeIconView showHideIpIconView;
@@ -137,7 +138,8 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                                         MenuItemSelectionState menuItemSelectionState,
                                         SettingState settingState,
                                         SettingRepository settingRepository,
-                                        AlertUtility alertUtility, StatusBarService statusBarService,
+                                        AlertUtility alertUtility,
+                                        StatusBarService statusBarService,
                                         ApplicationState applicationState,
                                         ChangeListenerRegistry changeListenerRegistry,
                                         LoadingOverlay loadingOverlay,
@@ -204,36 +206,55 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                     indicator.passPhraseMode()
                             .setValue(newVal);
                 });
-        HBox buttonBox = (HBox)sshButton.getParent();
-        buttonBox.getChildren().remove(configButton);
-        buttonBox.getChildren().remove(dashboardButton);
-        buttonBox.getChildren().remove(logButton);
-        buttonBox.getChildren().remove(timelineButton);
-        configButton.visibleProperty().setValue(false);
-        dashboardButton.visibleProperty().setValue(false);
-        logButton.visibleProperty().setValue(false);
-        timelineButton.visibleProperty().setValue(false);
+        HBox buttonBox = (HBox) sshButton.getParent();
+        buttonBox.getChildren()
+                .remove(configButton);
+        buttonBox.getChildren()
+                .remove(dashboardButton);
+        buttonBox.getChildren()
+                .remove(logButton);
+        buttonBox.getChildren()
+                .remove(timelineButton);
+        configButton.visibleProperty()
+                .setValue(false);
+        dashboardButton.visibleProperty()
+                .setValue(false);
+        logButton.visibleProperty()
+                .setValue(false);
+        timelineButton.visibleProperty()
+                .setValue(false);
         SegmentedButton segmentedButton = new SegmentedButton();
-        segmentedButton.getButtons().addAll(dashboardToggleButton, configToggleButton, logToggleButton, timelineToggleButton);
+        segmentedButton.getButtons()
+                .addAll(dashboardToggleButton, configToggleButton, logToggleButton, timelineToggleButton);
         // Apply the listener to each button
         dashboardToggleButton.setSelected(true);
         ToggleGroup group = segmentedButton.getToggleGroup();
-        group.getToggles().addAll(dashboardToggleButton, configToggleButton, logToggleButton, timelineToggleButton);
+        group.getToggles()
+                .addAll(dashboardToggleButton, configToggleButton, logToggleButton, timelineToggleButton);
         for (Toggle toggle : group.getToggles()) {
-            toggle.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
-                if (!isNowSelected && group.getSelectedToggle() == null) {
-                    LOGGER.debug(("Toggle selection changed"));
-                    toggle.setSelected(true);
-                }
-            });
+            toggle.selectedProperty()
+                    .addListener((obs, wasSelected, isNowSelected) -> {
+                        if (!isNowSelected && group.getSelectedToggle() == null) {
+                            LOGGER.debug(("Toggle selection changed"));
+                            toggle.setSelected(true);
+                        }
+                    });
         }
-        buttonBox.getChildren().add(1, segmentedButton);
-        if (!testButtonEnabled){
+        buttonBox.getChildren()
+                .add(1, segmentedButton);
+        if (!testButtonEnabled) {
             testFunctionMenuItem.setVisible(false);
         }
-        testFunctionMenuItem.setOnAction(event -> {
-           Thread.ofVirtual().start(configurationChangeCheckTaskObjectProvider.getObject());
+
+        checkForConfigurationChangesMenuItem.setOnAction(event -> {
+            Thread.ofVirtual()
+                    .start(configurationChangeCheckTaskObjectProvider.getObject());
         });
+
+        testFunctionMenuItem.setOnAction(event -> {
+
+        });
+
         settingsButton.setOnAction(event -> {
             StageNodeBuilder.builder()
                     .setModality(Modality.APPLICATION_MODAL)
@@ -248,10 +269,11 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
      * Configures and installs the loading overlay onto the root pane.
      */
     private void initializeLoadingOverlay() {
-        stackPane.getChildren().add(loadingOverlay);
+        stackPane.getChildren()
+                .add(loadingOverlay);
         ChangeListener<Boolean> loadingListener = (obj, oldVal, newVal) -> {
             if (newVal) {
-                BoxBlur blur = new BoxBlur(5,5,3);
+                BoxBlur blur = new BoxBlur(5, 5, 3);
                 borderPane.setEffect(blur);
             } else {
                 borderPane.setEffect(null);
@@ -272,7 +294,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
      */
     private void initializeDashboardButton() {
         dashboardToggleButton.setOnAction(event -> {
-           setDashboardVisible();
+            setDashboardVisible();
         });
         dashboardButton.setOnAction(event -> {
             setDashboardVisible();
@@ -293,6 +315,7 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
         });
     }
 
+    // TODO: look at refactor for more logical settings additions
     /**
      * Loads persisted application settings from the repository into state.
      */
@@ -306,8 +329,8 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                 if (type.isBoolType()) {
                     setting.setBoolValue((boolean) type.getDefaultValue());
                 } else {
-                    if (type.getDefaultValue() instanceof Interval){
-                        setting.setStringValue(((Interval)type.getDefaultValue()).displayValue());
+                    if (type.getDefaultValue() instanceof Interval) {
+                        setting.setStringValue(((Interval) type.getDefaultValue()).displayValue());
                     } else {
                         setting.setStringValue((String) type.getDefaultValue());
                     }
@@ -335,6 +358,19 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                                         settingState.showIPsProperty()
                                                 .setValue(setting.getBoolValue());
                                     }
+                                    case HIERARCHICAL_GRAPH_LEVEL_SPACING -> {
+                                        try {
+                                            settingState.graphLevelSpacingProperty().setValue(Integer.valueOf(setting.getStringValue()));
+                                        } catch (NumberFormatException ex) {
+                                            Integer defaultSpacing = Integer.valueOf((String) SettingType.HIERARCHICAL_GRAPH_LEVEL_SPACING.getDefaultValue());
+                                            LOGGER.warn("Invalid value '{}' for setting '{}'. Falling back to default '{}'.",
+                                                    setting.getStringValue(),
+                                                    SettingType.HIERARCHICAL_GRAPH_LEVEL_SPACING.getName(),
+                                                    defaultSpacing,
+                                                    ex);
+                                            settingState.graphLevelSpacingProperty().setValue(defaultSpacing);
+                                        }
+                                    }
                                 }
                             });
                 });
@@ -353,6 +389,13 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
                     Optional<Setting> optSetting = settingRepository.findBySettingName(SettingType.CONFIG_CONFIRMATION.getName());
                     optSetting.ifPresent(value -> value.setBoolValue(newVal));
                     settingRepository.save(optSetting.get());
+                });
+
+        settingState.graphLevelSpacingProperty()
+                .addListener((obj, oldVal, newVal) -> {
+                   Optional<Setting> optSetting = settingRepository.findBySettingName(SettingType.HIERARCHICAL_GRAPH_LEVEL_SPACING.getName());
+                   optSetting.ifPresent(value -> value.setStringValue(newVal.toString()));
+                   settingRepository.save(optSetting.get());
                 });
 
         settingState.settingsLoadedProperty()

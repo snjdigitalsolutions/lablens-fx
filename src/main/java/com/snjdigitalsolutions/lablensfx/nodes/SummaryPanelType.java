@@ -4,8 +4,8 @@ public enum SummaryPanelType {
 
     NUM_HOSTS("Total Hosts", "registered", ""),
     NUM_ONLINE("Hosts Online", "reachable via ssh", "summary-panel-count-green"),
-    NUM_LOG_ERROR("Configuration Changes", "all hosts", "summary-panel-count-orange"),
-    NUM_CONFIG_CHANGES("Log Errors", "all hosts", "summary-panel-count-red");
+    NUM_CONFIG_CHANGE("Configuration Changes", "all hosts", "summary-panel-count-orange"),
+    NUM_LOG_ERRORS("Log Errors", "all hosts", "summary-panel-count-red");
 
     private final String header;
     private final String moreInfo;

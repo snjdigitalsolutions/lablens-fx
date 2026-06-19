@@ -31,7 +31,11 @@ public class DefaultFileStorageGraphViewer implements GraphViewer<FileStorage> {
 
     @Override
     public void showGraph(String labelText) {
-        LOGGER.info("Number of changed configuration files: {}", Integer.parseInt(labelText));
+        try {
+            LOGGER.info("Number of changed configuration files: {}", Integer.parseInt(labelText));
+        } catch (NumberFormatException ex) {
+            LOGGER.warn("Invalid number format for changed configuration files label: '{}'", labelText, ex);
+        }
         List<ChangedConfigurationGraphBase<FileStorage>> changedConfigurations = changedConfigurationGraphBaseCreator.createChangedConfigurationGraphBase();
         for (ChangedConfigurationGraphBase<FileStorage> changedConfigurationGraphBase : changedConfigurations) {
             Digraph<FileStorage, String> graph = changedConfigurationGraphBase.getChangeGraph();

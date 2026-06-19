@@ -86,6 +86,8 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
     @FXML
     private MenuItem verifyPathPrivilegeMenuItem;
     @FXML
+    private MenuItem checkForConfigurationChangesMenuItem;
+    @FXML
     private MenuItem testFunctionMenuItem;
     @FXML
     private FontAwesomeIconView showHideIpIconView;
@@ -240,11 +242,14 @@ public class LabLensFxBootReadyController implements SpringInitializableNode {
             testFunctionMenuItem.setVisible(false);
         }
 
-        //TODO add menu item for performing the configuration change task
+        checkForConfigurationChangesMenuItem.setOnAction(event -> {
+            Thread.ofVirtual().start(configurationChangeCheckTaskObjectProvider.getObject());
+        });
 
         testFunctionMenuItem.setOnAction(event -> {
-//           Thread.ofVirtual().start(configurationChangeCheckTaskObjectProvider.getObject());
+
         });
+
         settingsButton.setOnAction(event -> {
             StageNodeBuilder.builder()
                     .setModality(Modality.APPLICATION_MODAL)

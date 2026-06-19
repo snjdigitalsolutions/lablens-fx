@@ -10,7 +10,7 @@ import java.time.Instant;
 @Table(name = "file_storage")
 @Getter
 @Setter
-public class FileStorage {
+public class FileStorage implements Relational{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

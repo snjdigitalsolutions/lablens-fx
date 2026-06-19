@@ -1,5 +1,7 @@
 package com.snjdigitalsolutions.lablensfx.configuration;
 
+import com.snjdigitalsolutions.lablensfx.graph.DefaultGraphViewer;
+import com.snjdigitalsolutions.lablensfx.graph.GraphViewer;
 import org.h2.tools.Server;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.context.annotation.Bean;

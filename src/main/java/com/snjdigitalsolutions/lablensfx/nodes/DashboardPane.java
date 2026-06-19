@@ -6,6 +6,7 @@ import com.brunomnsilva.smartgraph.graphview.*;
 import com.snjdigitalsolutions.lablensfx.application.ChangeListenerRegistry;
 import com.snjdigitalsolutions.lablensfx.graph.ChangedConfigurationGraphBase;
 import com.snjdigitalsolutions.lablensfx.graph.ChangedConfigurationGraphBaseCreator;
+import com.snjdigitalsolutions.lablensfx.graph.GraphViewer;
 import com.snjdigitalsolutions.lablensfx.orm.ComputeResource;
 import com.snjdigitalsolutions.lablensfx.orm.FileStorage;
 import com.snjdigitalsolutions.lablensfx.orm.model.ComputeResourceModel;
@@ -22,7 +23,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
@@ -68,6 +68,7 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
     private final ConfigurationCheckState configurationCheckState;
     private final ChangeListenerRegistry changeListenerRegistry;
     private final ChangedConfigurationGraphBaseCreator changedConfigurationGraphBaseCreator;
+    private final GraphViewer graphViewer;
 
     /**
      * Creates the dashboard pane with the resources and services required to render summary panels.
@@ -80,7 +81,8 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
                          ConfigurationCheckState configurationCheckState,
                          ChangeListenerRegistry changeListenerRegistry,
                          ChangedConfigurationGraphBaseCreator changedConfigurationGraphBaseCreator,
-                         FileStorageRepository fileStorageRepository
+                         FileStorageRepository fileStorageRepository,
+                         GraphViewer graphViewer
     )
     {
         this.summaryPanelProvider = summaryPanelProvider;
@@ -91,6 +93,7 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         this.configurationCheckState = configurationCheckState;
         this.changeListenerRegistry = changeListenerRegistry;
         this.changedConfigurationGraphBaseCreator = changedConfigurationGraphBaseCreator;
+        this.graphViewer = graphViewer;
         NodeLoader.load(fxml, this);
         this.fileStorageRepository = fileStorageRepository;
     }
@@ -175,35 +178,14 @@ public class DashboardPane extends AnchorPane implements SpringInitializableNode
         }
         HBox.setHgrow(panel, Priority.ALWAYS);
         addListenerForLabel(panel, type);
+
+        //When panel type is the number of configuration changes add listener to the number label
         if (type == SummaryPanelType.NUM_CONFIG_CHANGE) {
             Consumer<Event> eventConsumer = event -> {
                 if (event.getSource() instanceof Label) {
                     String labelText = ((Label)event.getSource()).getText();
                     if (NumberUtils.isIntegerNumber(labelText) && Integer.parseInt(labelText) > 0) {
-                        LOGGER.info("Number of changed configuration files: {}", Integer.parseInt(labelText));
-                        List<ChangedConfigurationGraphBase> changedConfigurations = changedConfigurationGraphBaseCreator.createChangedConfigurationGraphBase();
-                        for (ChangedConfigurationGraphBase changedConfigurationGraphBase : changedConfigurations) {
-                            Digraph<FileStorage, String> graph = changedConfigurationGraphBase.getChangeGraph();
-
-
-                            // using for PoC only
-                            SmartPlacementStrategy initialPlacement = new SmartCircularSortedPlacementStrategy();
-                            ForceDirectedLayoutStrategy<FileStorage> automaticPlacementStrategy = new ForceDirectedSpringGravityLayoutStrategy<>();
-                            SmartGraphPanel<FileStorage,String> graphView = new SmartGraphPanel<>(graph, initialPlacement, automaticPlacementStrategy);
-                            Scene scene = new Scene(new SmartGraphDemoContainer(graphView), 1024, 768);
-
-                            Stage stage = new Stage(StageStyle.DECORATED);
-                            stage.setTitle("JavaFX SmartGraph Visualization");
-                            stage.setMinHeight(500);
-                            stage.setMinWidth(800);
-                            stage.setScene(scene);
-                            stage.show();
-
-                            graphView.init();
-
-                            LOGGER.debug("Inspecting graph");
-                        }
-                        LOGGER.debug("Changed configurations created");
+                       graphViewer.showGraph(labelText);
                     }
                 }
             };

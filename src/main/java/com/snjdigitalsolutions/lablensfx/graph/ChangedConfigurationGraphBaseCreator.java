@@ -33,7 +33,6 @@ public class ChangedConfigurationGraphBaseCreator {
         List<ChangedConfigurationGraphBase<FileStorage>> changedConfigurationGraphBaseList = new ArrayList<>();
         List<FileStorage> changedAndUnresolvedFiles = getChangedUnresolvedFileStorageAndChildren();
         Map<Integer, FileStorage> idToFileStorageMap = new HashMap<>();
-        Map<Integer, FileStorage> childIdToFileStorageMap = new HashMap<>();
         changedAndUnresolvedFiles.forEach(fileStorage -> {
             idToFileStorageMap.put(fileStorage.getId()
                                            .intValue(), fileStorage);

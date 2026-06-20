@@ -2,6 +2,8 @@ package com.snjdigitalsolutions.lablensfx.graph;
 
 import com.brunomnsilva.smartgraph.graph.Digraph;
 import com.brunomnsilva.smartgraph.graph.DigraphEdgeList;
+import com.brunomnsilva.smartgraph.graph.Edge;
+import com.brunomnsilva.smartgraph.graphview.SmartGraphEdge;
 import com.snjdigitalsolutions.lablensfx.orm.FileStorage;
 import com.snjdigitalsolutions.lablensfx.orm.Relational;
 import lombok.Getter;
@@ -37,7 +39,7 @@ public class ChangedConfigurationGraphBase<V extends Relational> {
         }
         for (V fileStorage : unresolvedChangedFileStorages) {
             if (fileStorage.getChild() != 0) {
-                changeGraph.insertEdge(fileStorage, idToFileStorageMap.get(fileStorage.getChild()), "change");
+                changeGraph.insertEdge(fileStorage, idToFileStorageMap.get(fileStorage.getChild()), "Show Differences");
             }
         }
         return changeGraph;

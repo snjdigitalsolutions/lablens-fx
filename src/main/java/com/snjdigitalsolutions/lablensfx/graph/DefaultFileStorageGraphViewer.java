@@ -43,6 +43,17 @@ public class DefaultFileStorageGraphViewer implements GraphViewer<FileStorage> {
             // TODO using for PoC only
             ForceDirectedLayoutStrategy<FileStorage> automaticPlacementStrategy = new ForceDirectedSpringGravityLayoutStrategy<>();
             SmartGraphPanel<FileStorage, String> graphView = new LabLensSmartGraphPanel<>(graph, hierarchicalPlacementStrategy, automaticPlacementStrategy);
+            for (SmartGraphEdge<String,FileStorage> smartEdge : graphView.getSmartEdges()){
+                SmartStylableNode label = smartEdge.getStylableLabel();
+                if (label instanceof SmartLabel smartLabel) {
+                    smartLabel.setOnMouseClicked(event -> {
+                        SmartGraphVertex<FileStorage> inboundEdge = smartEdge.getInbound();
+                        SmartGraphVertex<FileStorage> outboundEdge = smartEdge.getOutbound();
+                        LOGGER.debug("Show delta between file storage {} and {}", outboundEdge.getUnderlyingVertex().element().getId(), inboundEdge.getUnderlyingVertex().element().getId());
+                    });
+                }
+            }
+
             Scene scene = new Scene(new SmartGraphDemoContainer(graphView), 1024, 768);
             Stage stage = new Stage(StageStyle.DECORATED);
             stage.setTitle("JavaFX SmartGraph Visualization");
